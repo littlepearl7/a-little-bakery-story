@@ -52,7 +52,9 @@ function doneEvent() {
   queue.events.shift();
   activeEvent.value = null;
   save();
-  if (queue.events.length) setTimeout(openNext, 220);
+  // 本月还有剧情就接着演；跨月/旧月的留给「有 N 段剧情」角标，不打断经营
+  const next = queue.events[0];
+  if (next && next.month === state.month) setTimeout(openNext, 200);
 }
 
 function onClosed(report) {
@@ -73,15 +75,16 @@ function restart() {
   openNext();
 }
 
-// 有新剧情（比如和苏晴聊了聊）就自动弹出来，不用手动点
+// 只有玩家主动触发的剧情（比如和苏晴聊天）才立刻弹出来；
+// 主线剧情一律等玩家点「有 N 段剧情」，演完就回去经营。
 watch(
-  () => queue.events.length,
-  (n, old) => {
-    if (n > 0 && n > (old || 0) && !activeEvent.value && !dayReport.value && !monthReport.value) {
-      setTimeout(() => {
-        if (!activeEvent.value && queue.events.length) openNext();
-      }, 90);
-    }
+  () => state.autoStory,
+  (v) => {
+    if (!v) return;
+    state.autoStory = false;
+    setTimeout(() => {
+      if (!activeEvent.value && queue.events.length) openNext();
+    }, 90);
   }
 );
 

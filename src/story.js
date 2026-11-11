@@ -326,9 +326,20 @@ function parseBlock(lines, opts = {}) {
       if (/^(触发条件|状态变更|初始状态|检查条件|注意|系统提示)/.test(inner)) continue;
 
       // 场景 / 回忆片段 → 场景分隔
-      if (/^(场景|插入回忆片段|接续回忆片段|回忆片段|回到现在|闪回|时间|地点)/.test(inner)) {
+      if (/^(场景|插入回忆|接续回忆|回忆片段|回到现在|闪回|时间|地点)/.test(inner)) {
         push({ t: 'scene', text: inner.replace(/^场景\s*[：:]\s*/, '') });
         if (rest) push({ t: 'nar', text: rest });
+        continue;
+      }
+
+      // CG：整屏插画，用于重要场面
+      const cg = inner.match(/^CG\s*[：:]\s*(.+)$/i);
+      if (cg) {
+        push({ t: 'cg', key: cg[1].trim() });
+        continue;
+      }
+      if (/^CG\s*(结束|收起)/.test(inner)) {
+        push({ t: 'cgend' });
         continue;
       }
 

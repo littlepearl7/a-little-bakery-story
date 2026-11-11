@@ -66,6 +66,7 @@ export function newState() {
     ending: null,
     acquired: false,
     dailyIdx: 0,
+    autoStory: false,
     stage: 1,
     report: null,
   };
@@ -395,6 +396,7 @@ export function doAction(id, opt) {
       const ev = list[state.dailyIdx % list.length];
       state.dailyIdx += 1;
       state.friendship = clamp(state.friendship + 3);
+      state.autoStory = true;
       pushEvent(ev);
       log('和苏晴聊了几句，友情 +3');
       break;

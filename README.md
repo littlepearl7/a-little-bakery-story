@@ -27,6 +27,26 @@ npm run build
 产出三份内容相同的单文件 HTML：`dist/index.html`、`dist/play.html`、`dist/林记烘焙.html`。
 构建末尾会自动跑 `tools/make-standalone.mjs` 把 JS/CSS 内联进去，并带语法自检。
 
+## 剧情怎么演
+
+剧情是整屏的 AVG 演出，不是弹窗：
+
+- **背景**：按 `【场景：…】` 自动切（店内 / 后厨 / 街道 / 家 / 市集 / 学校 / 河边 / 夜…），带淡入和回忆滤镜
+- **立绘**：谁说话谁亮，没说话的压暗后退；同时最多站三个人
+- **CG**：`**【CG：festival】**` 起、`**【CG 结束】**` 止，换场景也会自动收起
+- **对话框**：底部固定，名字旁带小头像，正文有打字机效果；点屏幕推进，点一下先出完整句
+- **顶上两个按钮**：「自动」按 1.4 秒一句往下播；「跳过」快进到下一个选项或结尾
+
+**图片全部按文件名自动加载**，没有图就用暖色氛围底兜底，不会破图也不报错：
+
+| 文件 | 放在 | 说明 |
+|---|---|---|
+| `bg-shop.webp` `bg-kitchen.webp` … | `public/art/` | 场景背景，11 个 key 见 `src/vn.js` |
+| `cg-festival.webp` `cg-finale.webp` … | `public/art/` | 整屏 CG，key 由文案里的 `【CG：…】` 指定 |
+| `ln-sprite.webp` `xy-sprite.webp` … | `public/art/` | 立绘（透明底），缺图就不站人 |
+
+要哪些图、每张怎么描述，写在 **`素材需求.md`** 里，可以直接粘给绘图工具。
+
 ## 剧情怎么写
 
 **唯一数据源是根目录的 `v5_0.md`。改它，刷新页面就生效，不用碰代码。**
@@ -126,9 +146,10 @@ src/components/            ← 蛋糕插画、剧情弹层
 public/art/                ← 切好的美术资源
 picture/                   ← 原始设定集与蛋糕图
 tools/crop_art.py          ← 切图脚本
+tools/cutout.py            ← 立绘去底（抠透明）
 tools/grid_preview.py      ← 给原图打网格，用来量切图坐标
 tools/make-standalone.mjs  ← 生成可双击的单文件 HTML
-素材需求.md                 ← 还缺哪些图、给绘图工具的 prompt
+素材需求.md                 ← 还缺哪些图 + 可直接粘的 prompt
 ```
 
 ## 改数值
