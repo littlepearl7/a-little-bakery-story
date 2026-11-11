@@ -1,44 +1,66 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { ACTIONS } from '../data';
-import {
-  state,
-  actionMeta,
-  doAction,
-  endMonth,
-  monthlyIncome,
-  monthlyExpense,
-  avgPrice,
-} from '../store';
+import { productById, partnerById } from '../data';
+import { state, actionInfo, doAction, stageInfo, stageProgress, staffList } from '../store';
 
+const open = ref('');
 const flash = ref('');
-let flashTimer = 0;
+let timer = 0;
 
-const cards = computed(() =>
-  ACTIONS.map((a) => {
-    const m = actionMeta(a.id);
-    return {
-      ...a,
-      meta: m,
-      disabled:
-        state.ap <= 0 || m.disabled || (m.cost > 0 && state.money < m.cost),
-    };
-  })
+const actions = computed(() =>
+  ['restock', 'feedback', 'talk', 'research', 'market', 'train', 'decorate', 'survey', 'branch'].map(
+    (id) => ({ id, info: actionInfo(id) })
+  )
 );
 
-function run(id) {
-  const ok = doAction(id);
-  if (!ok) {
-    flash.value = '现在做不了这件事';
-  } else {
-    flash.value = '';
+const targets = computed(() => {
+  if (open.value === 'research') {
+    return state.unlocked.map((id) => ({
+      id,
+      label: productById(id).name,
+      sub: 'Lv' + Math.round((state.levels[id] || 1) * 10) / 10,
+    }));
   }
-  clearTimeout(flashTimer);
-  flashTimer = setTimeout(() => (flash.value = ''), 1600);
+  if (open.value === 'train' || open.value === 'talk') {
+    return staffList().map((p) => ({
+      id: p.id,
+      label: p.nick,
+      sub: '信赖 ' + Math.round(state.partnerTrust[p.id] || 0),
+    }));
+  }
+  return [];
+});
+
+function needTarget(id) {
+  if (id === 'research') return state.unlocked.length > 1;
+  if (id === 'train') return state.staff.length > 1;
+  if (id === 'talk') return state.staff.length > 1;
+  return false;
 }
 
-function settle() {
-  endMonth();
+function tap(id) {
+  const info = actionInfo(id);
+  if (info.disabled || state.ap < info.ap || (info.cost && state.cash < info.cost)) {
+    say('现在做不了：' + info.note);
+    return;
+  }
+  if (needTarget(id)) {
+    open.value = open.value === id ? '' : id;
+    return;
+  }
+  run(id, {});
+}
+
+function run(id, opt) {
+  const ok = doAction(id, opt);
+  open.value = '';
+  if (!ok) say('没有执行成功，检查一下行动力或资金');
+}
+
+function say(t) {
+  flash.value = t;
+  clearTimeout(timer);
+  timer = setTimeout(() => (flash.value = ''), 2000);
 }
 </script>
 
@@ -47,58 +69,136 @@ function settle() {
     <div class="card card-pad">
       <div class="between">
         <div>
-          <div class="h2" style="margin: 0">本月行动力</div>
+          <div class="h2" style="margin: 0">今天的行动力</div>
           <div class="small muted" style="margin-top: 2px">
-            每个动作消耗 1 点，月底会重新给满
+            每个经营日开始回满，不累积
           </div>
         </div>
-        <div class="row" style="gap: 5px">
-          <span v-for="i in 3" :key="i" class="ap-dot" :class="{ on: i <= state.ap }"></span>
+        <div class="row" style="gap: 4px; flex-wrap: wrap; max-width: 150px; justify-content: flex-end">
+          <span v-for="i in state.maxAp" :key="i" class="ap-dot" :class="{ on: i <= state.ap }"></span>
         </div>
+      </div>
+      <div class="between small muted" style="margin-top: 8px">
+        <span>剩余 {{ state.ap }} / {{ state.maxAp }} 点</span>
+        <span>体力 {{ state.stamina }} / {{ state.maxStamina }}</span>
       </div>
     </div>
 
     <div class="act-grid" style="margin-top: 10px">
       <button
-        v-for="c in cards"
-        :key="c.id"
+        v-for="a in actions"
+        :key="a.id"
         class="act"
         type="button"
-        :disabled="c.disabled"
-        @click="run(c.id)"
+        :class="{ on: open === a.id }"
+        :disabled="a.info.disabled || state.ap < a.info.ap || (a.info.cost > 0 && state.cash < a.info.cost)"
+        @click="tap(a.id)"
       >
         <span class="t">
-          <span>{{ c.meta.title }}</span>
-          <span class="c" v-if="c.meta.cost > 0">¥{{ c.meta.cost }}</span>
+          <span>{{ a.info.name }}</span>
+          <span class="c">{{ a.info.ap }}点</span>
         </span>
-        <span class="n">{{ c.meta.note }}</span>
+        <span class="n">{{ a.info.note }}</span>
+        <span class="n cost" v-if="a.info.cost > 0">花费 ¥{{ a.info.cost }}</span>
       </button>
     </div>
 
-    <p v-if="flash" class="small" style="color: var(--berry); margin: 10px 2px 0">
-      {{ flash }}
-    </p>
+    <div v-if="open && targets.length" class="card card-pad" style="margin-top: 10px">
+      <div class="h2">{{ open === 'research' ? '研发哪一款？' : '和谁？' }}</div>
+      <div class="pills">
+        <button
+          v-for="t in targets"
+          :key="t.id"
+          type="button"
+          class="pill"
+          @click="run(open, open === 'research' ? { product: t.id } : { partner: t.id })"
+        >
+          {{ t.label }} <span class="muted">{{ t.sub }}</span>
+        </button>
+      </div>
+    </div>
+
+    <p v-if="flash" class="small" style="color: var(--berry); margin: 10px 2px 0">{{ flash }}</p>
 
     <div class="card card-pad" style="margin-top: 12px">
-      <div class="h2">月底结算</div>
-      <div class="between" style="margin-bottom: 5px">
-        <span class="small muted">自动收入（门店流水）</span>
-        <span class="small">+{{ monthlyIncome }}</span>
+      <div class="between" style="margin-bottom: 8px">
+        <div class="h2" style="margin: 0">阶段目标</div>
+        <span class="chip" :class="stageProgress.done >= stageProgress.need ? 'sage' : ''">
+          {{ stageProgress.done }} / {{ stageProgress.need || '—' }}
+        </span>
       </div>
-      <div class="between" style="margin-bottom: 5px">
-        <span class="small muted">固定支出（房租 / 工资 / 装修）</span>
-        <span class="small">-{{ monthlyExpense }}</span>
+      <div class="small muted" style="margin-bottom: 8px">
+        {{ stageInfo.name }} · 完成 {{ stageProgress.need }} 项即可进入下一阶段，否则本局提前结束
       </div>
-      <div class="between" style="margin-bottom: 12px">
-        <span class="small muted">当前客单价（均值）</span>
-        <span class="small">¥{{ avgPrice }}</span>
+      <div v-for="g in stageProgress.list" :key="g.text" class="goal" :class="{ done: g.done }">
+        <span class="dot"></span>
+        <span>{{ g.text }}</span>
+        <span v-if="g.expand" class="chip pink" style="font-size: 10px">扩张</span>
       </div>
-      <button class="btn primary block" type="button" @click="settle">
-        结束这个月
-      </button>
-      <p class="small muted" style="margin: 9px 2px 0; text-align: center">
-        钱不够时不会倒闭，只会过得紧一点
-      </p>
+    </div>
+
+    <div class="card card-pad" style="margin-top: 12px">
+      <div class="h2">最近发生的事</div>
+      <div v-if="!state.log.length" class="empty">还没有记录。</div>
+      <div v-for="(l, i) in state.log.slice(0, 10)" :key="i" class="logline" :class="l.tone">
+        <span class="d">{{ l.month }}月{{ l.day }}日</span>
+        <span class="x">{{ l.text }}</span>
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.act .cost {
+  display: block;
+  margin-top: 3px;
+  color: var(--berry);
+}
+.act.on {
+  border-color: var(--caramel);
+  box-shadow: 0 0 0 1px var(--caramel) inset;
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+}
+.pill {
+  height: 32px;
+  padding: 0 12px;
+  margin: 0 7px 7px 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--caramel);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.pill .muted {
+  color: var(--ink-2);
+  font-size: 11px;
+  margin-left: 3px;
+}
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.goal .dot {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--apricot-deep);
+  border: 1px solid rgba(107, 74, 52, 0.2);
+}
+.goal.done {
+  color: var(--caramel);
+}
+.goal.done .dot {
+  background: var(--sage);
+  border-color: #8ea078;
+}
+</style>

@@ -1,91 +1,134 @@
-/** 游戏状态与规则。所有数值调整都在这里。 */
+/** 游戏规则 V5：经营日循环、行动力、体力、生产与销售、阶段结算、存档。 */
 
 import { reactive, computed } from 'vue';
-import { CAKES, CITIES, SHOP_LEVELS, cakeById } from './data';
+import {
+  PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
+  STAGES, ENDINGS, stageByMonth, shopLevelInfo,
+} from './data';
 import { STORY, matchTrigger } from './story';
 
-const SAVE_KEY = 'alb-save-v2';
+const SAVE_KEY = 'alb-save-v5';
+export const DAYS_PER_MONTH = 5;
 
-const NUM_KEYS = {
-  资金: 'money',
-  烘焙: 'skill',
-  品质: 'quality',
-  口碑: 'reputation',
-  知名度: 'fame',
-  友情值: 'friendship',
-  门店: 'stores',
-  员工: 'staff',
-};
-
-const RATE_KEYS = ['skill', 'quality', 'reputation', 'fame', 'friendship'];
-
-function clamp(v, lo, hi) {
-  return Math.max(lo, Math.min(hi, v));
-}
+const MOM_CAPACITY = 60; // 林暖每天的免费产能
+const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
+    v: 5,
     month: 1,
-    ap: 3,
-    money: 6000,
-    skill: 8,
-    quality: 12,
-    reputation: 16,
-    fame: 6,
-    stock: 18,
+    day: 1,
+    cash: 12000,
+    reputation: 20,
+    popularity: 10,
+    loyalty: 20,
+    brand: 5,
     friendship: 20,
     shopLevel: 1,
-    staff: 0,
-    stores: 1,
-    recipes: ['plain'],
-    photos: [],
+    storeCount: 1,
+    cities: ['qiyun'],
+    surveyed: [],
+    ap: 8,
+    maxAp: 8,
+    stamina: 100,
+    maxStamina: 100,
+    stock: 60,
+    shelf: {},
+    plan: {},
+    prices: {},
+    levels: { plain: 1, strawberry: 1, chocolate: 1 },
+    unlocked: ['plain', 'strawberry', 'chocolate'],
+    staff: [],
+    partnerTrust: {},
+    partnerSkill: {},
+    momBond: 10,
+    style: { tradition: 0, innovation: 0, efficiency: 0, community: 0 },
+    orders: [],
+    doneOrders: 0,
+    customOrders: 0,
+    onlineOrders: 0,
+    festivalOrders: 0,
+    helpers: 0,
+    usedMomHelp: false,
+    dayIndex: 1,
+    cd: {},
+    dayRev: 0,
+    daySold: 0,
+    dayLeft: 0,
+    dayMade: 0,
+    monthRev: 0,
+    monthCost: 0,
+    monthSold: {},
     played: [],
+    photos: [],
     log: [],
     phase: 'playing',
     ending: null,
-    lastNet: 0,
+    stage: 1,
+    report: null,
   };
 }
 
 export const state = reactive(newState());
-
 export const queue = reactive({ events: [] });
 
-/* ---------------- 派生数值 ---------------- */
+/* ---------------- 派生值 ---------------- */
 
-export const avgPrice = computed(() => {
-  const list = state.recipes.map(cakeById);
-  if (!list.length) return 128;
-  return Math.round(list.reduce((a, c) => a + c.price, 0) / list.length);
-});
+export const availableProducts = computed(() =>
+  PRODUCTS.filter((p) => state.unlocked.includes(p.id))
+);
 
-export const monthlyIncome = computed(() => {
-  const lv = 1 + (state.shopLevel - 1) * 0.12;
-  return Math.round(state.stores * (160 + state.reputation * 4.5 + state.fame * 3.5) * lv);
-});
+export const capacity = computed(
+  () => state.stamina + MOM_CAPACITY + state.staff.length * STAFF_CAPACITY
+);
 
-export const monthlyExpense = computed(() => {
-  return Math.round(
-    260 +
-      state.staff * 650 +
-      (state.stores - 1) * 320 +
-      (state.shopLevel - 1) * 120
+function priceTier(id) {
+  return PRICE_TIERS[state.prices[id] || 'std'];
+}
+
+export function priceOf(id) {
+  const p = productById(id);
+  const lv = state.levels[id] || 1;
+  return Math.round(p.price * priceTier(id).priceMul * (1 + (lv - 1) * 0.05));
+}
+
+export function demandOf(id) {
+  const p = productById(id);
+  const lv = state.levels[id] || 1;
+  const mult =
+    0.7 + state.reputation / 200 + state.popularity / 200 + state.loyalty / 250 + state.brand / 300;
+  return Math.max(
+    0,
+    Math.round(
+      p.demand *
+        mult *
+        priceTier(id).demandMul *
+        (1 + (lv - 1) * 0.06) *
+        (1 + (state.storeCount - 1) * 0.7)
+    )
   );
+}
+
+export const monthFixedCost = computed(
+  () => 700 + state.shopLevel * 180 + state.staff.length * 500
+);
+
+export const stageInfo = computed(() => stageByMonth(state.month));
+
+export const stageProgress = computed(() => {
+  const st = stageInfo.value;
+  if (!st || !st.goals || !st.goals.length) return { done: 0, need: 0, list: [] };
+  const list = st.goals.map((g) => ({ text: g.text, done: g.check(state), expand: !!g.expand }));
+  return { done: list.filter((x) => x.done).length, need: st.need, list };
 });
 
-export const nextCity = computed(() => CITIES[state.stores] || null);
-
-export const nextShopLevel = computed(
-  () => SHOP_LEVELS.find((s) => s.lv === state.shopLevel + 1) || null
-);
-
-export const nextCake = computed(
-  () => CAKES.find((c) => !state.recipes.includes(c.id) && state.skill >= c.skill) || null
-);
-
-export const lockedCake = computed(
-  () => CAKES.find((c) => !state.recipes.includes(c.id)) || null
-);
+export function planPoints() {
+  let pts = 0;
+  for (const id of Object.keys(state.plan)) {
+    pts += state.plan[id] * productById(id).diff;
+  }
+  return pts;
+}
 
 /* ---------------- 存档 ---------------- */
 
@@ -93,7 +136,7 @@ export function save() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   } catch (e) {
-    /* 隐私模式下会失败，忽略 */
+    /* 隐私模式下忽略 */
   }
 }
 
@@ -102,6 +145,7 @@ export function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
+    if (data.v !== 5) return false;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined) state[k] = data[k];
     });
@@ -114,33 +158,46 @@ export function load() {
 export function reset() {
   Object.assign(state, newState());
   queue.events.length = 0;
+  startDay();
   save();
 }
 
 /* ---------------- 日志 ---------------- */
 
-function pushLog(text, tone) {
-  state.log.unshift({ month: state.month, text, tone: tone || 'normal' });
-  if (state.log.length > 40) state.log.pop();
+function log(text, tone) {
+  state.log.unshift({ month: state.month, day: state.day, text, tone: tone || 'normal' });
+  if (state.log.length > 60) state.log.pop();
 }
 
-/* ---------------- 奖励结算 ---------------- */
+function clamp(v) {
+  return Math.max(0, Math.min(100, v));
+}
+
+/* ---------------- 剧情奖励兼容层 ----------------
+ * 剧情 md 里的奖励名沿用旧写法，在这里映射到 V5 的字段。
+ */
 
 export function applyRewards(items) {
   const got = [];
   for (const it of items) {
     if (it.kind === 'num') {
-      const field = NUM_KEYS[it.key];
-      if (field) {
-        state[field] = RATE_KEYS.includes(field)
-          ? clamp(state[field] + it.value, 0, 100)
-          : Math.max(0, state[field] + it.value);
-        got.push(it.key + (it.value >= 0 ? '+' : '') + it.value);
+      const v = it.value;
+      switch (it.key) {
+        case '资金': state.cash = Math.max(0, state.cash + v); break;
+        case '口碑': state.reputation = clamp(state.reputation + v); break;
+        case '知名度': state.popularity = clamp(state.popularity + v); break;
+        case '友情值': state.friendship = clamp(state.friendship + v); break;
+        case '门店': state.storeCount = Math.max(1, state.storeCount + v); break;
+        case '员工': if (v > 0) joinNextPartner(); break;
+        case '烘焙': levelUpLowest(v * 0.2); break;
+        case '品质': levelUpAll(v * 0.05); break;
+        default: break;
       }
+      got.push(it.key + (v >= 0 ? '+' : '') + v);
     } else if (it.key === '配方') {
-      if (!state.recipes.includes(it.value)) {
-        state.recipes.push(it.value);
-        got.push('解锁「' + cakeById(it.value).name + '」');
+      if (!state.unlocked.includes(it.value)) {
+        state.unlocked.push(it.value);
+        got.push('解锁「' + productById(it.value).name + '」');
       }
     } else if (it.key === '照片') {
       if (!state.photos.includes(it.value)) {
@@ -152,249 +209,503 @@ export function applyRewards(items) {
   return got;
 }
 
-/* ---------------- 行动 ---------------- */
-
-function spend(n) {
-  state.money -= n;
+function levelUpLowest(amount) {
+  const list = state.unlocked.slice().sort((a, b) => (state.levels[a] || 1) - (state.levels[b] || 1));
+  const id = list[0];
+  if (id) state.levels[id] = Math.min(5, (state.levels[id] || 1) + amount);
 }
 
-export function actionMeta(id) {
+function levelUpAll(amount) {
+  state.unlocked.forEach((id) => {
+    state.levels[id] = Math.min(5, (state.levels[id] || 1) + amount);
+  });
+}
+
+/* ---------------- 伙伴 ---------------- */
+
+function joinPartner(id) {
+  if (!id || state.staff.includes(id)) return;
+  state.staff.push(id);
+  if (state.partnerTrust[id] === undefined) state.partnerTrust[id] = 10;
+  if (state.partnerSkill[id] === undefined) state.partnerSkill[id] = 1;
+  const p = partnerById(id);
+  if (p) log(p.name + ' 加入了林记', 'story');
+}
+
+function joinNextPartner() {
+  const next = PARTNERS.find((p) => !state.staff.includes(p.id) && p.joinMonth <= state.month);
+  if (next) joinPartner(next.id);
+}
+
+export function staffList() {
+  return state.staff.map((id) => partnerById(id)).filter(Boolean);
+}
+
+/* ---------------- 行动 ---------------- */
+
+const COOLDOWN = { feedback: 5, market: 3, talk: 2, train: 5 };
+
+function cdLeft(id) {
+  const until = state.cd[id] || 0;
+  return Math.max(0, until - state.dayIndex);
+}
+
+export function actionInfo(id) {
   switch (id) {
-    case 'study':
-      return {
-        title: '学习烘焙',
-        cost: 0,
-        note: '烘焙 ' + Math.round(state.skill) + ' → ' + Math.round(clamp(state.skill + 3, 0, 100)),
-      };
-    case 'sell': {
-      const consume = Math.min(state.stock, 2 + state.stores * 2 + Math.min(state.staff, state.stores * 2));
-      return {
-        title: '营业接单',
-        cost: 0,
-        note:
-          state.stock < 1
-            ? '没有库存，先去采购'
-            : '消耗 ' + consume + ' 份原料，约收入 ' + estimateSale(consume),
-        disabled: state.stock < 1,
-      };
-    }
-    case 'market':
-      return { title: '宣传推广', cost: 300 + state.stores * 120, note: '知名度 +3' };
     case 'restock':
-      return { title: '采购原料', cost: 200 + state.stores * 110, note: '库存 +' + (12 + state.stores * 4) };
-    case 'research':
-      return nextCake.value
-        ? { title: '研发「' + nextCake.value.name + '」', cost: 400 + nextCake.value.cost * 2, note: '解锁新配方' }
-        : {
-            title: '研发新品',
-            cost: 0,
-            note: lockedCake.value ? '烘焙技能不足，还做不出来' : '所有配方都解锁了',
-            disabled: true,
-          };
-    case 'decorate':
-      return nextShopLevel.value
-        ? { title: '升级到「' + nextShopLevel.value.name + '」', cost: nextShopLevel.value.cost, note: '品质+3 口碑+3' }
-        : { title: '装修升级', cost: 0, note: '已经是最高等级', disabled: true };
-    case 'hire':
-      return { title: '招聘一名员工', cost: 1500, note: '员工 +1，品质 +1' };
-    case 'branch': {
-      const c = nextCity.value;
-      if (!c) return { title: '开设分店', cost: 0, note: '已经开满全国', disabled: true };
-      const ok = state.reputation >= c.rep && state.fame >= c.fame;
-      const short = c.cost - state.money;
+      return { name: '原料采购', ap: 1, cost: 600, note: '原料 +12 份', disabled: state.cash < 600 };
+    case 'feedback': {
+      const left = cdLeft('feedback');
       return {
-        title: '在' + c.name + '开店',
-        cost: c.cost,
-        note: ok
-          ? short > 0
-            ? c.note + '（还差 ¥' + short + '）'
-            : c.note
-          : '需要口碑 ' + c.rep + '、知名度 ' + c.fame + '（当前 ' + Math.round(state.reputation) + ' / ' + Math.round(state.fame) + '）',
-        disabled: !ok,
+        name: '顾客反馈', ap: 1, cost: 0,
+        note: left > 0 ? '还要等 ' + left + ' 天' : '口碑 +1.5，忠诚 +2',
+        disabled: left > 0,
       };
     }
-    case 'community':
-      return { title: '参加社区活动', cost: 0, note: '口碑 +4，友情值 +3' };
+    case 'talk': {
+      const t = state.staff.length ? staffList()[0].nick : null;
+      return {
+        name: '伙伴交流', ap: 1, cost: 0,
+        note: t ? '和 ' + t + ' 聊聊，信赖 +6' : '和妈妈聊聊，家庭默契 +4',
+      };
+    }
+    case 'research':
+      return { name: '新品研发', ap: 2, cost: 0, note: '选一款产品，熟练度 +1' };
+    case 'market':
+      return { name: '市场宣传', ap: 2, cost: 800, note: '知名度 +3，品牌 +2', disabled: state.cash < 800 };
+    case 'train':
+      return state.staff.length
+        ? { name: '员工培训', ap: 2, cost: 400, note: '选一位伙伴，专业 +1', disabled: state.cash < 400 }
+        : { name: '员工培训', ap: 2, cost: 0, note: '还没有伙伴可以培训', disabled: true };
+    case 'decorate': {
+      const next = SHOP_LEVELS.find((s) => s.lv === state.shopLevel + 1);
+      if (!next) return { name: '店铺装修', ap: 2, cost: 0, note: '已经是最高等级', disabled: true };
+      return {
+        name: '装修到「' + next.name + '」', ap: 2, cost: next.cost,
+        note: '展示位与产能提升', disabled: state.cash < next.cost,
+      };
+    }
+    case 'survey': {
+      const next = CITIES.find((c) => !state.cities.includes(c.id) && !state.surveyed.includes(c.id));
+      if (!next) return { name: '外出考察', ap: 2, cost: 0, note: '没有新的城市可去', disabled: true };
+      const ok = state.month >= next.month && state.reputation >= next.rep;
+      return {
+        name: '考察' + next.name, ap: 2, cost: 2000,
+        note: ok ? '考察之后可以筹备开店' : '需要第 ' + next.month + ' 个月、口碑 ' + next.rep,
+        disabled: !ok || state.cash < 2000,
+      };
+    }
+    case 'branch': {
+      if (!state.surveyed.length) {
+        return { name: '分店筹备', ap: 3, cost: 0, note: '先外出考察一座城市', disabled: true };
+      }
+      const city = CITIES.find((c) => c.id === state.surveyed[0]);
+      return {
+        name: '在' + city.name + '开店', ap: 3, cost: city.cost,
+        note: '门店 +1', disabled: state.cash < city.cost,
+      };
+    }
     default:
-      return { title: id, cost: 0, note: '' };
+      return { name: id, ap: 1, cost: 0, note: '' };
   }
 }
 
-function estimateSale(consume) {
-  const mult = 1 + (state.shopLevel - 1) * 0.1;
-  return Math.round(
-    avgPrice.value *
-      consume *
-      (0.3 + state.quality / 300 + state.reputation / 450) *
-      mult +
-      state.fame * 1.8 * state.stores
-  );
-}
+export function doAction(id, opt) {
+  if (state.phase !== 'playing') return false;
+  const info = actionInfo(id);
+  if (info.disabled) return false;
+  if (state.ap < info.ap) return false;
+  if (info.cost && state.cash < info.cost) return false;
 
-export function doAction(id) {
-  if (state.ap <= 0 || state.phase !== 'playing') return false;
-  const meta = actionMeta(id);
-  if (meta.disabled) return false;
-  if (meta.cost && state.money < meta.cost) return false;
+  const cashBefore = state.cash;
 
   switch (id) {
-    case 'study': {
-      const gain = state.skill >= 80 ? 1.2 : 3;
-      state.skill = clamp(state.skill + gain, 0, 100);
-      state.quality = clamp(state.quality + 1.2, 0, 100);
-      pushLog('在厨房待了一整天，烘焙 +' + gain.toFixed(1));
+    case 'restock':
+      state.cash -= 600;
+      state.stock += 12;
+      log('原料 +12 份');
       break;
-    }
-    case 'sell': {
-      const consume = Math.min(state.stock, 2 + state.stores * 2 + Math.min(state.staff, state.stores * 2));
-      const income = estimateSale(consume);
-      state.stock -= consume;
-      state.money += income;
-      state.reputation = clamp(state.reputation + 1 + 0.25 * state.stores, 0, 100);
-      state.fame = clamp(state.fame + 0.8, 0, 100);
-      pushLog('今天卖出 ' + consume + ' 份，收入 ' + income, 'good');
+    case 'feedback':
+      state.reputation = clamp(state.reputation + 1.5);
+      state.loyalty = clamp(state.loyalty + 2);
+      log('认真听了顾客的意见，口碑上升');
       break;
-    }
-    case 'market': {
-      spend(meta.cost);
-      state.fame = clamp(
-        state.fame + 6 + state.stores * 1.2 + (state.reputation > 45 ? 2 : 0),
-        0,
-        100
-      );
-      pushLog('发了新帖子，知名度上升');
+    case 'talk':
+      if (state.staff.length) {
+        const pid = opt && opt.partner ? opt.partner : state.staff[0];
+        state.partnerTrust[pid] = clamp((state.partnerTrust[pid] || 0) + 6);
+        const p = partnerById(pid);
+        log('和 ' + (p ? p.nick : '伙伴') + ' 聊了很久，信赖 +6');
+      } else {
+        state.momBond = clamp(state.momBond + 4);
+        log('和妈妈聊了一会儿，家庭默契 +4');
+      }
       break;
-    }
-    case 'restock': {
-      spend(meta.cost);
-      state.stock += 12 + state.stores * 4;
-      pushLog('周叔送来一批原料，库存 +' + (12 + state.stores * 4));
-      break;
-    }
     case 'research': {
-      const cake = nextCake.value;
-      if (!cake) return false;
-      spend(meta.cost);
-      state.recipes.push(cake.id);
-      state.quality = clamp(state.quality + 2, 0, 100);
-      pushLog('研发成功：' + cake.name, 'good');
+      const pid = opt && opt.product ? opt.product : state.unlocked[0];
+      const lv = state.levels[pid] || 1;
+      if (lv >= 5) return false;
+      state.levels[pid] = Math.min(5, lv + 1);
+      state.style.innovation += 3;
+      log('推进了「' + productById(pid).name + '」的做法，熟练度提升');
+      break;
+    }
+    case 'market':
+      state.cash -= 800;
+      state.popularity = clamp(state.popularity + 2);
+      state.brand = clamp(state.brand + 1.5);
+      log('发了新品帖子，知名度上升');
+      break;
+    case 'train': {
+      if (!state.staff.length) return false;
+      const pid = opt && opt.partner ? opt.partner : state.staff[0];
+      state.cash -= 400;
+      state.partnerSkill[pid] = Math.min(5, (state.partnerSkill[pid] || 1) + 1);
+      const p = partnerById(pid);
+      log('培训了 ' + (p ? p.nick : '伙伴') + '，专业能力提升');
       break;
     }
     case 'decorate': {
-      const lv = nextShopLevel.value;
-      if (!lv) return false;
-      spend(meta.cost);
-      state.shopLevel = lv.lv;
-      state.quality = clamp(state.quality + 3, 0, 100);
-      state.reputation = clamp(state.reputation + 3, 0, 100);
-      pushLog('门店升级为「' + lv.name + '」', 'good');
+      const next = SHOP_LEVELS.find((s) => s.lv === state.shopLevel + 1);
+      if (!next) return false;
+      state.cash -= next.cost;
+      state.shopLevel = next.lv;
+      state.maxAp = 8 + (next.ap || 0);
+      state.reputation = clamp(state.reputation + 3);
+      state.style.community += 2;
+      log('店铺升级为「' + next.name + '」', 'good');
       break;
     }
-    case 'hire': {
-      spend(meta.cost);
-      state.staff += 1;
-      state.quality = clamp(state.quality + 1, 0, 100);
-      pushLog('新的员工加入了，店里热闹了一点');
+    case 'survey': {
+      const next = CITIES.find((c) => !state.cities.includes(c.id) && !state.surveyed.includes(c.id));
+      if (!next) return false;
+      state.cash -= 2000;
+      state.surveyed.push(next.id);
+      log('去' + next.name + '看了一圈，可以筹备开店了');
       break;
     }
     case 'branch': {
-      const c = nextCity.value;
-      if (!c) return false;
-      spend(c.cost);
-      state.stores += 1;
-      state.reputation = clamp(state.reputation + 2, 0, 100);
-      pushLog('在' + c.name + '开了新店', 'good');
-      break;
-    }
-    case 'community': {
-      state.reputation = clamp(state.reputation + 5, 0, 100);
-      state.friendship = clamp(state.friendship + 3, 0, 100);
-      state.fame = clamp(state.fame + 2, 0, 100);
-      if (!state.photos.includes('community') && state.month >= 13) {
-        state.photos.push('community');
-        pushLog('社区活动很顺利，拍了一张照片', 'good');
-      } else {
-        pushLog('社区活动很顺利，口碑 +4');
-      }
+      const city = CITIES.find((c) => c.id === state.surveyed[0]);
+      if (!city) return false;
+      state.cash -= city.cost;
+      state.storeCount += 1;
+      state.cities.push(city.id);
+      state.surveyed = state.surveyed.filter((x) => x !== city.id);
+      state.brand = clamp(state.brand + 6);
+      state.style.efficiency += 3;
+      log('在' + city.name + '开了新店', 'good');
       break;
     }
     default:
       return false;
   }
 
-  state.ap -= 1;
+  state.ap -= info.ap;
+  if (COOLDOWN[id]) state.cd[id] = state.dayIndex + COOLDOWN[id];
+  if (cashBefore > state.cash) state.monthCost += cashBefore - state.cash;
   save();
   return true;
 }
 
-/* ---------------- 月结算 ---------------- */
+/* ---------------- 生产 ---------------- */
 
-function pickEnding() {
-  if (state.stores >= 6) return 'national';
-  if (state.stores >= 3) return 'regional';
-  return 'warm';
+export function setPlan(productId, qty) {
+  const n = Math.max(0, Math.min(99, Math.floor(qty || 0)));
+  if (n === 0) delete state.plan[productId];
+  else state.plan[productId] = n;
 }
 
-export const ENDINGS = {
-  national: {
-    name: '全国连锁',
-    title: '把喜欢的味道，带到了很多地方',
-    text: '三十六个月，八座城市。你从一间连招牌都旧的社区小店，做到了一个能被别人记住名字的品牌。',
-  },
-  regional: {
-    name: '区域品牌',
-    title: '在这片地方，大家都认识这家店',
-    text: '你没有开到最远，但每一个店里的客人，都知道你今天做的是哪一款。这就够了。',
-  },
-  warm: {
-    name: '温暖小店',
-    title: '还是一家小店，但是一家很好的小店',
-    text: '有人问你为什么不扩张。你说，我想亲手做每一块蛋糕。这一年，你做到了。',
-  },
-};
+export function makeCakes() {
+  if (state.phase !== 'playing') return { ok: false, msg: '游戏已经结束了' };
+  const ids = Object.keys(state.plan);
+  if (!ids.length) return { ok: false, msg: '先去厨房排一下今天的产量' };
 
-export function endMonth() {
-  if (state.phase !== 'playing') return;
-
-  const income = monthlyIncome.value;
-  const expense = monthlyExpense.value;
-  const net = income - expense;
-  state.money += net;
-  state.lastNet = net;
-
-  if (state.money < 0) {
-    state.money = 0;
-    state.reputation = clamp(state.reputation - 3, 0, 100);
-    pushLog('这个月入不敷出，勉强撑过去了（口碑 -3）', 'bad');
-  } else if (net >= 0) {
-    pushLog('月末结算 +' + net, 'good');
-  } else {
-    pushLog('月末结算 ' + net, 'bad');
+  const needStock = ids.reduce((a, id) => a + state.plan[id], 0);
+  if (needStock > state.stock) {
+    return { ok: false, msg: '原料不够，还差 ' + (needStock - state.stock) + ' 份' };
   }
 
-  // 库存自然损耗一点点，不至于玩家囤积到无意义
-  state.stock = Math.max(0, Math.round(state.stock * 0.92));
+  const pts = planPoints();
+  if (pts > capacity.value) {
+    return { ok: false, msg: '产能不够。今天的产能是 ' + capacity.value + ' 点，还差 ' + (pts - capacity.value) };
+  }
 
+  const free = MOM_CAPACITY + state.staff.length * STAFF_CAPACITY;
+  const selfCost = Math.max(0, pts - free);
+
+  state.stock -= needStock;
+  state.stamina = Math.max(0, state.stamina - selfCost);
+  for (const id of ids) {
+    state.shelf[id] = (state.shelf[id] || 0) + state.plan[id];
+    state.dayMade += state.plan[id];
+    state.levels[id] = Math.min(5, (state.levels[id] || 1) + state.plan[id] * 0.02);
+  }
+  log('做了 ' + needStock + ' 个蛋糕，自己出了 ' + selfCost + ' 点体力');
+  state.plan = {};
+  save();
+  return { ok: true, msg: '做好了 ' + needStock + ' 个' };
+}
+
+/* ---------------- 订单 ---------------- */
+
+export function rollOrders() {
+  state.orders = [];
+  const chance = 0.35 + state.popularity / 300;
+  const count = Math.random() < chance ? (Math.random() < 0.35 ? 2 : 1) : 0;
+  for (let i = 0; i < count; i++) {
+    const pool = availableProducts.value;
+    if (!pool.length) break;
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    const roll = Math.random();
+    const isCustom = roll < 0.28;
+    const isOnline = !isCustom && roll < 0.66;
+    const isFestival = !isCustom && !isOnline && roll < 0.75;
+    const type = isCustom ? '定制' : isOnline ? '线上' : isFestival ? '节日' : '普通';
+    const qty = isCustom ? 1 : 1 + Math.floor(Math.random() * 2);
+    state.orders.push({
+      id: 'o' + state.month + '-' + state.day + '-' + i,
+      type,
+      product: p.id,
+      qty,
+      pay: Math.round(priceOf(p.id) * qty * (isCustom ? 1.6 : 1.25)),
+      taken: false,
+    });
+  }
+}
+
+export function takeOrder(orderId) {
+  const o = state.orders.find((x) => x.id === orderId);
+  if (!o) return false;
+  o.taken = !o.taken;
+  save();
+  return true;
+}
+
+/* ---------------- 营业 ---------------- */
+
+export function openShop() {
+  if (state.phase !== 'playing') return null;
+  if (state.daySold > 0 || state.dayRev > 0) return null;
+
+  let rev = 0;
+  let sold = 0;
+  const soldMap = {};
+
+  // 先交付已接的订单
+  for (const o of state.orders) {
+    if (!o.taken) continue;
+    const have = state.shelf[o.product] || 0;
+    if (have < o.qty) continue;
+    state.shelf[o.product] = have - o.qty;
+    rev += o.pay;
+    sold += o.qty;
+    soldMap[o.product] = (soldMap[o.product] || 0) + o.qty;
+    state.doneOrders += 1;
+    if (o.type === '定制') state.customOrders += 1;
+    if (o.type === '线上') state.onlineOrders += 1;
+    if (o.type === '节日') state.festivalOrders += 1;
+    state.loyalty = clamp(state.loyalty + 2);
+  }
+
+  // 再走自然客流
+  for (const id of Object.keys(state.shelf)) {
+    const have = state.shelf[id] || 0;
+    if (have <= 0) continue;
+    const n = Math.min(have, demandOf(id));
+    state.shelf[id] = have - n;
+    rev += n * priceOf(id);
+    sold += n;
+    soldMap[id] = (soldMap[id] || 0) + n;
+  }
+
+  state.dayRev = rev;
+  state.daySold = sold;
+  state.monthRev += rev;
+  Object.keys(soldMap).forEach((id) => {
+    state.monthSold[id] = (state.monthSold[id] || 0) + soldMap[id];
+  });
+
+  if (sold > 0) {
+    state.reputation = clamp(state.reputation + 0.12);
+    state.loyalty = clamp(state.loyalty + 0.1);
+    state.popularity = clamp(state.popularity + 0.05);
+  }
+
+  log('今天卖出 ' + sold + ' 个，收入 ' + rev, sold > 0 ? 'good' : 'bad');
+  save();
+  return { rev, sold };
+}
+
+/* ---------------- 打烊 ---------------- */
+
+export const LEFTOVER_MODES = {
+  discount: { label: '打折卖掉', cashRate: 0.5, community: 1 },
+  staff: { label: '留给伙伴', cashRate: 0, community: 2 },
+  share: { label: '社区分享', cashRate: 0, community: 3 },
+  waste: { label: '报损处理', cashRate: 0, community: 0 },
+};
+
+export function closeDay(mode) {
+  const m = LEFTOVER_MODES[mode] || LEFTOVER_MODES.discount;
+  let left = 0;
+  let value = 0;
+  for (const id of Object.keys(state.shelf)) {
+    left += state.shelf[id] || 0;
+    value += (state.shelf[id] || 0) * priceOf(id);
+  }
+
+  let gain = 0;
+  if (left > 0) {
+    gain = Math.round(value * m.cashRate);
+    state.cash += gain;
+    if (m.community) state.style.community += m.community * 0.3;
+  }
+  if (m.community >= 2) state.reputation = clamp(state.reputation + 1);
+
+  state.dayLeft = left;
+  state.shelf = {};
+
+  const report = { day: state.day, rev: state.dayRev, sold: state.daySold, left, gain };
+
+  state.dayRev = 0;
+  state.daySold = 0;
+  state.dayMade = 0;
+
+  advanceDay();
+  save();
+  return report;
+}
+
+function advanceDay() {
+  state.day += 1;
+  state.dayIndex += 1;
+  if (state.day > DAYS_PER_MONTH) {
+    state.day = 1;
+    endMonth();
+  } else {
+    startDay();
+  }
+}
+
+function startDay() {
+  state.ap = state.maxAp;
+  state.stamina = Math.min(state.maxStamina, state.stamina + 70);
+  state.plan = {};
+  if (!state.shelf) state.shelf = {};
+  rollOrders();
+  save();
+}
+
+/* ---------------- 月末结算 ---------------- */
+
+function endMonth() {
+  const fixed = monthFixedCost.value;
+  state.monthCost += fixed;
+  state.cash += state.monthRev - fixed;
+
+  let warn = null;
+  if (state.cash < 0) {
+    if (!state.usedMomHelp) {
+      state.cash = 3000;
+      state.usedMomHelp = true;
+      warn = '资金见底，妈妈先垫了一笔周转';
+    } else {
+      state.cash = 0;
+      state.reputation = clamp(state.reputation - 2);
+      warn = '这个月很难，勉强撑过去了';
+    }
+    log(warn, 'bad');
+  }
+
+  let bestId = null;
+  let bestN = 0;
+  Object.keys(state.monthSold).forEach((id) => {
+    if (state.monthSold[id] > bestN) {
+      bestN = state.monthSold[id];
+      bestId = id;
+    }
+  });
+
+  state.report = {
+    month: state.month,
+    rev: state.monthRev,
+    cost: state.monthCost,
+    net: state.monthRev - state.monthCost,
+    best: bestId ? productById(bestId).name : '—',
+    bestN,
+    warn,
+  };
+
+  const finishedMonth = state.month;
   state.month += 1;
-  state.ap = 3;
+  state.monthRev = 0;
+  state.monthCost = 0;
+  state.monthSold = {};
+  state.shelf = {};
+
+  PRODUCTS.forEach((p) => {
+    if (p.month > 0 && p.month <= state.month && !state.unlocked.includes(p.id)) {
+      state.unlocked.push(p.id);
+      log('新配方入手：' + p.name, 'story');
+    }
+  });
+  PARTNERS.forEach((p) => {
+    if (p.joinMonth === state.month) joinPartner(p.id);
+  });
+
+  // 第五章的危机月：统计有多少伙伴愿意主动出手
+  if (finishedMonth === 29) {
+    const trust = Object.values(state.partnerTrust).filter((x) => x >= 70).length;
+    state.helpers = trust + (state.momBond >= 70 ? 1 : 0);
+  }
+
+  const stageDone = STAGES.find((s) => s.to === finishedMonth && !s.final);
+  if (stageDone) {
+    if (!checkStage(stageDone)) {
+      state.phase = 'ended';
+      state.ending = stageDone.short;
+      log('阶段目标没有达成', 'bad');
+      save();
+      return;
+    }
+    state.stage = stageDone.id + 1;
+    log('第 ' + stageDone.id + ' 阶段目标达成', 'good');
+  }
 
   if (state.month > 36) {
     state.month = 36;
     state.phase = 'ended';
-    state.ending = pickEnding();
+    state.ending = finalEnding();
+    save();
+    return;
   }
 
-  save();
+  state.stamina = state.maxStamina;
+  startDay();
   queueStory();
+}
+
+export function checkStage(stage) {
+  if (!stage.goals.length) return true;
+  const done = stage.goals.filter((g) => g.check(state));
+  if (done.length < stage.need) return false;
+  if (stage.needExpand && !done.some((g) => g.expand)) return false;
+  return true;
+}
+
+function finalEnding() {
+  if (state.storeCount >= 6) return { ...ENDINGS.national, key: 'national' };
+  if (state.storeCount >= 3) return { ...ENDINGS.regional, key: 'regional' };
+  const s = state.style;
+  const top = Object.keys(s).sort((a, b) => s[b] - s[a])[0];
+  const map = { tradition: 'tradition', innovation: 'creative', community: 'community' };
+  const key = map[top] || 'community';
+  return { ...ENDINGS[key], key };
 }
 
 /* ---------------- 剧情调度 ---------------- */
 
 export function queueStory() {
-  if (state.phase === 'ended' && state.ending) {
-    // 结局事件仍然要播，只是不再有经营操作
-  }
-
   const due = STORY.events.filter(
     (ev) =>
       !state.played.includes(ev.id) &&
@@ -403,11 +714,10 @@ export function queueStory() {
       matchTrigger(ev.trigger, state)
   );
 
-  // 随机事件：每月最多一个，45% 概率
   const randoms = STORY.events.filter(
     (ev) => !state.played.includes(ev.id) && ev.trigger && ev.trigger.type === 'random'
   );
-  if (randoms.length && Math.random() < 0.45) {
+  if (randoms.length && Math.random() < 0.4) {
     due.push(randoms[Math.floor(Math.random() * randoms.length)]);
   }
 
@@ -428,11 +738,9 @@ export function startGame() {
 export function finishEvent(ev, chosenRewards) {
   if (!state.played.includes(ev.id)) state.played.push(ev.id);
   const got = applyRewards(ev.rewards || []);
-  if (chosenRewards && chosenRewards.length) {
-    got.push(...applyRewards(chosenRewards));
-  }
-  if (got.length) pushLog('剧情：' + ev.title, 'story');
+  if (chosenRewards && chosenRewards.length) got.push(...applyRewards(chosenRewards));
+  if (got.length) log('剧情：' + ev.title, 'story');
   save();
 }
 
-export { CAKES, CITIES, SHOP_LEVELS, cakeById };
+export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo };
