@@ -1,0 +1,629 @@
+(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const r of document.querySelectorAll('link[rel="modulepreload"]'))s(r);new MutationObserver(r=>{for(const i of r)if(i.type==="childList")for(const o of i.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&s(o)}).observe(document,{childList:!0,subtree:!0});function n(r){const i={};return r.integrity&&(i.integrity=r.integrity),r.referrerPolicy&&(i.referrerPolicy=r.referrerPolicy),r.crossOrigin==="use-credentials"?i.credentials="include":r.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function s(r){if(r.ep)return;r.ep=!0;const i=n(r);fetch(r.href,i)}})();/**
+* @vue/shared v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/function us(e){const t=Object.create(null);for(const n of e.split(","))t[n]=1;return n=>n in t}const X={},ht=[],qe=()=>{},gr=()=>!1,kn=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&(e.charCodeAt(2)>122||e.charCodeAt(2)<97),En=e=>e.startsWith("onUpdate:"),re=Object.assign,fs=(e,t)=>{const n=e.indexOf(t);n>-1&&e.splice(n,1)},Li=Object.prototype.hasOwnProperty,B=(e,t)=>Li.call(e,t),L=Array.isArray,rt=e=>Yt(e)==="[object Map]",_n=e=>Yt(e)==="[object Set]",Rs=e=>Yt(e)==="[object Date]",j=e=>typeof e=="function",ne=e=>typeof e=="string",Be=e=>typeof e=="symbol",W=e=>e!==null&&typeof e=="object",_r=e=>(W(e)||j(e))&&j(e.then)&&j(e.catch),vr=Object.prototype.toString,Yt=e=>vr.call(e),Ni=e=>Yt(e).slice(8,-1),yr=e=>Yt(e)==="[object Object]",ds=e=>ne(e)&&e!=="NaN"&&e[0]!=="-"&&""+parseInt(e,10)===e,Ft=us(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"),An=e=>{const t=Object.create(null);return(n=>t[n]||(t[n]=e(n)))},ji=/-\w/g,ke=An(e=>e.replace(ji,t=>t.slice(1).toUpperCase())),Hi=/\B([A-Z])/g,vt=An(e=>e.replace(Hi,"-$1").toLowerCase()),br=An(e=>e.charAt(0).toUpperCase()+e.slice(1)),Nn=An(e=>e?`on${br(e)}`:""),je=(e,t)=>!Object.is(e,t),jn=(e,...t)=>{for(let n=0;n<e.length;n++)e[n](...t)},xr=(e,t,n,s=!1)=>{Object.defineProperty(e,t,{configurable:!0,enumerable:!1,writable:s,value:n})},qi=e=>{const t=parseFloat(e);return isNaN(t)?e:t};let Ls;const Tn=()=>Ls||(Ls=typeof globalThis<"u"?globalThis:typeof self<"u"?self:typeof window<"u"?window:typeof global<"u"?global:{});function Xt(e){if(L(e)){const t={};for(let n=0;n<e.length;n++){const s=e[n],r=ne(s)?Ui(s):Xt(s);if(r)for(const i in r)t[i]=r[i]}return t}else if(ne(e)||W(e))return e}const Bi=/;(?![^(]*\))/g,Ki=/:([^]+)/,Vi=/"(?:[^"\\]|\\[^])*"|'(?:[^'\\]|\\[^])*'|\\[^]|\/\*[^]*?\*\//g;function Ui(e){const t={};return e.replace(Vi,n=>n.startsWith("/*")?"":n).split(Bi).forEach(n=>{if(n){const s=n.split(Ki);s.length>1&&(t[s[0].trim()]=s[1].trim())}}),t}function Ke(e){let t="";if(ne(e))t=e;else if(L(e))for(let n=0;n<e.length;n++){const s=Ke(e[n]);s&&(t+=s+" ")}else if(W(e))for(const n in e)e[n]&&(t+=n+" ");return t.trim()}const Wi="itemscope,allowfullscreen,disablepictureinpicture,disableremoteplayback,formnovalidate,ismap,nomodule,novalidate,playsinline,readonly",zi=us(Wi);function wr(e){return!!e||e===""}function Gi(e,t,n){if(e.length!==t.length)return!1;let s=!0;for(let r=0;s&&r<e.length;r++)s=Mn(e[r],t[r],n);return s}function Ns(e,t,n){if(e.size!==t.size)return!1;const s=Array.from(t),r=new Uint8Array(s.length);for(const i of e){let o=-1;for(let l=0;l<s.length;l++)if(!r[l]&&Mn(i,s[l],n)){o=l;break}if(o<0)return!1;r[o]=1}return!0}function Ji(e,t,n){let s=rt(e),r=rt(t);if(s||r||(s=_n(e),r=_n(t),s||r))return s&&r?Ns(e,t,n):!1;const i=Object.keys(e).length,o=Object.keys(t).length;if(i!==o)return!1;for(const l in e){const c=e.hasOwnProperty(l),p=t.hasOwnProperty(l);if(c&&!p||!c&&p||!Mn(e[l],t[l],n))return!1}return String(e)===String(t)}function js(e,t,n,s){n||(n=[new Map,new Map]);const[r,i]=n;if(r.has(e)||i.has(t))return r.get(e)===t&&i.get(t)===e;r.set(e,t),i.set(t,e);const o=s(e,t,n);return r.delete(e),i.delete(t),o}function Mn(e,t,n){if(e===t)return!0;let s=Rs(e),r=Rs(t);return s||r?s&&r?e.getTime()===t.getTime():!1:(s=Be(e),r=Be(t),s||r?e===t:(s=L(e),r=L(t),s||r?s&&r?js(e,t,n,Gi):!1:(s=W(e),r=W(t),s||r?!s||!r?!1:js(e,t,n,Ji):String(e)===String(t))))}const $r=e=>!!(e&&e.__v_isRef===!0),x=e=>ne(e)?e:e==null?"":L(e)||W(e)&&(e.toString===vr||!j(e.toString))?$r(e)?x(e.value):JSON.stringify(e,Sr,2):String(e),Sr=(e,t)=>$r(t)?Sr(e,t.value):rt(t)?{[`Map(${t.size})`]:[...t.entries()].reduce((n,[s,r],i)=>(n[Hn(s,i)+" =>"]=r,n),{})}:_n(t)?{[`Set(${t.size})`]:[...t.values()].map(n=>Hn(n))}:Be(t)?Hn(t):W(t)&&!L(t)&&!yr(t)?String(t):t,Hn=(e,t="")=>{var n;return Be(e)?`Symbol(${(n=e.description)!=null?n:t})`:e};/**
+* @vue/reactivity v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/let oe;class Yi{constructor(t=!1){this.detached=t,this._active=!0,this._on=0,this.effects=[],this.cleanups=[],this._isPaused=!1,this._warnOnRun=!0,this.__v_skip=!0,!t&&oe&&(oe.active?(this.parent=oe,this.index=(oe.scopes||(oe.scopes=[])).push(this)-1):(this._active=!1,this._warnOnRun=!1))}get active(){return this._active}pause(){if(this._active){this._isPaused=!0;let t,n;if(this.scopes){const s=this.scopes.slice();for(t=0,n=s.length;t<n;t++)s[t].pause()}for(t=0,n=this.effects.length;t<n;t++)this.effects[t].pause()}}resume(){if(this._active&&this._isPaused){this._isPaused=!1;let t,n;if(this.scopes){const r=this.scopes.slice();for(t=0,n=r.length;t<n;t++)r[t].resume()}const s=this.effects.slice();for(t=0,n=s.length;t<n;t++)s[t].resume()}}run(t){if(this._active){const n=oe;try{return oe=this,t()}finally{oe=n}}}on(){++this._on===1&&(this.prevScope=oe,oe=this)}off(){if(this._on>0&&--this._on===0){if(oe===this)oe=this.prevScope;else{let t=oe;for(;t;){if(t.prevScope===this){t.prevScope=this.prevScope;break}t=t.prevScope}}this.prevScope=void 0}}stop(t){if(this._active){this._active=!1;let n,s;for(n=0,s=this.effects.length;n<s;n++)this.effects[n].stop();for(this.effects.length=0,n=0,s=this.cleanups.length;n<s;n++)this.cleanups[n]();if(this.cleanups.length=0,this.scopes){const r=this.scopes.slice();for(n=0,s=r.length;n<s;n++)r[n].stop(!0);this.scopes.length=0}if(!this.detached&&this.parent&&!t){const r=this.parent.scopes.pop();r&&r!==this&&(this.parent.scopes[this.index]=r,r.index=this.index)}this.parent=void 0}}}function Xi(){return oe}let Y;const qn=new WeakSet;class Cr{constructor(t){this.fn=t,this.deps=void 0,this.depsTail=void 0,this.flags=5,this.next=void 0,this.cleanup=void 0,this.scheduler=void 0,oe&&(oe.active?oe.effects.push(this):this.flags&=-2)}pause(){this.flags|=64}resume(){this.flags&64&&(this.flags&=-65,qn.has(this)&&(qn.delete(this),this.trigger()))}notify(){this.flags&2&&!(this.flags&32)||this.flags&8||Er(this)}run(){if(!(this.flags&1))return this.fn();this.flags|=2,Hs(this),Ar(this);const t=Y,n=Ee;Y=this,Ee=!0;try{return this.fn()}finally{Tr(this),Y=t,Ee=n,this.flags&=-3}}stop(){if(this.flags&1){for(let t=this.deps;t;t=t.nextDep)ms(t);this.deps=this.depsTail=void 0,Hs(this),this.onStop&&this.onStop(),this.flags&=-2}}trigger(){this.flags&64?qn.add(this):this.scheduler?this.scheduler():this.runIfDirty()}runIfDirty(){Xn(this)&&this.run()}get dirty(){return Xn(this)}}let kr=0,Pt,Dt;function Er(e,t=!1){if(e.flags|=8,t){e.next=Dt,Dt=e;return}e.next=Pt,Pt=e}function hs(){kr++}function ps(){if(--kr>0)return;if(Dt){let t=Dt;for(Dt=void 0;t;){const n=t.next;t.next=void 0,t.flags&=-9,t=n}}let e;for(;Pt;){let t=Pt;for(Pt=void 0;t;){const n=t.next;if(t.next=void 0,t.flags&=-9,t.flags&1)try{t.trigger()}catch(s){e||(e=s)}t=n}}if(e)throw e}function Ar(e){for(let t=e.deps;t;t=t.nextDep)t.version=-1,t.prevActiveLink=t.dep.activeLink,t.dep.activeLink=t}function Tr(e){let t,n=e.depsTail,s=n;for(;s;){const r=s.prevDep;s.version===-1?(s===n&&(n=r),ms(s),Zi(s)):t=s,s.dep.activeLink=s.prevActiveLink,s.prevActiveLink=void 0,s=r}e.deps=t,e.depsTail=n}function Xn(e){for(let t=e.deps;t;t=t.nextDep)if(t.dep.version!==t.version||t.dep.computed&&(Mr(t.dep.computed)||t.dep.version!==t.version))return!0;return!!e._dirty}function Mr(e){if(e.flags&4&&!(e.flags&16)||(e.flags&=-17,e.globalVersion===Bt)||(e.globalVersion=Bt,!e.isSSR&&e.flags&128&&(!e.deps&&!e._dirty||!Xn(e))))return;e.flags|=2;const t=e.dep,n=Y,s=Ee;Y=e,Ee=!0;try{Ar(e);const r=e.fn(e._value);(t.version===0||je(r,e._value))&&(e.flags|=128,e._value=r,t.version++)}catch(r){throw t.version++,r}finally{Y=n,Ee=s,Tr(e),e.flags&=-3}}function ms(e,t=!1){const{dep:n,prevSub:s,nextSub:r}=e;if(s&&(s.nextSub=r,e.prevSub=void 0),r&&(r.prevSub=s,e.nextSub=void 0),n.subs===e&&(n.subs=s,!s&&n.computed)){n.computed.flags&=-5;for(let i=n.computed.deps;i;i=i.nextDep)ms(i,!0)}!t&&!--n.sc&&n.map&&n.map.delete(n.key)}function Zi(e){const{prevDep:t,nextDep:n}=e;t&&(t.nextDep=n,e.prevDep=void 0),n&&(n.prevDep=t,e.nextDep=void 0)}let Ee=!0;const Or=[];function Ve(){Or.push(Ee),Ee=!1}function Ue(){const e=Or.pop();Ee=e===void 0?!0:e}function Hs(e){const{cleanup:t}=e;if(e.cleanup=void 0,t){const n=Y;Y=void 0;try{t()}finally{Y=n}}}let Bt=0;class Qi{constructor(t,n){this.sub=t,this.dep=n,this.version=n.version,this.nextDep=this.prevDep=this.nextSub=this.prevSub=this.prevActiveLink=void 0}}class gs{constructor(t){this.computed=t,this.version=0,this.activeLink=void 0,this.subs=void 0,this.map=void 0,this.key=void 0,this.sc=0,this.__v_skip=!0}track(t){if(!Y||!Ee||Y===this.computed)return;let n=this.activeLink;if(n===void 0||n.sub!==Y)n=this.activeLink=new Qi(Y,this),Y.deps?(n.prevDep=Y.depsTail,Y.depsTail.nextDep=n,Y.depsTail=n):Y.deps=Y.depsTail=n,Ir(n);else if(n.version===-1&&(n.version=this.version,n.nextDep)){const s=n.nextDep;s.prevDep=n.prevDep,n.prevDep&&(n.prevDep.nextDep=s),n.prevDep=Y.depsTail,n.nextDep=void 0,Y.depsTail.nextDep=n,Y.depsTail=n,Y.deps===n&&(Y.deps=s)}return n}trigger(t){this.version++,Bt++,this.notify(t)}notify(t){hs();try{for(let n=this.subs;n;n=n.prevSub)n.sub.notify()&&n.sub.dep.notify()}finally{ps()}}}function Ir(e){if(e.dep.sc++,e.sub.flags&4){const t=e.dep.computed;if(t&&!e.dep.subs){t.flags|=20;for(let s=t.deps;s;s=s.nextDep)Ir(s)}const n=e.dep.subs;n!==e&&(e.prevSub=n,n&&(n.nextSub=e)),e.dep.subs=e}}const Zn=new WeakMap,mt=Symbol(""),Qn=Symbol(""),Kt=Symbol("");function ce(e,t,n){if(Ee&&Y){let s=Zn.get(e);s||Zn.set(e,s=new Map);let r=s.get(n);r||(s.set(n,r=new gs),r.map=s,r.key=n),r.track()}}function Qe(e,t,n,s,r,i){const o=Zn.get(e);if(!o){Bt++;return}const l=c=>{c&&c.trigger()};if(hs(),t==="clear")o.forEach(l);else{const c=L(e),p=c&&ds(n);if(c&&n==="length"){const h=Number(s);o.forEach((g,C)=>{(C==="length"||C===Kt||!Be(C)&&C>=h)&&l(g)})}else switch((n!==void 0||o.has(void 0))&&l(o.get(n)),p&&l(o.get(Kt)),t){case"add":c?p&&l(o.get("length")):(l(o.get(mt)),rt(e)&&l(o.get(Qn)));break;case"delete":c||(l(o.get(mt)),rt(e)&&l(o.get(Qn)));break;case"set":rt(e)&&l(o.get(mt));break}}ps()}function yt(e){const t=K(e);return t===e||(ce(t,"iterate",Kt),be(e))?t:We(e)?it(e)?t.map(n=>ot(xe(n))):t.map(ot):t.map(xe)}function On(e){return ce(e=K(e),"iterate",Kt),e}function De(e,t){return We(e)?ot(it(e)?xe(t):t):xe(t)}const eo={__proto__:null,[Symbol.iterator](){return Bn(this,Symbol.iterator,e=>De(this,e))},concat(...e){return yt(this).concat(...e.map(t=>L(t)?yt(t):t))},entries(){return Bn(this,"entries",e=>(e[1]=De(this,e[1]),e))},every(e,t){return Je(this,"every",e,t,void 0,arguments)},filter(e,t){return Je(this,"filter",e,t,n=>n.map(s=>De(this,s)),arguments)},find(e,t){return Je(this,"find",e,t,n=>De(this,n),arguments)},findIndex(e,t){return Je(this,"findIndex",e,t,void 0,arguments)},findLast(e,t){return Je(this,"findLast",e,t,n=>De(this,n),arguments)},findLastIndex(e,t){return Je(this,"findLastIndex",e,t,void 0,arguments)},forEach(e,t){return Je(this,"forEach",e,t,void 0,arguments)},includes(...e){return Kn(this,"includes",e)},indexOf(...e){return Kn(this,"indexOf",e)},join(e){return yt(this).join(e)},lastIndexOf(...e){return Kn(this,"lastIndexOf",e)},map(e,t){return Je(this,"map",e,t,void 0,arguments)},pop(){return Tt(this,"pop")},push(...e){return Tt(this,"push",e)},reduce(e,...t){return Bs(this,"reduce",e,t)},reduceRight(e,...t){return Bs(this,"reduceRight",e,t)},shift(){return Tt(this,"shift")},some(e,t){return Je(this,"some",e,t,void 0,arguments)},splice(...e){return Tt(this,"splice",e)},toReversed(){return yt(this).toReversed()},toSorted(e){return yt(this).toSorted(e)},toSpliced(...e){return yt(this).toSpliced(...e)},unshift(...e){return Tt(this,"unshift",e)},values(){return Bn(this,"values",e=>De(this,e))}};function Bn(e,t,n){const s=On(e),r=s[t],i=r.call(s);if(s!==e&&!be(e)){if(i[Symbol.toStringTag]==="Array Iterator"){const o=Object.create(Object.getPrototypeOf(i));return o.next=()=>qs(i.next(),n),r!==Fr[t]&&Object.defineProperties(o,{return:{get(){const l=i.return;return typeof l=="function"?l.bind(i):l}},throw:{get(){const l=i.throw;return typeof l=="function"?l.bind(i):l}}}),o}i._next=i.next,i.next=()=>qs(i._next(),n)}return i}function qs(e,t){return e.done||(e.value=t(e.value)),e}const Fr=Array.prototype;function Je(e,t,n,s,r,i){const o=On(e),l=o!==e&&!be(e),c=o[t];if(c!==Fr[t]){const g=c.apply(e,i);return l?xe(g):g}let p=n;o!==e&&(l?p=function(g,C){return n.call(this,De(e,g),C,e)}:n.length>2&&(p=function(g,C){return n.call(this,g,C,e)}));const h=c.call(o,p,s);return l&&r?r(h):h}function Bs(e,t,n,s){const r=On(e),i=r!==e&&!be(e);let o=n,l=!1;r!==e&&(i?(l=s.length===0,o=function(p,h,g){return l&&(l=!1,p=De(e,p)),n.call(this,p,De(e,h),g,e)}):n.length>3&&(o=function(p,h,g){return n.call(this,p,h,g,e)}));const c=r[t](o,...s);return l?De(e,c):c}function Kn(e,t,n){const s=K(e);ce(s,"iterate",Kt);const r=s[t](...n);return(r===-1||r===!1)&&ys(n[0])?(n[0]=K(n[0]),s[t](...n)):r}function Tt(e,t,n=[]){Ve(),hs();const s=K(e)[t].apply(e,n);return ps(),Ue(),s}const to=us("__proto__,__v_isRef,__isVue"),Pr=new Set(Object.getOwnPropertyNames(Symbol).filter(e=>e!=="arguments"&&e!=="caller").map(e=>Symbol[e]).filter(Be));function no(e){Be(e)||(e=String(e));const t=K(this);return ce(t,"has",e),t.hasOwnProperty(e)}class Dr{constructor(t=!1,n=!1){this._isReadonly=t,this._isShallow=n}get(t,n,s){if(n==="__v_skip")return t.__v_skip;const r=this._isReadonly,i=this._isShallow;if(n==="__v_isReactive")return!r;if(n==="__v_isReadonly")return r;if(n==="__v_isShallow")return i;if(n==="__v_raw")return s===(r?i?ho:jr:i?Nr:Lr).get(t)||Object.getPrototypeOf(t)===Object.getPrototypeOf(s)?t:void 0;const o=L(t);if(!r){let c;if(o&&(c=eo[n]))return c;if(n==="hasOwnProperty")return no}const l=Reflect.get(t,n,ue(t)?t:s);if((Be(n)?Pr.has(n):to(n))||(r||ce(t,"get",n),i))return l;if(ue(l)){const c=o&&ds(n)?l:l.value;return r&&W(c)?ts(c):c}return W(l)?r?ts(l):Zt(l):l}}class Rr extends Dr{constructor(t=!1){super(!1,t)}set(t,n,s,r){let i=t[n];const o=L(t)&&ds(n);if(!this._isShallow){const p=We(i);if(!be(s)&&!We(s)&&(i=K(i),s=K(s)),!o&&ue(i)&&!ue(s))return p||(i.value=s),!0}const l=o?Number(n)<t.length:B(t,n),c=Reflect.set(t,n,s,ue(t)?t:r);return t===K(r)&&c&&(l?je(s,i)&&Qe(t,"set",n,s):Qe(t,"add",n,s)),c}deleteProperty(t,n){const s=B(t,n);t[n];const r=Reflect.deleteProperty(t,n);return r&&s&&Qe(t,"delete",n,void 0),r}has(t,n){const s=Reflect.has(t,n);return(!Be(n)||!Pr.has(n))&&ce(t,"has",n),s}ownKeys(t){return ce(t,"iterate",L(t)?"length":mt),Reflect.ownKeys(t)}}class so extends Dr{constructor(t=!1){super(!0,t)}set(t,n){return!0}deleteProperty(t,n){return!0}}const ro=new Rr,io=new so,oo=new Rr(!0);const es=e=>e,cn=e=>Reflect.getPrototypeOf(e);function lo(e,t,n){return function(...s){const r=this.__v_raw,i=K(r),o=rt(i),l=e==="entries"||e===Symbol.iterator&&o,c=e==="keys"&&o,p=r[e](...s),h=n?es:t?ot:xe;return!t&&ce(i,"iterate",c?Qn:mt),re(Object.create(p),{next(){const{value:g,done:C}=p.next();return C?{value:g,done:C}:{value:l?[h(g[0]),h(g[1])]:h(g),done:C}}})}}function an(e){return function(...t){return e==="delete"?!1:e==="clear"?void 0:this}}function co(e,t){const n={get(r){const i=this.__v_raw,o=K(i),l=K(r);e||(je(r,l)&&ce(o,"get",r),ce(o,"get",l));const{has:c}=cn(o),p=t?es:e?ot:xe;if(c.call(o,r))return p(i.get(r));if(c.call(o,l))return p(i.get(l));i!==o&&i.get(r)},get size(){const r=this.__v_raw;return!e&&ce(K(r),"iterate",mt),r.size},has(r){const i=this.__v_raw,o=K(i),l=K(r);return e||(je(r,l)&&ce(o,"has",r),ce(o,"has",l)),r===l?i.has(r):i.has(r)||i.has(l)},forEach(r,i){const o=this,l=o.__v_raw,c=K(l),p=t?es:e?ot:xe;return!e&&ce(c,"iterate",mt),l.forEach((h,g)=>r.call(i,p(h),p(g),o))}};return re(n,e?{add:an("add"),set:an("set"),delete:an("delete"),clear:an("clear")}:{add(r){const i=K(this),o=cn(i),l=K(r),c=!t&&!be(r)&&!We(r)?l:r;return o.has.call(i,c)||je(r,c)&&o.has.call(i,r)||je(l,c)&&o.has.call(i,l)||(i.add(c),Qe(i,"add",c,c)),this},set(r,i){!t&&!be(i)&&!We(i)&&(i=K(i));const o=K(this),{has:l,get:c}=cn(o);let p=l.call(o,r);p||(r=K(r),p=l.call(o,r));const h=c.call(o,r);return o.set(r,i),p?je(i,h)&&Qe(o,"set",r,i):Qe(o,"add",r,i),this},delete(r){const i=K(this),{has:o,get:l}=cn(i);let c=o.call(i,r);c||(r=K(r),c=o.call(i,r)),l&&l.call(i,r);const p=i.delete(r);return c&&Qe(i,"delete",r,void 0),p},clear(){const r=K(this),i=r.size!==0,o=r.clear();return i&&Qe(r,"clear",void 0,void 0),o}}),["keys","values","entries",Symbol.iterator].forEach(r=>{n[r]=lo(r,e,t)}),n}function _s(e,t){const n=co(e,t);return(s,r,i)=>r==="__v_isReactive"?!e:r==="__v_isReadonly"?e:r==="__v_isShallow"?t:r==="__v_raw"?s:Reflect.get(B(n,r)&&r in s?n:s,r,i)}const ao={get:_s(!1,!1)},uo={get:_s(!1,!0)},fo={get:_s(!0,!1)};const Lr=new WeakMap,Nr=new WeakMap,jr=new WeakMap,ho=new WeakMap;function po(e){switch(e){case"Object":case"Array":return 1;case"Map":case"Set":case"WeakMap":case"WeakSet":return 2;default:return 0}}function Zt(e){return We(e)?e:vs(e,!1,ro,ao,Lr)}function mo(e){return vs(e,!1,oo,uo,Nr)}function ts(e){return vs(e,!0,io,fo,jr)}function vs(e,t,n,s,r){if(!W(e)||e.__v_raw&&!(t&&e.__v_isReactive)||e.__v_skip||!Object.isExtensible(e))return e;const i=r.get(e);if(i)return i;const o=po(Ni(e));if(o===0)return e;const l=new Proxy(e,o===2?s:n);return r.set(e,l),l}function it(e){return We(e)?it(e.__v_raw):!!(e&&e.__v_isReactive)}function We(e){return!!(e&&e.__v_isReadonly)}function be(e){return!!(e&&e.__v_isShallow)}function ys(e){return e?!!e.__v_raw:!1}function K(e){const t=e&&e.__v_raw;return t?K(t):e}function go(e){return!B(e,"__v_skip")&&Object.isExtensible(e)&&xr(e,"__v_skip",!0),e}const xe=e=>W(e)?Zt(e):e,ot=e=>W(e)?ts(e):e;function ue(e){return e?e.__v_isRef===!0:!1}function gt(e){return _o(e,!1)}function _o(e,t){return ue(e)?e:new vo(e,t)}class vo{constructor(t,n){this.dep=new gs,this.__v_isRef=!0,this.__v_isShallow=!1,this._rawValue=n?t:K(t),this._value=n?t:xe(t),this.__v_isShallow=n}get value(){return this.dep.track(),this._value}set value(t){const n=this._rawValue,s=this.__v_isShallow||be(t)||We(t);t=s?t:K(t),je(t,n)&&(this._rawValue=t,this._value=s?t:xe(t),this.dep.trigger())}}function P(e){return ue(e)?e.value:e}const yo={get:(e,t,n)=>t==="__v_raw"?e:P(Reflect.get(e,t,n)),set:(e,t,n,s)=>{const r=e[t];return ue(r)&&!ue(n)?(r.value=n,!0):Reflect.set(e,t,n,s)}};function Hr(e){return it(e)?e:new Proxy(e,yo)}class bo{constructor(t,n,s){this.fn=t,this.setter=n,this._value=void 0,this.dep=new gs(this),this.__v_isRef=!0,this.deps=void 0,this.depsTail=void 0,this.flags=16,this.globalVersion=Bt-1,this.next=void 0,this.effect=this,this.__v_isReadonly=!n,this.isSSR=s}notify(){if(this.flags|=16,!(this.flags&8)&&Y!==this)return Er(this,!0),!0}get value(){const t=this.dep.track();return Mr(this),t&&(t.version=this.dep.version),this._value}set value(t){this.setter&&this.setter(t)}}function xo(e,t,n=!1){let s,r;return j(e)?s=e:(s=e.get,r=e.set),new bo(s,r,n)}const un={},vn=new WeakMap;let dt;function wo(e,t=!1,n=dt){if(n){let s=vn.get(n);s||vn.set(n,s=[]),s.push(e)}}function $o(e,t,n=X){const{immediate:s,deep:r,once:i,scheduler:o,augmentJob:l,call:c}=n,p=A=>r?A:be(A)||r===!1||r===0?st(A,1):st(A);let h,g,C,M,D=!1,I=!1;if(ue(e)?(g=()=>e.value,D=be(e)):it(e)?(g=()=>p(e),D=!0):L(e)?(I=!0,D=e.some(A=>it(A)||be(A)),g=()=>e.map(A=>{if(ue(A))return A.value;if(it(A))return p(A);if(j(A))return c?c(A,2):A()})):j(e)?t?g=c?()=>c(e,2):e:g=()=>{if(C){Ve();try{C()}finally{Ue()}}const A=dt;dt=h;try{return c?c(e,3,[M]):e(M)}finally{dt=A}}:g=qe,t&&r){const A=g,ee=r===!0?1/0:r;g=()=>st(A(),ee)}const Q=Xi(),G=()=>{h.stop(),Q&&Q.active&&fs(Q.effects,h)};if(i&&t){const A=t;t=(...ee)=>{try{return A(...ee)}finally{G()}}}let N=I?new Array(e.length).fill(un):un;const H=A=>{if(!(!(h.flags&1)||!h.dirty&&!A))if(t){const ee=h.run();if(A||r||D||(I?ee.some((ze,Oe)=>je(ze,N[Oe])):je(ee,N))){const ze=dt;Ve();try{C&&C(),dt=h;const Oe=[ee,N===un?void 0:I&&N[0]===un?[]:N,M];N=ee,c?c(t,3,Oe):t(...Oe)}finally{dt=ze,Ue()}}}else h.run()};return l&&l(H),h=new Cr(g),h.scheduler=o?()=>o(H,!1):H,M=A=>wo(A,!1,h),C=h.onStop=()=>{const A=vn.get(h);if(A){if(c)c(A,4);else for(const ee of A)ee();vn.delete(h)}},t?s?H(!0):N=h.run():o?o(H.bind(null,!0),!0):h.run(),G.pause=h.pause.bind(h),G.resume=h.resume.bind(h),G.stop=G,G}function st(e,t=1/0,n){if(t<=0||!W(e)||e.__v_skip||(n=n||new Map,(n.get(e)||0)>=t))return e;if(n.set(e,t),t--,ue(e))st(e.value,t,n);else if(L(e))for(let s=0;s<e.length;s++)st(e[s],t,n);else if(_n(e)||rt(e))e.forEach(s=>{st(s,t,n)});else if(yr(e)){for(const s in e)st(e[s],t,n);for(const s of Object.getOwnPropertySymbols(e))Object.prototype.propertyIsEnumerable.call(e,s)&&st(e[s],t,n)}return e}/**
+* @vue/runtime-core v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/function Qt(e,t,n,s){try{return s?e(...s):e()}catch(r){In(r,t,n)}}function Te(e,t,n,s){if(j(e)){const r=Qt(e,t,n,s);return r&&_r(r)&&r.catch(i=>{In(i,t,n,void 0,!0)}),r}if(L(e)){const r=[];for(let i=0;i<e.length;i++)r.push(Te(e[i],t,n,s));return r}}function In(e,t,n,s=!0,r=!1){const i=t?t.vnode:null,{errorHandler:o,throwUnhandledErrorInProduction:l}=t&&t.appContext.config||X;if(t){let c=t.parent;const p=t.proxy,h=`https://vuejs.org/error-reference/#runtime-${n}`;for(;c;){const g=c.ec;if(g&&!c.isUnmounted&&(!r||c.scope.active)){for(let C=0;C<g.length;C++)if(g[C](e,p,h)===!1)return}c=c.parent}if(o){Ve(),Qt(o,null,10,[e,p,h]),Ue();return}}So(e,n,i,s,l)}function So(e,t,n,s=!0,r=!1){if(r)throw e;console.error(e)}const pe=[];let Ce=-1;const Re=[];let nt=null,xt=0;const qr=Promise.resolve();let yn=null;function Br(e){const t=yn||qr;return e?t.then(this?e.bind(this):e):t}function Co(e){let t=Ce+1,n=pe.length;for(;t<n;){const s=t+n>>>1,r=pe[s],i=Vt(r);i<e||i===e&&r.flags&2?t=s+1:n=s}return t}function bs(e){if(!(e.flags&1)){const t=Vt(e),n=pe[pe.length-1];!n||!(e.flags&2)&&t>=Vt(n)?pe.push(e):pe.splice(Co(t),0,e),e.flags|=1,Kr()}}function Kr(){yn||(yn=qr.then(Wr))}function ko(e){if(!L(e))nt&&e.id===-1?nt.splice(xt+1,0,e):e.flags&1||(Re.push(e),e.flags|=1);else for(let t=0;t<e.length;t++)Re.push(e[t]);Kr()}function Vr(e,t,n,s=Ce+1){for(;s<pe.length;s++){const r=pe[s];if(r&&r.flags&2){if(e&&r.id!==e.uid||t!==void 0&&!(r.id>=t))continue;pe.splice(s,1),s=e?s-1:Ce,r.flags&4&&(r.flags&=-2),r(),r.flags&4||(r.flags&=-2)}}}function Ur(e,t,n=0){if(Re.length){let s=Re,r=0;if(t){s=[];for(let o=0;o<Re.length;o++){const l=Re[o];(l.i!==void 0?!l.i||l.i.uid<n:t.has(l))?Re[r++]=l:s.push(l)}}const i=[...new Set(s)].sort((o,l)=>Vt(o)-Vt(l));if(Re.length=r,nt){for(let o=0;o<i.length;o++)nt.push(i[o]);return}for(nt=i,xt=0;xt<nt.length;xt++){const o=nt[xt];o.flags&4&&(o.flags&=-2),o.flags&8||o(),o.flags&=-2}nt=null,xt=0}}let Vn=!1;function Eo(e,t){if(Vn){e();return}const n=t===void 0?void 0:new Set(Re);e(),Vn=!0;try{Vr(void 0,t),Ur(void 0,n,t)}finally{Vn=!1}}const Vt=e=>e.id==null?e.flags&2?-1:1/0:e.id;function Wr(e){try{for(Ce=0;Ce<pe.length;Ce++){const t=pe[Ce];t&&!(t.flags&8)&&(t.flags&4&&(t.flags&=-2),Qt(t,t.i,t.i?15:14),t.flags&4||(t.flags&=-2))}}finally{for(;Ce<pe.length;Ce++){const t=pe[Ce];t&&(t.flags&=-2)}Ce=-1,pe.length=0,Ur(),yn=null,(pe.length||Re.length)&&Wr()}}let He=null,zr=null;function bn(e){const t=He;return He=e,zr=e&&e.type.__scopeId||null,t}function Ao(e,t=He,n){if(!t||e._n)return e;const s=(...r)=>{s._d&&Qs(-1);const i=bn(t),o=_t.length;let l;try{l=e(...r)}finally{for(let c=_t.length;c>o;c--)_i();bn(i),s._d&&Qs(1)}return l};return s._n=!0,s._c=!0,s._d=!0,s}function ut(e,t,n,s){let r=e;if(s==="beforeMount")e._mount=e;else if(s==="beforeUpdate"){const l=t&&t._mount;l&&(l._latest=e,e._mount=l)}else if(s==="mounted"){const l=e._latest;e._mount=e._latest=void 0,l&&(r=l,l._mount=void 0)}const i=r.dirs,o=t&&t.dirs;for(let l=0;l<i.length;l++){let c=i[l];o?c.oldValue=o[l].value:s==="mounted"&&c.oldValue!==void 0&&(c=re({},c,{oldValue:void 0}));let p=c.dir[s];p&&(Ve(),Te(p,n,8,[e.el,c,r,t]),Ue())}}function To(e,t){if(ge){let n=ge.provides;const s=ge.parent&&ge.parent.provides;s===n&&(n=ge.provides=Object.create(s)),n[e]=t}}function dn(e,t,n=!1){const s=Al();if(s||wt){let r=wt?wt._context.provides:s?s.parent==null||s.ce?s.vnode.appContext&&s.vnode.appContext.provides:s.parent.provides:void 0;if(r&&e in r)return r[e];if(arguments.length>1)return n&&j(t)?t.call(s&&s.proxy):t}}const Mo=Symbol.for("v-scx"),Oo=()=>dn(Mo);function hn(e,t,n){return Gr(e,t,n)}function Gr(e,t,n=X){const{immediate:s,deep:r,flush:i,once:o}=n,l=re({},n),c=t&&s||!t&&i!=="post";let p;if(Gt){if(i==="sync"){const M=Oo();p=M.__watcherHandles||(M.__watcherHandles=[])}else if(!c){const M=()=>{};return M.stop=qe,M.resume=qe,M.pause=qe,M}}const h=ge;l.call=(M,D,I)=>Te(M,h,D,I);let g=!1;i==="post"?l.scheduler=M=>{M.i=h,he(M,h&&h.suspense)}:i!=="sync"&&(g=!0,l.scheduler=(M,D)=>{D?M():bs(M)}),l.augmentJob=M=>{t&&(M.flags|=4),g&&(M.flags|=2,h&&(M.id=h.uid,M.i=h))};const C=$o(e,t,l);return Gt&&(p?p.push(C):c&&C()),C}function Io(e,t,n){const s=this.proxy,r=ne(e)?e.includes(".")?Jr(s,e):()=>s[e]:e.bind(s,s);let i;j(t)?i=t:(i=t.handler,n=t);const o=en(this),l=Gr(r,i.bind(s),n);return o(),l}function Jr(e,t){const n=t.split(".");return()=>{let s=e;for(let r=0;r<n.length&&s;r++)s=s[n[r]];return s}}const Fo=Symbol("_vte"),Fn=e=>e.__isTeleport,Un=Symbol("_leaveCb");function Po(e){let t=e[0];if(e.length>1){for(const n of e)if(n.type!==Me){t=n;break}}return t}function Yr(e){if(!xs(e))return Fn(e.type)&&e.children?Po(e.children):e;if(e.component)return e.component.subTree;const{shapeFlag:t,children:n}=e;if(n){if(t&16)return n[0];if(t&32&&j(n.default))return n.default()}}function Rt(e,t){if(e.shapeFlag&6&&e.component){e.transition=t;const n=e.component.subTree;Rt(Fn(n.type)&&Yr(n)||n,t)}else if(e.shapeFlag&128){const n=e.suspense;if(n){const s=n.isHydrating?n.pendingBranch:n.activeBranch;s&&Rt(s,t.clone(s))}else e.ssContent.transition=t.clone(e.ssContent),e.ssFallback.transition=t.clone(e.ssFallback)}else if(e.transition=t,e.type===Z&&L(e.children)){const n=ri(e.children,!1);n&&Rt(n,t)}}function ns(e){if(e.component)return ns(e.component.subTree);if(e.type===Z){const t=L(e.children)&&ri(e.children,!1);return t?ns(t):void 0}if(e.type!==Me)return e}function Xr(e){e.ids=[e.ids[0]+e.ids[2]+++"-",0,0]}function Ks(e,t){let n;return!!((n=Object.getOwnPropertyDescriptor(e,t))&&!n.configurable)}const xn=new WeakMap;function Lt(e,t,n,s,r=!1){if(L(e)){e.forEach((I,Q)=>Lt(I,t&&(L(t)?t[Q]:t),n,s,r));return}if(Nt(s)&&!r){s.shapeFlag&512&&s.type.__asyncResolved&&s.component.subTree.component&&Lt(e,t,n,s.component.subTree);return}const i=s.shapeFlag&4?Cs(s.component):s.el,o=r?null:i,{i:l,r:c}=e,p=t&&t.r,h=l.refs===X?l.refs={}:l.refs,g=l.setupState,C=K(g),M=g===X?gr:I=>Ks(h,I)?!1:B(C,I),D=(I,Q)=>!(Q&&Ks(h,Q));if(p!=null&&p!==c){if(Vs(t),ne(p))h[p]=null,M(p)&&(g[p]=null);else if(ue(p)){const I=t;D(p,I.k)&&(p.value=null),I.k&&(h[I.k]=null)}}if(j(c))Qt(c,l,12,[o,h]);else{const I=ne(c),Q=ue(c);if(I||Q){const G=()=>{if(e.f){const N=I?M(c)?g[c]:h[c]:D()||!e.k?c.value:h[e.k];if(r)L(N)&&fs(N,i);else if(L(N))N.includes(i)||N.push(i);else if(I)h[c]=[i],M(c)&&(g[c]=h[c]);else{const H=[i];D(c,e.k)&&(c.value=H),e.k&&(h[e.k]=H)}}else I?(h[c]=o,M(c)&&(g[c]=o)):Q&&(D(c,e.k)&&(c.value=o),e.k&&(h[e.k]=o))};if(o){const N=()=>{G(),xn.delete(e)};N.id=-1,xn.set(e,N),he(N,n)}else Vs(e),G()}}}function Vs(e){const t=xn.get(e);t&&(t.flags|=8,xn.delete(e))}Tn().requestIdleCallback;Tn().cancelIdleCallback;const Nt=e=>!!e.type.__asyncLoader,xs=e=>e.type.__isKeepAlive;function Do(e,t){Zr(e,"a",t)}function Ro(e,t){Zr(e,"da",t)}function Zr(e,t,n=ge){const s=e.__wdc||(e.__wdc=()=>{let r=n;for(;r;){if(r.isDeactivated)return;r=r.parent}return e()});if(Ut(t,s,n),n){let r=n.parent;for(;r&&r.parent;)xs(r.parent.vnode)&&Lo(s,t,n,r),r=r.parent}}function Lo(e,t,n,s){const r=Ut(t,e,s,!0),i=Ut("um",()=>fs(s[t],r),n);i.flags=16}function Ut(e,t,n=ge,s=!1){if(n){const r=n[e]||(n[e]=[]),i=t.__weh||(t.__weh=(...o)=>{Ve();const l=en(n),c=Te(t,n,e,o);return l(),Ue(),c});return s?r.unshift(i):r.push(i),i}}const et=e=>(t,n=ge)=>{(!Gt||e==="sp")&&Ut(e,(...s)=>t(...s),n)},No=et("bm"),Qr=et("m"),jo=et("bu"),Ho=et("u"),qo=et("bum"),Bo=et("um"),Ko=et("sp"),Vo=et("rtg"),Uo=et("rtc");function Wo(e,t=ge){Ut("ec",e,t)}const zo=Symbol.for("v-ndc");function we(e,t,n,s){let r;const i=n,o=L(e);if(o||ne(e)){const l=o&&it(e);let c=!1,p=!1;l&&(c=!be(e),p=We(e),e=On(e)),r=new Array(e.length);for(let h=0,g=e.length;h<g;h++)r[h]=t(c?p?ot(xe(e[h])):xe(e[h]):e[h],h,void 0,i)}else if(typeof e=="number")if(!Number.isInteger(e)||e<0)r=[];else{r=new Array(e);for(let l=0;l<e;l++)r[l]=t(l+1,l,void 0,i)}else if(W(e))if(e[Symbol.iterator])r=Array.from(e,(l,c)=>t(l,c,void 0,i));else{const l=Object.keys(e);r=new Array(l.length);for(let c=0,p=l.length;c<p;c++){const h=l[c];r[c]=t(e[h],h,c,i)}}else r=[];return r}const ss=e=>e?xi(e)?Cs(e):ss(e.parent):null,jt=re(Object.create(null),{$:e=>e,$el:e=>e.vnode.el,$data:e=>e.data,$props:e=>e.props,$attrs:e=>e.attrs,$slots:e=>e.slots,$refs:e=>e.refs,$parent:e=>ss(e.parent),$root:e=>ss(e.root),$host:e=>e.ce,$emit:e=>e.emit,$options:e=>ti(e),$forceUpdate:e=>e.f||(e.f=()=>{bs(e.update)}),$nextTick:e=>e.n||(e.n=Br.bind(e.proxy)),$watch:e=>Io.bind(e)}),Wn=(e,t)=>e!==X&&!e.__isScriptSetup&&B(e,t),Go={get({_:e},t){if(t==="__v_skip")return!0;const{ctx:n,setupState:s,data:r,props:i,accessCache:o,type:l,appContext:c}=e;if(t[0]!=="$"){const C=o[t];if(C!==void 0)switch(C){case 1:return s[t];case 2:return r[t];case 4:return n[t];case 3:return i[t]}else{if(Wn(s,t))return o[t]=1,s[t];if(r!==X&&B(r,t))return o[t]=2,r[t];if(B(i,t))return o[t]=3,i[t];if(n!==X&&B(n,t))return o[t]=4,n[t];rs&&(o[t]=0)}}const p=jt[t];let h,g;if(p)return t==="$attrs"&&ce(e.attrs,"get",""),p(e);if((h=l.__cssModules)&&(h=h[t]))return h;if(n!==X&&B(n,t))return o[t]=4,n[t];if(g=c.config.globalProperties,B(g,t))return g[t]},set({_:e},t,n){const{data:s,setupState:r,ctx:i}=e;return Wn(r,t)?(r[t]=n,!0):s!==X&&B(s,t)?(s[t]=n,!0):B(e.props,t)||t[0]==="$"&&t.slice(1)in e?!1:(i[t]=n,!0)},has({_:{data:e,setupState:t,accessCache:n,ctx:s,appContext:r,props:i,type:o}},l){let c;return!!(n[l]||e!==X&&l[0]!=="$"&&B(e,l)||Wn(t,l)||B(i,l)||B(s,l)||B(jt,l)||B(r.config.globalProperties,l)||(c=o.__cssModules)&&c[l])},defineProperty(e,t,n){return n.get!=null?e._.accessCache[t]=0:B(n,"value")&&this.set(e,t,n.value,null),Reflect.defineProperty(e,t,n)}};function Us(e){return L(e)?e.reduce((t,n)=>(t[n]=null,t),{}):e}let rs=!0;function Jo(e){const t=ti(e),n=e.proxy,s=e.ctx;rs=!1,t.beforeCreate&&Ws(t.beforeCreate,e,"bc");const{data:r,computed:i,methods:o,watch:l,provide:c,inject:p,created:h,beforeMount:g,mounted:C,beforeUpdate:M,updated:D,activated:I,deactivated:Q,beforeDestroy:G,beforeUnmount:N,destroyed:H,unmounted:A,render:ee,renderTracked:ze,renderTriggered:Oe,errorCaptured:tt,serverPrefetch:nn,expose:lt,inheritAttrs:kt,components:sn,directives:rn,filters:Ln}=t;if(p&&Yo(p,s,null),o)for(const te in o){const J=o[te];j(J)&&(s[te]=J.bind(n))}if(r){const te=r.call(n,n);W(te)&&(e.data=Zt(te))}if(rs=!0,i)for(const te in i){const J=i[te],ct=j(J)?J.bind(n,n):j(J.get)?J.get.bind(n,n):qe,on=!j(J)&&j(J.set)?J.set.bind(n):qe,at=V({get:ct,set:on});Object.defineProperty(s,te,{enumerable:!0,configurable:!0,get:()=>at.value,set:$e=>at.value=$e})}if(l)for(const te in l)ei(l[te],s,n,te);if(c){const te=j(c)?c.call(n):c;Reflect.ownKeys(te).forEach(J=>{To(J,te[J])})}h&&Ws(h,e,"c");function fe(te,J){L(J)?J.forEach(ct=>te(ct.bind(n))):J&&te(J.bind(n))}if(fe(No,g),fe(Qr,C),fe(jo,M),fe(Ho,D),fe(Do,I),fe(Ro,Q),fe(Wo,tt),fe(Uo,ze),fe(Vo,Oe),fe(qo,N),fe(Bo,A),fe(Ko,nn),L(lt))if(lt.length){const te=e.exposed||(e.exposed={});lt.forEach(J=>{Object.defineProperty(te,J,{get:()=>n[J],set:ct=>n[J]=ct,enumerable:!0})})}else e.exposed||(e.exposed={});ee&&e.render===qe&&(e.render=ee),kt!=null&&(e.inheritAttrs=kt),sn&&(e.components=sn),rn&&(e.directives=rn),nn&&Xr(e)}function Yo(e,t,n=qe){L(e)&&(e=is(e));for(const s in e){const r=e[s];let i;W(r)?"default"in r?i=dn(r.from||s,r.default,!0):i=dn(r.from||s):i=dn(r),ue(i)?Object.defineProperty(t,s,{enumerable:!0,configurable:!0,get:()=>i.value,set:o=>i.value=o}):t[s]=i}}function Ws(e,t,n){Te(L(e)?e.map(s=>s.bind(t.proxy)):e.bind(t.proxy),t,n)}function ei(e,t,n,s){let r=s.includes(".")?Jr(n,s):()=>n[s];if(ne(e)){const i=t[e];j(i)&&hn(r,i)}else if(j(e))hn(r,e.bind(n));else if(W(e))if(L(e))e.forEach(i=>ei(i,t,n,s));else{const i=j(e.handler)?e.handler.bind(n):t[e.handler];j(i)&&hn(r,i,e)}}function ti(e){const t=e.type,{mixins:n,extends:s}=t,{mixins:r,optionsCache:i,config:{optionMergeStrategies:o}}=e.appContext,l=i.get(t);let c;return l?c=l:!r.length&&!n&&!s?c=t:(c={},r.length&&r.forEach(p=>wn(c,p,o,!0)),wn(c,t,o)),W(t)&&i.set(t,c),c}function wn(e,t,n,s=!1){const{mixins:r,extends:i}=t;i&&wn(e,i,n,!0),r&&r.forEach(o=>wn(e,o,n,!0));for(const o in t)if(!(s&&o==="expose")){const l=Xo[o]||n&&n[o];e[o]=l?l(e[o],t[o]):t[o]}return e}const Xo={data:zs,props:Gs,emits:Gs,methods:Ot,computed:Ot,beforeCreate:de,created:de,beforeMount:de,mounted:de,beforeUpdate:de,updated:de,beforeDestroy:de,beforeUnmount:de,destroyed:de,unmounted:de,activated:de,deactivated:de,errorCaptured:de,serverPrefetch:de,components:Ot,directives:Ot,watch:Qo,provide:zs,inject:Zo};function zs(e,t){return t?e?function(){return re(j(e)?e.call(this,this):e,j(t)?t.call(this,this):t)}:t:e}function Zo(e,t){return Ot(is(e),is(t))}function is(e){if(L(e)){const t={};for(let n=0;n<e.length;n++)t[e[n]]=e[n];return t}return e}function de(e,t){return e?[...new Set([].concat(e,t))]:t}function Ot(e,t){return e?re(Object.create(null),e,t):t}function Gs(e,t){return e?L(e)&&L(t)?[...new Set([...e,...t])]:re(Object.create(null),Us(e),Us(t??{})):t}function Qo(e,t){if(!e)return t;if(!t)return e;const n=re(Object.create(null),e);for(const s in t)n[s]=de(e[s],t[s]);return n}function ni(){return{app:null,config:{isNativeTag:gr,performance:!1,globalProperties:{},optionMergeStrategies:{},errorHandler:void 0,warnHandler:void 0,compilerOptions:{}},mixins:[],components:{},directives:{},provides:Object.create(null),optionsCache:new WeakMap,propsCache:new WeakMap,emitsCache:new WeakMap}}let el=0;function tl(e,t){return function(s,r=null){j(s)||(s=re({},s)),r!=null&&!W(r)&&(r=null);const i=ni(),o=new WeakSet,l=[];let c=!1;const p=i.app={_uid:el++,_component:s,_props:r,_container:null,_context:i,_instance:null,version:Pl,get config(){return i.config},set config(h){},use(h,...g){return o.has(h)||(h&&j(h.install)?(o.add(h),h.install(p,...g)):j(h)&&(o.add(h),h(p,...g))),p},mixin(h){return i.mixins.includes(h)||i.mixins.push(h),p},component(h,g){return g?(i.components[h]=g,p):i.components[h]},directive(h,g){return g?(i.directives[h]=g,p):i.directives[h]},mount(h,g,C){if(!c){const M=p._ceVNode||Ae(s,r);return M.appContext=i,C===!0?C="svg":C===!1&&(C=void 0),e(M,h,C),c=!0,p._container=h,h.__vue_app__=p,Cs(M.component)}},onUnmount(h){l.push(h)},unmount(){c&&(Te(l,p._instance,16),e(null,p._container),delete p._container.__vue_app__)},provide(h,g){return i.provides[h]=g,p},runWithContext(h){const g=wt;wt=p;try{return h()}finally{wt=g}}};return p}}let wt=null;const nl=(e,t)=>t==="modelValue"||t==="model-value"?e.modelModifiers:e[`${t}Modifiers`]||e[`${ke(t)}Modifiers`]||e[`${vt(t)}Modifiers`];function sl(e,t,...n){if(e.isUnmounted)return;const s=e.vnode.props||X;let r=n;const i=t.startsWith("update:"),o=i&&nl(s,t.slice(7));o&&(o.trim&&(r=n.map(h=>ne(h)?h.trim():h)),o.number&&(r=r.map(qi)));let l,c=s[l=Nn(t)]||s[l=Nn(ke(t))];!c&&i&&(c=s[l=Nn(vt(t))]),c&&Te(c,e,6,r);const p=s[l+"Once"];if(p){if(!e.emitted)e.emitted={};else if(e.emitted[l])return;e.emitted[l]=!0,Te(p,e,6,r)}}const rl=new WeakMap;function si(e,t,n=!1){const s=n?rl:t.emitsCache,r=s.get(e);if(r!==void 0)return r;const i=e.emits;let o={},l=!1;if(!j(e)){const c=p=>{const h=si(p,t,!0);h&&(l=!0,re(o,h))};!n&&t.mixins.length&&t.mixins.forEach(c),e.extends&&c(e.extends),e.mixins&&e.mixins.forEach(c)}return!i&&!l?(W(e)&&s.set(e,null),null):(L(i)?i.forEach(c=>o[c]=null):re(o,i),W(e)&&s.set(e,o),o)}function Pn(e,t){return!e||!kn(t)?!1:(t=t.slice(2),t=t==="Once"?t:t.replace(/Once$/,""),B(e,t[0].toLowerCase()+t.slice(1))||B(e,vt(t))||B(e,t))}function Js(e){const{type:t,vnode:n,proxy:s,withProxy:r,propsOptions:[i],slots:o,attrs:l,emit:c,render:p,renderCache:h,props:g,data:C,setupState:M,ctx:D,inheritAttrs:I}=e,Q=bn(e);let G,N;try{if(n.shapeFlag&4){const A=r||s,ee=A;G=Le(p.call(ee,A,h,g,M,C,D)),N=l}else{const A=t;G=Le(A.length>1?A(g,{attrs:l,slots:o,emit:c}):A(g,null)),N=t.props?l:il(l)}}catch(A){_t.length=0,In(A,e,1),G=Ae(Me)}let H=G;if(N&&I!==!1){const A=Object.keys(N),{shapeFlag:ee}=H;A.length&&ee&7&&(i&&A.some(En)&&(N=ol(N,i)),H=$t(H,N,!1,!0))}if(n.dirs&&(H=$t(H,null,!1,!0),H.dirs=H.dirs?H.dirs.concat(n.dirs):n.dirs),n.transition){const A=Fn(H.type)&&Yr(H)||H;Rt(A,n.transition)}return G=H,bn(Q),G}function ri(e,t=!0){let n;for(let s=0;s<e.length;s++){const r=e[s];if(Ss(r)){if(r.type!==Me||r.children==="v-if"){if(n)return;n=r}}else return}return n}const il=e=>{let t;for(const n in e)(n==="class"||n==="style"||kn(n))&&((t||(t={}))[n]=e[n]);return t},ol=(e,t)=>{const n={};for(const s in e)(!En(s)||!(s.slice(9)in t))&&(n[s]=e[s]);return n};function ll(e,t,n){const{props:s,children:r,component:i}=e,{props:o,children:l,patchFlag:c}=t,p=i.emitsOptions;if(t.dirs||t.transition)return!0;if(n&&c>=0){if(c&1024)return!0;if(c&16)return s?Ys(s,o,p):!!o;if(c&8){const h=t.dynamicProps;for(let g=0;g<h.length;g++){const C=h[g];if(ii(o,s,C)&&!Pn(p,C))return!0}}}else return(r||l)&&(!l||!l.$stable)?!0:s===o?!1:s?o?Ys(s,o,p):!0:!!o;return!1}function Ys(e,t,n){const s=Object.keys(t);if(s.length!==Object.keys(e).length)return!0;for(let r=0;r<s.length;r++){const i=s[r];if(!B(e,i)||ii(t,e,i)&&!Pn(n,i))return!0}return!1}function ii(e,t,n){const s=e[n],r=t[n];return n==="style"&&W(s)&&W(r)?!Mn(s,r):s!==r}function cl({vnode:e,parent:t,suspense:n},s){for(;t;){const r=t.subTree;if(r.suspense&&r.suspense.activeBranch===e&&(r.suspense.vnode.el=r.el=s,e=r),r===e)(e=t.vnode).el=s,t=t.parent;else break}n&&n.activeBranch===e&&(n.vnode.el=s)}const oi={},li=()=>Object.create(oi),ci=e=>Object.getPrototypeOf(e)===oi;function al(e,t,n,s=!1){const r={},i=li();e.propsDefaults=Object.create(null),ai(e,t,r,i);for(const o in e.propsOptions[0])o in r||(r[o]=void 0);n?e.props=s?r:mo(r):e.type.props?e.props=r:e.props=i,e.attrs=i}function ul(e,t,n,s){const{props:r,attrs:i,vnode:{patchFlag:o}}=e,l=K(r),[c]=e.propsOptions;let p=!1;if((s||o>0)&&!(o&16)){if(o&8){const h=e.vnode.dynamicProps;for(let g=0;g<h.length;g++){let C=h[g];if(Pn(e.emitsOptions,C))continue;const M=t[C];if(c)if(B(i,C))M!==i[C]&&(i[C]=M,p=!0);else{const D=ke(C);r[D]=os(c,l,D,M,e,!1)}else M!==i[C]&&(i[C]=M,p=!0)}}}else{ai(e,t,r,i)&&(p=!0);let h;for(const g in l)(!t||!B(t,g)&&((h=vt(g))===g||!B(t,h)))&&(c?n&&(n[g]!==void 0||n[h]!==void 0)&&(r[g]=os(c,l,g,void 0,e,!0)):delete r[g]);if(i!==l)for(const g in i)(!t||!B(t,g))&&(delete i[g],p=!0)}p&&Qe(e.attrs,"set","")}function ai(e,t,n,s){const[r,i]=e.propsOptions;let o=!1,l;if(t)for(let c in t){if(Ft(c))continue;const p=t[c];let h;r&&B(r,h=ke(c))?!i||!i.includes(h)?n[h]=p:(l||(l={}))[h]=p:Pn(e.emitsOptions,c)||(!(c in s)||p!==s[c])&&(s[c]=p,o=!0)}if(i){const c=K(n),p=l||X;for(let h=0;h<i.length;h++){const g=i[h];n[g]=os(r,c,g,p[g],e,!B(p,g))}}return o}function os(e,t,n,s,r,i){const o=e[n];if(o!=null){const l=B(o,"default");if(l&&s===void 0){const c=o.default;if(o.type!==Function&&!o.skipFactory&&j(c)){const{propsDefaults:p}=r;if(n in p)s=p[n];else{const h=en(r);s=p[n]=c.call(null,t),h()}}else s=c;r.ce&&r.ce._setProp(n,s)}o[0]&&(i&&!l?s=!1:o[1]&&(s===""||s===vt(n))&&(s=!0))}return s}const fl=new WeakMap;function ui(e,t,n=!1){const s=n?fl:t.propsCache,r=s.get(e);if(r)return r;const i=e.props,o={},l=[];let c=!1;if(!j(e)){const h=g=>{c=!0;const[C,M]=ui(g,t,!0);re(o,C),M&&l.push(...M)};!n&&t.mixins.length&&t.mixins.forEach(h),e.extends&&h(e.extends),e.mixins&&e.mixins.forEach(h)}if(!i&&!c)return W(e)&&s.set(e,ht),ht;if(L(i))for(let h=0;h<i.length;h++){const g=ke(i[h]);Xs(g)&&(o[g]=X)}else if(i)for(const h in i){const g=ke(h);if(Xs(g)){const C=i[h],M=o[g]=L(C)||j(C)?{type:C}:re({},C),D=M.type;let I=!1,Q=!0;if(L(D))for(let G=0;G<D.length;++G){const N=D[G],H=j(N)&&N.name;if(H==="Boolean"){I=!0;break}else H==="String"&&(Q=!1)}else I=j(D)&&D.name==="Boolean";M[0]=I,M[1]=Q,(I||B(M,"default"))&&l.push(g)}}const p=[o,l];return W(e)&&s.set(e,p),p}function Xs(e){return e[0]!=="$"&&!Ft(e)}const ws=e=>e==="_"||e==="_ctx"||e==="$stable",$s=e=>L(e)?e.map(Le):[Le(e)],dl=(e,t,n)=>{if(t._n)return t;const s=Ao((...r)=>$s(t(...r)),n);return s._c=!1,s},fi=(e,t,n)=>{const s=e._ctx;for(const r in e){if(ws(r))continue;const i=e[r];if(j(i))t[r]=dl(r,i,s);else if(i!=null){const o=$s(i);t[r]=()=>o}}},di=(e,t)=>{const n=$s(t);e.slots.default=()=>n},hi=(e,t,n)=>{for(const s in t)(n||!ws(s))&&(e[s]=t[s])},hl=(e,t,n)=>{const s=e.slots=li();if(e.vnode.shapeFlag&32){const r=t._;r?(hi(s,t,n),n&&xr(s,"_",r,!0)):fi(t,s)}else t&&di(e,t)},pl=(e,t,n)=>{const{vnode:s,slots:r}=e;let i=!0,o=X;if(s.shapeFlag&32){const l=t._;l?n&&l===1?i=!1:hi(r,t,n):(i=!t.$stable,fi(t,r)),o=t}else t&&(di(e,t),o={default:1});if(i)for(const l in r)!ws(l)&&o[l]==null&&delete r[l]},he=bl;function ml(e){return gl(e)}function gl(e,t){const n=Tn();n.__VUE__=!0;const{insert:s,remove:r,patchProp:i,createElement:o,createText:l,createComment:c,setText:p,setElementText:h,parentNode:g,nextSibling:C,setScopeId:M=qe,insertStaticContent:D}=e,I=(a,d,m,b=null,_=null,y=null,S=void 0,$=null,w=!!d.dynamicChildren)=>{if(a===d)return;a&&!Mt(a,d)&&(b=ln(a),$e(a,_,y,!0),a=null),d.patchFlag===-2&&(w=!1,d.dynamicChildren=null),d.dynamicChildren&&a&&a.dynamicChildren&&a.dynamicChildren.hasOnce&&(d.dynamicChildren===ht&&(d.dynamicChildren=[]),d.dynamicChildren.hasOnce=!0);const{type:v,ref:O,shapeFlag:k}=d;switch(v){case Dn:Q(a,d,m,b);break;case Me:G(a,d,m,b);break;case pn:a==null&&N(d,m,b,S);break;case Z:sn(a,d,m,b,_,y,S,$,w);break;default:k&1?ee(a,d,m,b,_,y,S,$,w):k&6?rn(a,d,m,b,_,y,S,$,w):(k&64||k&128)&&v.process(a,d,m,b,_,y,S,$,w,At)}O!=null&&_?Lt(O,a&&a.ref,y,d||a,!d):O==null&&a&&a.ref!=null&&Lt(a.ref,null,y,a,!0)},Q=(a,d,m,b)=>{if(a==null)s(d.el=l(d.children),m,b);else{const _=d.el=a.el;d.children!==a.children&&p(_,d.children)}},G=(a,d,m,b)=>{a==null?s(d.el=c(d.children||""),m,b):d.el=a.el},N=(a,d,m,b)=>{[a.el,a.anchor]=D(a.children,d,m,b,a.el,a.anchor)},H=({el:a,anchor:d},m,b)=>{let _;for(;a&&a!==d;)_=C(a),s(a,m,b),a=_;s(d,m,b)},A=({el:a,anchor:d})=>{let m;for(;a&&a!==d;)m=C(a),r(a),a=m;r(d)},ee=(a,d,m,b,_,y,S,$,w)=>{if(d.type==="svg"?S="svg":d.type==="math"&&(S="mathml"),a==null)ze(d,m,b,_,y,S,$,w);else{const v=a.el&&a.el._isVueCE?a.el:null;try{v&&v._beginPatch(),nn(a,d,_,y,S,$,w)}finally{v&&v._endPatch()}}},ze=(a,d,m,b,_,y,S,$)=>{let w,v;const{props:O,shapeFlag:k,transition:F,dirs:R}=a;if(w=a.el=o(a.type,y,O&&O.is,O),k&8?h(w,a.children):k&16&&tt(a.children,w,null,b,_,zn(a,y),S,$),R&&ut(a,null,b,"created"),Oe(w,a,a.scopeId,S,b),O){for(const z in O)z!=="value"&&!Ft(z)&&i(w,z,null,O[z],y,b);"value"in O&&i(w,"value",null,O.value,y),(v=O.onVnodeBeforeMount)&&Pe(v,b,a)}R&&ut(a,null,b,"beforeMount");const q=_l(_,F);q?F.beforeEnter(w):F&&!F.persisted&&(w[yl]=!0),s(w,d,m),((v=O&&O.onVnodeMounted)||q||R)&&he(()=>{try{v&&Pe(v,b,a),q&&F.enter(w),R&&ut(a,null,b,"mounted")}finally{}},_)},Oe=(a,d,m,b,_)=>{if(m&&M(a,m),b)for(let y=0;y<b.length;y++)M(a,b[y]);if(_){let y=_.subTree;if(d===y||gi(y.type)&&(y.ssContent===d||y.ssFallback===d)){const S=_.vnode;Oe(a,S,S.scopeId,S.slotScopeIds,_.parent)}}},tt=(a,d,m,b,_,y,S,$,w=0)=>{for(let v=w;v<a.length;v++){const O=a[v]=$?Ze(a[v]):Le(a[v]);I(null,O,d,m,b,_,y,S,$)}},nn=(a,d,m,b,_,y,S)=>{const $=d.el=a.el;let{patchFlag:w,dynamicChildren:v,dirs:O}=d;w|=a.patchFlag&16;const k=a.props||X,F=d.props||X;let R;if(m&&ft(m,!1),(R=F.onVnodeBeforeUpdate)&&Pe(R,m,d,a),O&&ut(d,a,m,"beforeUpdate"),m&&ft(m,!0),v&&(!a.dynamicChildren||a.dynamicChildren.length!==v.length)&&(w=0,S=!1,v=null),(k.innerHTML&&F.innerHTML==null||k.textContent&&F.textContent==null)&&h($,""),v?lt(a.dynamicChildren,v,$,m,b,zn(d,_),y):S||J(a,d,$,null,m,b,zn(d,_),y,!1),w>0){if(w&16)kt($,k,F,m,_);else if(w&2&&k.class!==F.class&&i($,"class",null,F.class,_),w&4&&i($,"style",k.style,F.style,_),w&8){const q=d.dynamicProps;for(let z=0;z<q.length;z++){const U=q[z],se=k[U],ie=F[U];(ie!==se||U==="value")&&i($,U,se,ie,_,m)}}w&1&&a.children!==d.children&&h($,d.children)}else!S&&v==null&&kt($,k,F,m,_);((R=F.onVnodeUpdated)||O)&&he(()=>{R&&Pe(R,m,d,a),O&&ut(d,a,m,"updated")},b)},lt=(a,d,m,b,_,y,S)=>{for(let $=0;$<d.length;$++){const w=a[$],v=d[$],O=w.el||Ht(w),k=O&&(w.type===Z||!Mt(w,v)||w.shapeFlag&198)?g(O):m;I(w,v,k,null,b,_,y,S,!0)}},kt=(a,d,m,b,_)=>{if(d!==m){if(d!==X)for(const y in d)!Ft(y)&&!(y in m)&&i(a,y,d[y],null,_,b);for(const y in m){if(Ft(y))continue;const S=m[y],$=d[y];S!==$&&y!=="value"&&i(a,y,$,S,_,b)}"value"in m&&i(a,"value",d.value,m.value,_)}},sn=(a,d,m,b,_,y,S,$,w)=>{const v=d.el=a?a.el:l(""),O=d.anchor=a?a.anchor:l("");let{patchFlag:k,dynamicChildren:F,slotScopeIds:R}=d;R&&($=$?$.concat(R):R),a==null?(s(v,m,b),s(O,m,b),tt(d.children||[],m,O,_,y,S,$,w)):k>0&&k&64&&F&&a.dynamicChildren&&a.dynamicChildren.length===F.length?(lt(a.dynamicChildren,F,m,_,y,S,$),(d.key!=null||_&&d===_.subTree)&&pi(a,d,!0)):J(a,d,m,O,_,y,S,$,w)},rn=(a,d,m,b,_,y,S,$,w)=>{d.slotScopeIds=$,a==null?d.shapeFlag&512?_.ctx.activate(d,m,b,S,w):Ln(d,m,b,_,y,S,w):Ts(a,d,w)},Ln=(a,d,m,b,_,y,S)=>{const $=a.component=El(a,b,_);if(xs(a)&&($.ctx.renderer=At),Tl($,!1,S),$.asyncDep){if(_&&_.registerDep($,fe,S,y),!a.el){const w=$.subTree=Ae(Me);G(null,w,d,m),a.placeholder=w.el}}else fe($,a,d,m,_,y,S)},Ts=(a,d,m)=>{const b=d.component=a.component;if(ll(a,d,m))if(b.asyncDep&&!b.asyncResolved){d.el=a.el,d.placeholder=a.placeholder,te(b,d,m);return}else b.next=d,b.update();else d.el=a.el,d.placeholder=a.placeholder,b.vnode=d},fe=(a,d,m,b,_,y,S)=>{const $=()=>{if(a.isMounted){let{next:k,bu:F,u:R,parent:q,vnode:z}=a;{const Ie=mi(a);if(Ie){k&&(k.el=z.el,te(a,k,S)),Ie.asyncDep.then(()=>{const Ge=()=>{a.job.flags&8||(_&&_.pendingBranch?he(Ge,_):v())};Ge.flags=48,he(Ge,_)});return}}let U=k,se;ft(a,!1),k?(k.el=z.el,te(a,k,S)):k=z,F&&jn(F),(se=k.props&&k.props.onVnodeBeforeUpdate)&&Pe(se,q,k,z),ft(a,!0);const ie=Js(a),Se=a.subTree;a.subTree=ie,I(Se,ie,g(Se.el||Ht(Se)),ln(Se),a,_,y),k.el=ie.el,U===null&&cl(a,ie.el),R&&he(R,_),(se=k.props&&k.props.onVnodeUpdated)&&he(()=>Pe(se,q,k,z),_)}else{let k;const{el:F,props:R}=d,{bm:q,m:z,parent:U,root:se,type:ie}=a,Se=Nt(d);ft(a,!1),q&&jn(q),!Se&&(k=R&&R.onVnodeBeforeMount)&&Pe(k,U,d),ft(a,!0);{se.ce&&se.ce._hasShadowRoot()&&se.ce._injectChildStyle(ie,a.parent?a.parent.type:void 0);const Ie=a.subTree=Js(a);I(null,Ie,m,b,a,_,y),d.el=Ie.el}if(z&&he(z,_),!Se&&(k=R&&R.onVnodeMounted)){const Ie=d;he(()=>Pe(k,U,Ie),_)}(d.shapeFlag&256||U&&Nt(U.vnode)&&U.vnode.shapeFlag&256)&&a.a&&he(a.a,_),a.isMounted=!0,d=m=b=null}};a.scope.on();const w=a.effect=new Cr($);a.scope.off();const v=a.update=w.run.bind(w),O=a.job=w.runIfDirty.bind(w);O.i=a,O.id=a.uid,w.scheduler=()=>bs(O),ft(a,!0),v()},te=(a,d,m)=>{d.component=a;const b=a.vnode.props;a.vnode=d,a.next=null,ul(a,d.props,b,m),pl(a,d.children,m),Ve(),Vr(a),Ue()},J=(a,d,m,b,_,y,S,$,w=!1)=>{const v=a&&a.children,O=a?a.shapeFlag:0,k=d.children,{patchFlag:F,shapeFlag:R}=d;if(F>0){if(F&128){on(v,k,m,b,_,y,S,$,w);return}else if(F&256){ct(v,k,m,b,_,y,S,$,w);return}}R&8?(O&16&&Et(v,_,y),k!==v&&h(m,k)):O&16?R&16?on(v,k,m,b,_,y,S,$,w):Et(v,_,y,!0):(O&8&&h(m,""),R&16&&tt(k,m,b,_,y,S,$,w))},ct=(a,d,m,b,_,y,S,$,w)=>{a=a||ht,d=d||ht;const v=a.length,O=d.length,k=Math.min(v,O);let F;for(F=0;F<k;F++){const R=d[F]=w?Ze(d[F]):Le(d[F]);I(a[F],R,m,null,_,y,S,$,w)}v>O?Et(a,_,y,!0,!1,k):tt(d,m,b,_,y,S,$,w,k)},on=(a,d,m,b,_,y,S,$,w)=>{let v=0;const O=d.length;let k=a.length-1,F=O-1;for(;v<=k&&v<=F;){const R=a[v],q=d[v]=w?Ze(d[v]):Le(d[v]);if(Mt(R,q))I(R,q,m,null,_,y,S,$,w);else break;v++}for(;v<=k&&v<=F;){const R=a[k],q=d[F]=w?Ze(d[F]):Le(d[F]);if(Mt(R,q))I(R,q,m,null,_,y,S,$,w);else break;k--,F--}if(v>k){if(v<=F){const R=F+1,q=R<O?d[R].el:b;for(;v<=F;)I(null,d[v]=w?Ze(d[v]):Le(d[v]),m,q,_,y,S,$,w),v++}}else if(v>F)for(;v<=k;)$e(a[v],_,y,!0),v++;else{const R=v,q=v,z=new Map;for(v=q;v<=F;v++){const ve=d[v]=w?Ze(d[v]):Le(d[v]);ve.key!=null&&z.set(ve.key,v)}let U,se=0;const ie=F-q+1;let Se=!1,Ie=0;const Ge=new Array(ie);for(v=0;v<ie;v++)Ge[v]=0;for(v=R;v<=k;v++){const ve=a[v];if(se>=ie){$e(ve,_,y,!0);continue}let Fe;if(ve.key!=null)Fe=z.get(ve.key);else for(U=q;U<=F;U++)if(Ge[U-q]===0&&Mt(ve,d[U])){Fe=U;break}Fe===void 0?$e(ve,_,y,!0):(Ge[Fe-q]=v+1,Fe>=Ie?Ie=Fe:Se=!0,I(ve,d[Fe],m,null,_,y,S,$,w),se++)}const Fs=Se?vl(Ge):ht;for(U=Fs.length-1,v=ie-1;v>=0;v--){const ve=q+v,Fe=d[ve],Ps=d[ve+1],Ds=ve+1<O?Ps.el||Ht(Ps):b;Ge[v]===0?I(null,Fe,m,Ds,_,y,S,$,w):Se&&(U<0||v!==Fs[U]?at(Fe,m,Ds,2):U--)}}},at=(a,d,m,b,_=null)=>{const{el:y,type:S,transition:$,children:w,shapeFlag:v}=a;if(v&6){at(a.component.subTree,d,m,b);return}if(v&128){a.suspense.move(d,m,b);return}if(v&64){S.move(a,d,m,At);return}if(S===Z){s(y,d,m);for(let k=0;k<w.length;k++)at(w[k],d,m,b);s(a.anchor,d,m);return}if(S===pn){H(a,d,m);return}if(b!==2&&v&1&&$)if(b===0)$.persisted&&!y[Un]?s(y,d,m):($.beforeEnter(y),s(y,d,m),he(()=>$.enter(y),_));else{const{leave:k,delayLeave:F,afterLeave:R}=$,q=()=>{a.ctx.isUnmounted?r(y):s(y,d,m)},z=()=>{const U=y._isLeaving||!!y[Un];y._isLeaving&&y[Un](!0),$.persisted&&!U?q():k(y,()=>{q(),R&&R()})};F?F(y,q,z):z()}else s(y,d,m)},$e=(a,d,m,b=!1,_=!1)=>{const{type:y,props:S,ref:$,children:w,dynamicChildren:v,shapeFlag:O,patchFlag:k,dirs:F,cacheIndex:R,memo:q}=a;if((k===-2||v&&v.hasOnce)&&(_=!1),$!=null&&(Ve(),Lt($,null,m,a,!0),Ue()),R!=null&&(!a.ctx||a.ctx===d)&&(d.renderCache[R]=void 0),O&256&&d.ctx.deactivate(a))return;const z=O&1&&F,U=!Nt(a);let se;if(U&&(se=S&&S.onVnodeBeforeUnmount)&&Pe(se,d,a),O&6)Ri(a.component,m,b);else{if(O&128){a.suspense.unmount(m,b);return}z&&ut(a,null,d,"beforeUnmount"),O&64?a.type.remove(a,d,m,At,b):v&&!v.hasOnce&&(y!==Z||k>0&&k&64)?Et(v,d,m,!1,!0):(y===Z&&k&384||!_&&O&16)&&Et(w,d,m),b&&Ms(a)}const ie=q!=null&&R==null;(U&&(se=S&&S.onVnodeUnmounted)||z||ie)&&he(()=>{se&&Pe(se,d,a),z&&ut(a,null,d,"unmounted"),ie&&(a.el=null)},m)},Ms=a=>{const{type:d,el:m,anchor:b,transition:_}=a,y=d===Z;if(y&&!_){Os(m,b);return}if(d===pn){A(a),_&&!_.persisted&&_.afterLeave&&_.afterLeave();return}const S=y?ns(a):a,$=()=>{y?g(m)&&Os(m,b):r(m),_&&!_.persisted&&_.afterLeave&&_.afterLeave()};if(S&&S.shapeFlag&1&&_&&!_.persisted){const{leave:w,delayLeave:v}=_,O=S.el,k=()=>w(O,$);v?v(O,$,k):k()}else $()},Os=(a,d)=>{let m;for(;a!==d;)m=C(a),r(a),a=m;r(d)},Ri=(a,d,m)=>{const{bum:b,scope:_,job:y,subTree:S,um:$,m:w,a:v}=a;Zs(w),Zs(v),b&&jn(b),_.stop(),y?(y.flags|=8,$e(S,a,d,m)):S&&(S.transition=a.vnode.transition,$e(S,a,d,m)),$&&he($,d);const O=()=>{a.isUnmounted=!0};O.flags=16,he(O,d)},Et=(a,d,m,b=!1,_=!1,y=0)=>{for(let S=y;S<a.length;S++)$e(a[S],d,m,b,_)},ln=a=>{if(a.shapeFlag&6)return ln(a.component.subTree);if(a.shapeFlag&128)return a.suspense.next();const d=C(a.anchor||a.el),m=d&&d[Fo];return m?C(m):d},Is=(a,d,m)=>{const b=a&&d._vnode?void 0:a&&a.component?a.component.uid:kl();Eo(()=>{a==null?d._vnode&&$e(d._vnode,null,null,!0):I(d._vnode||null,a,d,null,null,null,m),d._vnode=a},b)},At={p:I,um:$e,m:at,r:Ms,mt:Ln,mc:tt,pc:J,pbc:lt,n:ln,o:e};return{render:Is,hydrate:void 0,createApp:tl(Is)}}function zn({type:e,props:t},n){return n==="svg"&&e==="foreignObject"||n==="mathml"&&e==="annotation-xml"&&t&&t.encoding&&t.encoding.includes("html")?void 0:n}function ft({effect:e,job:t},n){n?(e.flags|=32,t.flags|=4):(e.flags&=-33,t.flags&=-5)}function _l(e,t){return(!e||e&&!e.pendingBranch)&&t&&!t.persisted}function pi(e,t,n=!1){const s=e.children,r=t.children;if(L(s)&&L(r))for(let i=0;i<s.length;i++){const o=s[i];let l=r[i];l.shapeFlag&1&&!l.dynamicChildren&&((l.patchFlag<=0||l.patchFlag===32)&&(l=r[i]=Ze(r[i]),l.el=o.el),!n&&l.patchFlag!==-2&&pi(o,l)),l.type===Dn&&(l.patchFlag===-1&&(l=r[i]=Ze(l)),l.el=o.el),l.type===Me&&!l.el&&(l.el=o.el)}}function vl(e){const t=e.slice(),n=[0];let s,r,i,o,l;const c=e.length;for(s=0;s<c;s++){const p=e[s];if(p!==0){if(r=n[n.length-1],e[r]<p){t[s]=r,n.push(s);continue}for(i=0,o=n.length-1;i<o;)l=i+o>>1,e[n[l]]<p?i=l+1:o=l;p<e[n[i]]&&(i>0&&(t[s]=n[i-1]),n[i]=s)}}for(i=n.length,o=n[i-1];i-- >0;)n[i]=o,o=t[o];return n}function mi(e){const t=e.subTree.component;if(t)return t.asyncDep&&!t.asyncResolved?t:mi(t)}function Zs(e){if(e)for(let t=0;t<e.length;t++)e[t].flags|=8}function Ht(e){if(e.placeholder)return e.placeholder;const t=e.component;if(t)return Ht(t.subTree);const n=e.suspense;return n&&n.activeBranch?Ht(n.activeBranch):null}const gi=e=>e.__isSuspense,yl=Symbol("_deferredEnter");function bl(e,t){t&&t.pendingBranch?L(e)?t.effects.push(...e):t.effects.push(e):ko(e)}const Z=Symbol.for("v-fgt"),Dn=Symbol.for("v-txt"),Me=Symbol.for("v-cmt"),pn=Symbol.for("v-stc"),_t=[];let ye=null;function E(e=!1){_t.push(ye=e?null:[])}function _i(){_t.pop(),ye=_t[_t.length-1]||null}let Wt=1;function Qs(e,t=!1){Wt+=e,e<0&&ye&&t&&(ye.hasOnce=!0)}function vi(e){return e.dynamicChildren=Wt>0?ye||ht:null,_i(),Wt>0&&ye&&ye.push(e),e}function T(e,t,n,s,r,i){return vi(u(e,t,n,s,r,i,!0))}function Ye(e,t,n,s,r){return vi(Ae(e,t,n,s,r,!0))}function Ss(e){return e?e.__v_isVNode===!0:!1}function Mt(e,t){return e.type===t.type&&e.key===t.key}const yi=({key:e})=>e??null,mn=({ref:e,ref_key:t,ref_for:n})=>(typeof e=="number"&&(e=""+e),e!=null?ne(e)||ue(e)||j(e)?{i:He,r:e,k:t,f:!!n}:e:null);function u(e,t=null,n=null,s=0,r=null,i=e===Z?0:1,o=!1,l=!1){const c={__v_isVNode:!0,__v_skip:!0,type:e,props:t,key:t&&yi(t),ref:t&&mn(t),scopeId:zr,slotScopeIds:null,children:n,component:null,suspense:null,ssContent:null,ssFallback:null,dirs:null,transition:null,el:null,anchor:null,target:null,targetStart:null,targetAnchor:null,staticCount:0,shapeFlag:i,patchFlag:s,dynamicProps:r,dynamicChildren:null,appContext:null,ctx:He};return l?($n(c,n),i&128&&e.normalize(c)):n&&(c.shapeFlag|=ne(n)?8:16),Wt>0&&!o&&ye&&(c.patchFlag>0||i&6)&&c.patchFlag!==32&&ye.push(c),c}const Ae=xl;function xl(e,t=null,n=null,s=0,r=null,i=!1){if((!e||e===zo)&&(e=Me),Ss(e)){const l=$t(e,t,!0);return n&&$n(l,n),Wt>0&&!i&&ye&&(l.shapeFlag&6?ye[ye.indexOf(e)]=l:ye.push(l)),l.patchFlag=-2,l}if(Fl(e)&&(e=e.__vccOpts),t){t=wl(t);let{class:l,style:c}=t;l&&!ne(l)&&(t.class=Ke(l)),W(c)&&(ys(c)&&!L(c)&&(c=re({},c)),t.style=Xt(c))}const o=ne(e)?1:gi(e)?128:Fn(e)?64:W(e)?4:j(e)?2:0;return u(e,t,n,s,r,o,i,!0)}function wl(e){return e?ys(e)?re({},e):ci(e)?re({},e[$i]||e):e:null}function $t(e,t,n=!1,s=!1){const{props:r,ref:i,patchFlag:o,children:l,transition:c}=e,p=t?Sl(r||{},t):r,h={__v_isVNode:!0,__v_skip:!0,type:e.type,props:p,key:p&&yi(p),ref:t&&t.ref?n&&i?L(i)?i.concat(mn(t)):[i,mn(t)]:mn(t):i,scopeId:e.scopeId,slotScopeIds:e.slotScopeIds,children:l,target:e.target,targetStart:e.targetStart,targetAnchor:e.targetAnchor,staticCount:e.staticCount,shapeFlag:e.shapeFlag,patchFlag:t&&e.type!==Z?o===-1?16:o|16:o,dynamicProps:e.dynamicProps,dynamicChildren:e.dynamicChildren,appContext:e.appContext,dirs:e.dirs,transition:c,component:e.component,suspense:e.suspense,ssContent:e.ssContent&&$t(e.ssContent),ssFallback:e.ssFallback&&$t(e.ssFallback),placeholder:e.placeholder,el:e.el,anchor:e.anchor,ctx:e.ctx,ce:e.ce,cacheIndex:e.cacheIndex};return c&&s&&Rt(h,c.clone(h)),h}function St(e=" ",t=0){return Ae(Dn,null,e,t)}function $l(e,t){const n=Ae(pn,null,e);return n.staticCount=t,n}function ae(e="",t=!1){return t?(E(),Ye(Me,null,e)):Ae(Me,null,e)}function Le(e){return e==null||typeof e=="boolean"?Ae(Me):L(e)?Ae(Z,null,e.slice()):Ss(e)?Ze(e):Ae(Dn,null,String(e))}function Ze(e){return e.el===null&&e.patchFlag!==-1||e.memo?e:$t(e)}function $n(e,t){let n=0;const{shapeFlag:s}=e;if(t==null)t=null;else if(L(t))n=16;else if(typeof t=="object")if(s&65){const r=t.default;r&&(r._c&&(r._d=!1),$n(e,r()),r._c&&(r._d=!0));return}else{n=32;const r=t._;!r&&!ci(t)?t._ctx=He:r===3&&He&&(He.slots._===1?t._=1:(t._=2,e.patchFlag|=1024))}else if(j(t)){if(s&65){$n(e,{default:t});return}t={default:t,_ctx:He},n=32}else t=String(t),s&64?(n=16,t=[St(t)]):n=8;e.children=t,e.shapeFlag|=n}function Sl(...e){const t={};for(let n=0;n<e.length;n++){const s=e[n];for(const r in s)if(r==="class")t.class!==s.class&&(t.class=Ke([t.class,s.class]));else if(r==="style")t.style=Xt([t.style,s.style]);else if(kn(r)){const i=t[r],o=s[r];o&&i!==o&&!(L(i)&&i.includes(o))?t[r]=i?[].concat(i,o):o:o==null&&i==null&&!En(r)&&(t[r]=o)}else r!==""&&(t[r]=s[r])}return t}function Pe(e,t,n,s=null){Te(e,t,7,[n,s])}const Cl=ni();let bi=0;function kl(){return bi}function El(e,t,n){const s=e.type,r=(t?t.appContext:e.appContext)||Cl,i={uid:bi++,vnode:e,type:s,parent:t,appContext:r,root:null,next:null,subTree:null,effect:null,update:null,job:null,scope:new Yi(!0),render:null,proxy:null,exposed:null,exposeProxy:null,withProxy:null,provides:t?t.provides:Object.create(r.provides),ids:t?t.ids:["",0,0],accessCache:null,renderCache:[],components:null,directives:null,propsOptions:ui(s,r),emitsOptions:si(s,r),emit:null,emitted:null,propsDefaults:X,inheritAttrs:s.inheritAttrs,ctx:X,data:X,props:X,attrs:X,slots:X,refs:X,setupState:X,setupContext:null,suspense:n,suspenseId:n?n.pendingId:0,asyncDep:null,asyncResolved:!1,isMounted:!1,isUnmounted:!1,isDeactivated:!1,bc:null,c:null,bm:null,m:null,bu:null,u:null,um:null,bum:null,da:null,a:null,rtg:null,rtc:null,ec:null,sp:null};return i.ctx={_:i},i.root=t?t.root:i,i.emit=sl.bind(null,i),e.ce&&e.ce(i),i}let ge=null;const Al=()=>ge||He;let Sn,zt;{const e=Tn(),t=(n,s)=>{let r;return(r=e[n])||(r=e[n]=[]),r.push(s),i=>{r.length>1?r.forEach(o=>o(i)):r[0](i)}};Sn=t("__VUE_INSTANCE_SETTERS__",n=>ge=n),zt=t("__VUE_SSR_SETTERS__",n=>Gt=n)}const en=e=>{const t=ge;return Sn(e),e.scope.on(),()=>{e.scope.off(),Sn(t)}},er=()=>{ge&&ge.scope.off(),Sn(null)};function xi(e){return e.vnode.shapeFlag&4}let Gt=!1;function Tl(e,t=!1,n=!1){t&&zt(t);const{props:s,children:r}=e.vnode,i=xi(e);al(e,s,i,t),hl(e,r,n||t);const o=i?Ml(e,t):void 0;return t&&zt(!1),o}function Ml(e,t){const n=e.type;e.accessCache=Object.create(null),e.proxy=new Proxy(e.ctx,Go);const{setup:s}=n;if(s){Ve();const r=e.setupContext=s.length>1?Il(e):null,i=en(e),o=Qt(s,e,0,[e.props,r]),l=_r(o);if(Ue(),i(),(l||e.sp)&&!Nt(e)&&Xr(e),l){if(o.then(er,er),t)return o.then(c=>{zt(!0);try{tr(e,c,t)}finally{zt(!1)}}).catch(c=>{In(c,e,0,void 0,!0),e.ssrRender=(p,h)=>h("<!---->")});e.asyncDep=o}else tr(e,o)}else wi(e)}function tr(e,t,n){j(t)?e.type.__ssrInlineRender?e.ssrRender=t:e.render=t:W(t)&&(e.setupState=Hr(t)),wi(e)}function wi(e,t,n){const s=e.type;e.render||(e.render=s.render||qe);{const r=en(e);Ve();try{Jo(e)}finally{Ue(),r()}}}const $i=Symbol(),Ol={get(e,t){return ce(e,"get",""),t===$i?e:e[t]}};function Il(e){const t=n=>{e.exposed=n||{}};return{attrs:new Proxy(e.attrs,Ol),slots:e.slots,emit:e.emit,expose:t}}function Cs(e){return e.exposed?e.exposeProxy||(e.exposeProxy=new Proxy(Hr(go(e.exposed)),{get(t,n){if(n in t)return t[n];if(n in jt)return jt[n](e)},has(t,n){return n in t||n in jt}})):e.proxy}function Fl(e){return j(e)&&"__vccOpts"in e}const V=(e,t)=>xo(e,t,Gt),Pl="3.5.45";/**
+* @vue/runtime-dom v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/let ls;const nr=typeof window<"u"&&window.trustedTypes;if(nr)try{ls=nr.createPolicy("vue",{createHTML:e=>e})}catch{}const Si=ls?e=>ls.createHTML(e):e=>e,Dl="http://www.w3.org/2000/svg",Rl="http://www.w3.org/1998/Math/MathML",Xe=typeof document<"u"?document:null,sr=Xe&&Xe.createElement("template"),Ll={insert:(e,t,n)=>{t.insertBefore(e,n||null)},remove:e=>{const t=e.parentNode;t&&t.removeChild(e)},createElement:(e,t,n,s)=>{const r=t==="svg"?Xe.createElementNS(Dl,e):t==="mathml"?Xe.createElementNS(Rl,e):n?Xe.createElement(e,{is:n}):Xe.createElement(e);return e==="select"&&s&&s.multiple!=null&&r.setAttribute("multiple",s.multiple),r},createText:e=>Xe.createTextNode(e),createComment:e=>Xe.createComment(e),setText:(e,t)=>{e.nodeValue=t},setElementText:(e,t)=>{e.textContent=t},parentNode:e=>e.parentNode,nextSibling:e=>e.nextSibling,querySelector:e=>Xe.querySelector(e),setScopeId(e,t){e.setAttribute(t,"")},insertStaticContent(e,t,n,s,r,i){const o=n?n.previousSibling:t.lastChild;if(r&&(r===i||r.nextSibling))for(;t.insertBefore(r.cloneNode(!0),n),!(r===i||!(r=r.nextSibling)););else{sr.innerHTML=Si(s==="svg"?`<svg>${e}</svg>`:s==="mathml"?`<math>${e}</math>`:e);const l=sr.content;if(s==="svg"||s==="mathml"){const c=l.firstChild;for(;c.firstChild;)l.appendChild(c.firstChild);l.removeChild(c)}t.insertBefore(l,n)}return[o?o.nextSibling:t.firstChild,n?n.previousSibling:t.lastChild]}},Nl=Symbol("_vtc");function jl(e,t,n){const s=e[Nl];s&&(t=(t?[t,...s]:[...s]).join(" ")),t==null?e.removeAttribute("class"):n?e.setAttribute("class",t):e.className=t}const rr=Symbol("_vod"),Hl=Symbol("_vsh"),ql=Symbol(""),Bl=/(?:^|;)\s*display\s*:/;function Kl(e,t,n){const s=e.style,r=ne(n);let i=!1;if(n&&!r){if(t)if(ne(t))for(const o of t.split(";")){const l=o.slice(0,o.indexOf(":")).trim();n[l]==null&&It(s,l,"")}else for(const o in t)n[o]==null&&It(s,o,"");for(const o in n){o==="display"&&(i=!0);const l=n[o];l!=null?Ul(e,o,!ne(t)&&t?t[o]:void 0,l)||It(s,o,l):It(s,o,"")}}else if(r){if(t!==n){const o=s[ql];o&&(n+=";"+o),s.cssText=n,i=Bl.test(n)}}else t&&e.removeAttribute("style");rr in e&&((!r||t!==n)&&(e[rr]=i?s.display:""),e[Hl]&&(s.display="none"))}const fn=/\s*!important$/;function It(e,t,n){if(L(n))n.forEach(s=>It(e,t,s));else if(n==null&&(n=""),t.startsWith("--"))fn.test(n)?e.setProperty(t,n.replace(fn,""),"important"):e.setProperty(t,n);else{const s=Vl(e,t);fn.test(n)?e.setProperty(vt(s),n.replace(fn,""),"important"):e[s]=n}}const ir=["Webkit","Moz","ms"],Gn={};function Vl(e,t){const n=Gn[t];if(n)return n;let s=ke(t);if(s!=="filter"&&s in e)return Gn[t]=s;s=br(s);for(let r=0;r<ir.length;r++){const i=ir[r]+s;if(i in e)return Gn[t]=i}return t}function Ul(e,t,n,s){return e.tagName==="TEXTAREA"&&(t==="width"||t==="height")&&ne(s)&&n===s}const or="http://www.w3.org/1999/xlink";function lr(e,t,n,s,r,i=zi(t)){s&&t.startsWith("xlink:")?n==null?e.removeAttributeNS(or,t.slice(6,t.length)):e.setAttributeNS(or,t,n):n==null||i&&!wr(n)?e.removeAttribute(t):e.setAttribute(t,i?"":Be(n)?String(n):n)}function cr(e,t,n,s,r){if(t==="innerHTML"||t==="textContent"){n!=null&&(e[t]=t==="innerHTML"?Si(n):n);return}const i=e.tagName;if(t==="value"&&i!=="PROGRESS"&&!i.includes("-")){const l=i==="OPTION"?e.getAttribute("value")||"":e.value,c=n==null?e.type==="checkbox"?"on":"":String(n);(l!==c||!("_value"in e))&&(e.value=c),n==null&&e.removeAttribute(t),e._value=n;return}let o=!1;if(n===""||n==null){const l=typeof e[t];l==="boolean"?n=wr(n):n==null&&l==="string"?(n="",o=!0):l==="number"&&(n=0,o=!0)}try{e[t]=n}catch{}o&&e.removeAttribute(r||t)}function Wl(e,t,n,s){e.addEventListener(t,n,s)}function zl(e,t,n,s){e.removeEventListener(t,n,s)}const ar=Symbol("_vei");function Gl(e,t,n,s,r=null){const i=e[ar]||(e[ar]={}),o=i[t];if(s&&o)o.value=s;else{const[l,c]=Xl(t);if(s){const p=i[t]=ec(s,r);Wl(e,l,p,c)}else o&&(zl(e,l,o,c),i[t]=void 0)}}const Jl=/(Once|Passive|Capture)$/,Yl=/^on:?(?:Once|Passive|Capture)$/;function Xl(e){let t,n;for(;(n=e.match(Jl))&&!Yl.test(e);)t||(t={}),e=e.slice(0,e.length-n[1].length),t[n[1].toLowerCase()]=!0;return[e[2]===":"?e.slice(3):vt(e.slice(2)),t]}let Jn=0;const Zl=Promise.resolve(),Ql=()=>Jn||(Zl.then(()=>Jn=0),Jn=Date.now());function ec(e,t){const n=s=>{if(!s._vts)s._vts=Date.now();else if(s._vts<=n.attached)return;const r=n.value;if(L(r)){const i=s.stopImmediatePropagation;s.stopImmediatePropagation=()=>{i.call(s),s._stopped=!0};const o=r.slice(),l=[s];for(let c=0;c<o.length&&!s._stopped;c++){const p=o[c];p&&Te(p,t,5,l)}}else Te(r,t,5,[s])};return n.value=e,n.attached=Ql(),n}const ur=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&e.charCodeAt(2)>96&&e.charCodeAt(2)<123,tc=(e,t,n,s,r,i)=>{const o=r==="svg";t==="class"?jl(e,s,o):t==="style"?Kl(e,n,s):kn(t)?En(t)||Gl(e,t,n,s,i):(t[0]==="."?(t=t.slice(1),!0):t[0]==="^"?(t=t.slice(1),!1):nc(e,t,s,o))?(cr(e,t,s),!e.tagName.includes("-")&&(t==="value"||t==="checked"||t==="selected")&&lr(e,t,s,o,i,t!=="value")):e._isVueCE&&(sc(e,t)||e._def.__asyncLoader&&(/[A-Z]/.test(t)||!ne(s)))?cr(e,ke(t),s,i,t):(t==="true-value"?e._trueValue=s:t==="false-value"&&(e._falseValue=s),lr(e,t,s,o))};function nc(e,t,n,s){if(s)return!!(t==="innerHTML"||t==="textContent"||t in e&&ur(t)&&j(n));if(t==="spellcheck"||t==="draggable"||t==="translate"||t==="autocorrect"||t==="sandbox"&&e.tagName==="IFRAME"||t==="form"||t==="list"&&e.tagName==="INPUT"||t==="type"&&e.tagName==="TEXTAREA")return!1;if(t==="width"||t==="height"){const r=e.tagName;if(r==="IMG"||r==="VIDEO"||r==="CANVAS"||r==="SOURCE")return!1}return ur(t)&&ne(n)?!1:t in e}function sc(e,t){const n=e._def.props;if(!n)return!1;const s=ke(t);return Array.isArray(n)?n.some(r=>ke(r)===s):Object.keys(n).some(r=>ke(r)===s)}const rc=["ctrl","shift","alt","meta"],ic={stop:e=>e.stopPropagation(),prevent:e=>e.preventDefault(),self:e=>e.target!==e.currentTarget,ctrl:e=>!e.ctrlKey,shift:e=>!e.shiftKey,alt:e=>!e.altKey,meta:e=>!e.metaKey,left:e=>"button"in e&&e.button!==0,middle:e=>"button"in e&&e.button!==1,right:e=>"button"in e&&e.button!==2,exact:(e,t)=>rc.some(n=>e[`${n}Key`]&&!t.includes(n))},cs=(e,t)=>{if(!e)return e;const n=e._withMods||(e._withMods={}),s=t.join(".");return n[s]||(n[s]=((r,...i)=>{for(let o=0;o<t.length;o++){const l=ic[t[o]];if(l&&l(r,t))return}return e(r,...i)}))},oc=re({patchProp:tc},Ll);let fr;function lc(){return fr||(fr=ml(oc))}const cc=((...e)=>{const t=lc().createApp(...e),{mount:n}=t;return t.mount=s=>{const r=uc(s);if(!r)return;const i=t._component;!j(i)&&!i.render&&!i.template&&(i.template=r.innerHTML),r.nodeType===1&&(r.textContent="");const o=n(r,!1,ac(r));return r instanceof Element&&(r.removeAttribute("v-cloak"),r.setAttribute("data-v-app","")),o},t});function ac(e){if(e instanceof SVGElement)return"svg";if(typeof MathMLElement=="function"&&e instanceof MathMLElement)return"mathml"}function uc(e){return ne(e)?document.querySelector(e):e}const fc="./";function me(e){return fc+"art/"+e}const ks={ln:{name:"林念",full:me("ln-full.webp"),face:me("ln-face.webp"),emotions:{}},sq:{name:"苏晴",full:me("sq-full.webp"),face:me("sq-exp-1.webp"),emotions:{开心:1,惊喜:2,思考:3,加油:4,好吃:5,满足:6}},nu:{name:"林暖",full:me("nu-full.webp"),face:me("nu-exp-6.webp"),emotions:{开心:1,惊讶:2,欣慰:3,认真:4,担心:5,温柔:6}}};function dc(e,t){const n=ks[e];if(!n)return me("ln-face.webp");const s=t&&n.emotions[t];return s?me(e+"-exp-"+s+".webp"):n.face}const Ct=[{id:"plain",name:"原味奶油蛋糕",skill:0,cost:80,price:128,quality:3,stock:2,desc:"店里最老的方子。戚风胚，薄薄一层奶油，什么装饰都没有。",colors:{sponge:"#F0D9AE",cream:"#FFF8EE",accent:"#E8B86D"}},{id:"strawberry",name:"草莓奶油蛋糕",skill:10,cost:130,price:198,quality:5,stock:3,desc:"整颗草莓夹在奶油里，切开的时候会掉下来两颗。",colors:{sponge:"#F4DDB6",cream:"#FFF8F2",accent:"#E05B66"}},{id:"chocolate",name:"巧克力蛋糕",skill:16,cost:150,price:218,quality:6,stock:3,desc:"可可粉筛了三遍，吃起来不苦，回味有点厚。",colors:{sponge:"#8A5A3B",cream:"#C89B72",accent:"#5C3823"}},{id:"taro",name:"芋泥薄脆",skill:24,cost:180,price:268,quality:8,stock:3,desc:"第一款属于我自己的蛋糕。少一分糖，中间夹一层薄薄的芋泥。",colors:{sponge:"#E5D5E8",cream:"#FBF2FA",accent:"#B48FC0"}},{id:"matcha",name:"抹茶蛋糕",skill:30,cost:210,price:298,quality:9,stock:4,desc:"宇治抹茶配红豆。颜色好看，但火候差一点就会发苦。",colors:{sponge:"#C9D8A8",cream:"#F6FAEE",accent:"#7E9B52"}},{id:"mango",name:"芒果慕斯",skill:36,cost:250,price:348,quality:10,stock:4,desc:"夏天限定。芒果要挑熟的，不然酸味会盖住奶香。",colors:{sponge:"#F7D98C",cream:"#FFF6E2",accent:"#E9A93C"}},{id:"tiramisu",name:"提拉米苏",skill:44,cost:300,price:398,quality:12,stock:4,desc:"手指饼干要浸得刚好，多一秒就散，少一秒就干。",colors:{sponge:"#D8B98E",cream:"#F3E6D3",accent:"#6B4A34"}},{id:"fig",name:"无花果奶油",skill:50,cost:340,price:448,quality:13,stock:4,desc:"苏晴生日那天做的那款。白奶油，上面摆一层无花果。",colors:{sponge:"#EFDCC0",cream:"#FFFAF4",accent:"#A5587B"}},{id:"seasonal",name:"季节水果蛋糕",skill:58,cost:380,price:498,quality:14,stock:5,desc:"每个月换一次水果。春天是莓果，秋天是梨和无花果。",colors:{sponge:"#F6E4C4",cream:"#FFFAF0",accent:"#D9736A"}},{id:"festival",name:"节日限定蛋糕",skill:68,cost:460,price:598,quality:16,stock:5,desc:"一年只做几次。包装盒是专门订的，比蛋糕还贵。",colors:{sponge:"#EADCCB",cream:"#FFFBF5",accent:"#C2554F"}},{id:"custom",name:"生日定制蛋糕",skill:76,cost:520,price:688,quality:18,stock:5,desc:"客人说什么，就做什么。最难的不是手艺，是听懂他要什么。",colors:{sponge:"#F3E2C6",cream:"#FFFCF7",accent:"#D98CA0"}},{id:"signature",name:"招牌 · 从一块开始",skill:88,cost:620,price:828,quality:20,stock:6,desc:"店里的招牌。三层夹心，切开是三种颜色，像三年。",colors:{sponge:"#F0D9AE",cream:"#FFFDF8",accent:"#8A6A4F"}}];function Ci(e){return Ct.find(t=>t.id===e)||Ct[0]}const as=[{id:"qiyun",name:"栖云镇",cost:0,rep:0,fame:0,note:"初始门店。住了二十年的小镇。"},{id:"linjiang",name:"临江市",cost:5e3,rep:26,fame:20,note:"开车一小时能到的城市，第一家分店。"},{id:"hangzhou",name:"杭州",cost:11e3,rep:38,fame:32,note:"第一家真正意义上的「外地店」。"},{id:"shanghai",name:"上海",cost:16e3,rep:48,fame:44,note:"房租很贵，但客单价也高。"},{id:"nanjing",name:"南京",cost:23e3,rep:58,fame:55,note:"老街上的店，装修保留了木质结构。"},{id:"chengdu",name:"成都",cost:31e3,rep:68,fame:64,note:"本地团队自己跑起来的。"},{id:"guangzhou",name:"广州",cost:4e4,rep:78,fame:74,note:"第一次把季节水果换成热带水果。"},{id:"beijing",name:"北京",cost:52e3,rep:88,fame:84,note:"旗舰店。开业那天正好是我的生日。"}],Jt=[{lv:1,name:"社区小店",cost:0,desc:"木门，玻璃展示柜，两张桌子。下雨天会有点潮。"},{lv:2,name:"精致烘焙店",cost:9e3,desc:"换了灯，加了花，展示柜换成三层的。口碑会好看一些。"},{lv:3,name:"品牌旗舰店",cost:26e3,desc:"整面墙的木质货架，后面是开放式厨房。客人能看见我们做蛋糕。"},{lv:4,name:"高端主题门店",cost:62e3,desc:"每个季节换一次主题。有人说进来像走进一本绘本。"}];function hc(e){return Jt.find(t=>t.lv===e)||Jt[0]}const pc=[{id:"study",name:"学习烘焙",en:"Study",hint:"提升烘焙技能与产品品质",detail:"翻笔记、试配方、抹面。慢，但是最稳的。"},{id:"sell",name:"营业接单",en:"Serve",hint:"消耗库存，换取收入与口碑",detail:"开门做生意。今天来的客人会记住味道。"},{id:"market",name:"宣传推广",en:"Promote",hint:"花一点钱，换品牌知名度",detail:"发帖子、发传单、请人试吃。总得有人知道。"},{id:"restock",name:"采购原料",en:"Stock",hint:"补充奶油、面粉和水果",detail:"周叔说这批奶油不错，多拿两箱。"},{id:"research",name:"研发新品",en:"Create",hint:"解锁新的蛋糕配方",detail:"失败了就再试一次。反正面粉不贵。"},{id:"decorate",name:"装修升级",en:"Renovate",hint:"提升门店等级",detail:"换灯、换柜台、换墙。客人会感觉到。"},{id:"hire",name:"招聘员工",en:"Hire",hint:"增加人手，支撑更多门店",detail:"一个人做不完的时候，就得找人。"},{id:"branch",name:"开设分店",en:"Expand",hint:"在新城市开店",detail:"把喜欢的味道带到更多地方。"},{id:"community",name:"社区活动",en:"Community",hint:"提升口碑，偶尔获得纪念照片",detail:"摆个摊，做点小蛋糕。邻居们都会来。"}],Cn={sq_visit:{title:"第一次探店",caption:"她站在门口拍了一张。这张她留了三年。",img:me("sq-friends.webp")},first_order:{title:"第一张顾客回图",caption:"蛋糕上插着蜡烛，一位头发花白的阿姨在笑。",img:null},sq_birthday:{title:"九月的生日",caption:"白奶油，一层无花果。她吹蜡烛的时候眼睛闭着。",img:null},ln_birthday:{title:"十二月的雪",caption:"蛋糕很朴素，切开是三层不同的颜色。",img:me("nu-duo.webp")},community:{title:"社区美食活动",caption:"价目牌是手写的，字歪歪扭扭，但很好看。",img:me("shop-exterior.webp")},package:{title:"礼盒尺寸",caption:"桌上堆了一整片纸板，最后定下来的是她挑的那个。",img:null},weekend:{title:"久违的周末",caption:"河边，天快黑了。最后一张。",img:null},sq_birthday_3:{title:"第三年的九月",caption:"关了灯的门店里，两份外卖和一个小蛋糕。",img:null},ln_birthday_2:{title:"二十四岁",caption:"小雨做的蛋糕，抹面不平，草莓摆得有点挤。",img:null},album:{title:"一本相册",caption:"最后一页是空的。她说留给我自己贴。",img:me("sq-friends.webp")},finale:{title:"旗舰店开业",caption:"三个人在后厨分了一个很小的蛋糕。",img:me("shop-exterior.webp")}},Yn=[{from:1,to:6,name:"第一章 · 从一块蛋糕开始"},{from:7,to:12,name:"第二章 · 让更多人认识这家店"},{from:13,to:18,name:"第三章 · 慢慢拥有自己的品牌"},{from:19,to:24,name:"第四章 · 第一家分店"},{from:25,to:30,name:"第五章 · 把喜欢的味道带到更多地方"},{from:31,to:36,name:"第六章 · 从小镇走向全国"}];function ki(e){return Yn.find(t=>e>=t.from&&e<=t.to)||Yn[Yn.length-1]}const mc=["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];function Ei(e){return mc[(e-1)%12]}const gc=`# 《小镇蛋糕店》剧情对话\r
+\r
+> **这份文件是游戏里所有对话的唯一来源。改完保存，游戏刷新页面就生效，不用动代码。**\r
+>\r
+> 时间换算：游戏第 1 个月 = 1 月。所以 9 月是第 9 个月，12 月是第 12 个月，每月一回合，共 36 个月。\r
+> 生日节奏：苏晴在 9 月（第 9 / 21 / 33 个月），林念在 12 月（第 12 / 24 个月，第 36 个月并入结局）。\r
+\r
+---\r
+\r
+## 序章 · 重新开始\r
+\r
+- 事件ID：prologue\r
+- 触发：开局\r
+- 场景：店内\r
+- 奖励：烘焙+3，口碑+2\r
+\r
+旁白：毕业那年冬天，我拖着行李箱回到了栖云镇。\r
+旁白：小镇没什么变化。街角的花店还开着，梧桐树只剩下枝干，糕点铺的招牌被风吹得轻轻晃。\r
+林暖（温柔）：回来啦。箱子先放着，过来帮我把这个蛋糕脱模。\r
+林念：妈，我刚进门。\r
+林暖（开心）：那正好，进门就当学徒。\r
+旁白：我放下箱子，洗了手。奶油的味道一下子把我拉回了很多年前——放学路上，我总会趴在橱窗上看很久。\r
+林暖（认真）：做蛋糕其实没有那么复杂，最重要的是认真。别人愿意把重要的日子交给我们，我们就不能随便对待。\r
+林念：……我试试。\r
+林暖（温柔）：不会可以学呀，我当初也是从头开始的。\r
+旁白：那天我做得很糟。奶油打得过了头，抹面像被风吹过的湖面。\r
+林暖（欣慰）：第一次都这样。明天再来。\r
+旁白：就这样，我留了下来。那时候我还不知道，这一留就是三年。\r
+\r
+---\r
+\r
+## 第一章 · 从一块蛋糕开始\r
+\r
+### 第 2 个月 · 第一次独立完成\r
+\r
+- 事件ID：ch1_first_cake\r
+- 触发：月份=2\r
+- 场景：厨房\r
+- 奖励：烘焙+5，品质+1\r
+\r
+旁白：妈妈说，从今天起，蛋糕由我独立做。她只负责在旁边看着。\r
+林念：你站这么近，我紧张。\r
+林暖（开心）：那我退后一点。这样够远了吗？\r
+旁白：第一个蛋糕烤出来的时候，边缘有点焦。第二个塌了。第三个，终于像样。\r
+林暖（欣慰）：可以了。这个能卖。\r
+林念：真的？\r
+林暖（温柔）：真的。不过你要记住它哪里不够好，下次才知道往哪儿改。\r
+旁白：我在烘焙笔记上写下第一行字：第一个能卖的蛋糕，第 2 个月。\r
+\r
+### 第 3 个月 · 苏晴第一次探店\r
+\r
+- 事件ID：ch1_suqing_visit\r
+- 触发：月份=3\r
+- 场景：店内\r
+- 奖励：友情值+15，照片:sq_visit\r
+\r
+旁白：推门声很响，我抬头就看见一个熟悉的身影，脖子上还挂着相机。\r
+苏晴（开心）：哟，林老板，生意怎么样？\r
+林念：别叫我老板，我现在连蛋糕都做不明白。\r
+苏晴（开心）：没关系，我可以负责吃。\r
+林念：你就是来蹭蛋糕的吧。\r
+苏晴（惊喜）：被发现了。\r
+旁白：她坐下来，环顾了一圈，说这里和她记忆里一模一样，只是橱窗里的蛋糕换成我做的了。\r
+苏晴（思考）：说实话，你在做这件事，我一点都不意外。\r
+林念：为什么？\r
+苏晴（满足）：因为你高中的时候，笔记就写得比别人整齐。\r
+林念：这算什么理由。\r
+苏晴（开心）：这怎么不算理由。\r
+旁白：她走的时候，在门口回头拍了一张照片。后来我才知道，那张照片她一直存着。\r
+\r
+### 第 4 个月 · 第一批熟客\r
+\r
+- 事件ID：ch1_regulars\r
+- 触发：月份=4\r
+- 场景：店内\r
+- 奖励：口碑+5，资金+300\r
+\r
+陈奶奶（温柔）：小姑娘，你就是林暖的女儿吧？长得真像。\r
+林念：奶奶您认识我妈？\r
+陈奶奶（开心）：我孙女今年的生日蛋糕，还是在这儿订的。订了十二年啦。\r
+旁白：她从钱包里拿出一张很旧的照片，上面是一个小小的女孩，抱着一个草莓蛋糕。\r
+陈奶奶（温柔）：那时候她才这么高。今年都要上初中了。\r
+林念：那今年也让我来做吧。\r
+陈奶奶（欣慰）：好啊。做好了，我孙女会记住的。\r
+旁白：那天我才明白，一家蛋糕店卖出去的东西，会被别人记很久。\r
+\r
+### 第 5 个月 · 第一款自己的蛋糕\r
+\r
+- 事件ID：ch1_first_original\r
+- 触发：月份=5\r
+- 场景：厨房\r
+- 奖励：烘焙+6，品质+3，配方:original\r
+\r
+旁白：我试着在妈妈的配方上改了一点东西——少一分糖，多一层薄薄的芋泥。\r
+林暖（认真）：你自己想的？\r
+林念：嗯……是不是不太行。\r
+林暖（温柔）：先做出来，让我尝尝再说。\r
+旁白：她吃得很慢，然后放下叉子，看了我一会儿。\r
+林暖（欣慰）：这个味道是你自己的。\r
+林念：那是好还是不好？\r
+林暖（开心）：是你自己的，就已经很好了。\r
+旁白：那天晚上，我把这款蛋糕写进菜单，名字想了很久，最后只写了四个字：芋泥薄脆。\r
+\r
+### 第 6 个月 · 第一笔生日蛋糕订单\r
+\r
+- 事件ID：ch1_first_order\r
+- 触发：月份=6\r
+- 场景：店内\r
+- 奖励：资金+800，口碑+8，照片:first_order\r
+\r
+顾客：你好，我想订一个生日蛋糕，明天要。\r
+林念：明天？\r
+顾客：是不是来不及……我也是刚想起来。\r
+旁白：我看了妈妈一眼。她没说话，只是把手里的裱花袋递给我。\r
+林念：来得及。你想要什么样子？\r
+顾客：就……简单一点，白白的，上面有草莓就行。我妈喜欢草莓。\r
+旁白：那天我做到了很晚。最后一个草莓放上去的时候，我手都在抖。\r
+林暖（欣慰）：很好看。明天客人会喜欢的。\r
+旁白：第二天下午，那位客人发来一张照片。蛋糕上插着蜡烛，一位头发花白的阿姨在笑。\r
+旁白：我把那张照片贴在厨房的墙上。那是第一张。\r
+\r
+---\r
+\r
+## 第二章 · 让更多人认识这家店\r
+\r
+### 第 7 个月 · 菜单变长了\r
+\r
+- 事件ID：ch2_menu\r
+- 触发：月份=7\r
+- 场景：店内\r
+- 奖励：口碑+4，配方:strawberry\r
+\r
+林暖（认真）：店里只有三款蛋糕，客人会腻的。\r
+林念：我知道，但我一天只能做这么多。\r
+林暖（温柔）：那就一周加一款。别急着一次做完。\r
+旁白：于是菜单从三行变成了五行，再变成七行。每一行后面都有一堆失败的记录。\r
+\r
+### 第 9 个月 · 苏晴的生日\r
+\r
+- 事件ID：birthday_suqing_1\r
+- 触发：月份=9\r
+- 场景：店内\r
+- 奖励：友情值+20，照片:sq_birthday\r
+\r
+旁白：九月的风还是热的。我翻日历的时候才想起来——今天是苏晴的生日。\r
+旁白：我给她发消息，她过了半小时才回：「你居然记得。」\r
+苏晴（惊喜）：我以为你忙得连自己姓什么都忘了。\r
+林念：蛋糕我留了，你什么时候来拿。\r
+苏晴（开心）：现在就在门口。\r
+旁白：她推门进来，手上还提着两杯冰美式，说是给我带的。\r
+林念：今天是你生日，你怎么还给我带东西。\r
+苏晴（满足）：因为我知道你肯定没空去买。\r
+旁白：我把蛋糕端出来。是白奶油，上面摆了一层无花果——我记得她高中时说过喜欢。\r
+苏晴（思考）：你还记得这个？\r
+林念：你说了三遍。\r
+苏晴（开心）：那我下次多说几遍。\r
+旁白：她吹蜡烛的时候，我在旁边举着相机。她说这张一定要拍好，我说我尽力。\r
+旁白：照片里她在笑，眼睛闭着。背景是我们店里那盏旧灯。\r
+\r
+### 第 10 个月 · 社交媒体\r
+\r
+- 事件ID：ch2_social\r
+- 触发：月份=10\r
+- 场景：店内\r
+- 奖励：知名度+8，口碑+3\r
+\r
+苏晴（加油）：你的照片拍得还行，但你不敢发。\r
+林念：发了没人看怎么办。\r
+苏晴（开心）：那我就假装是路人，去评论一句。\r
+旁白：第一条帖子只有十几个赞。第二条稍微多一点。第三条，有个陌生人在下面问：店在哪里？\r
+林念：妈，有人问我们店在哪。\r
+林暖（开心）：那你还不快回。\r
+\r
+### 第 12 个月 · 林念的生日\r
+\r
+- 事件ID：birthday_linian_1\r
+- 触发：月份=12\r
+- 场景：店内\r
+- 奖励：烘焙+4，口碑+4，照片:ln_birthday\r
+\r
+旁白：我忙到把生日忘了。直到晚上关店，妈妈从后厨端出一个蛋糕。\r
+林暖（温柔）：生日快乐。\r
+林念：……你怎么还记得。\r
+林暖（欣慰）：我怎么会不记得。\r
+旁白：蛋糕很朴素，白色的，什么装饰都没有。切开以后，里面是三层不同颜色的夹心。\r
+林念：这个配色……是我小时候最喜欢的那个？\r
+林暖（开心）：你还记得啊。\r
+旁白：我突然有点想哭，只好低头吃蛋糕。\r
+林暖（温柔）：明年这个时候，你会做得比我好。\r
+林念：那可不一定。\r
+林暖（欣慰）：一定的。\r
+旁白：妈妈把剩下的蛋糕装进盒子，说让我明天带去给苏晴。\r
+旁白：我说好。外面在下雪，店里很暖。\r
+\r
+---\r
+\r
+## 第三章 · 慢慢拥有自己的品牌\r
+\r
+### 第 13 个月 · 起名字\r
+\r
+- 事件ID：ch3_brand\r
+- 触发：月份=13\r
+- 场景：店内\r
+- 奖励：知名度+10，口碑+5\r
+\r
+林暖（认真）：店名要不要改一下？「林记糕点铺」是你外婆那时候的名字。\r
+林念：我不想改。但我想给蛋糕加个名字。\r
+林暖（温柔）：那你想叫什么？\r
+旁白：我想了很久。最后决定把品牌写小一点，把「林记」留得大大的。\r
+旁白：招牌上多了一行小字：认真做好一块蛋糕。\r
+\r
+### 第 16 个月 · 社区美食活动\r
+\r
+- 事件ID：ch3_community\r
+- 触发：月份=16\r
+- 场景：户外\r
+- 奖励：知名度+12，口碑+8，友情值+10，照片:community\r
+\r
+旁白：社区在公园办美食活动。我准备了三款蛋糕，却没顾上做价目牌。\r
+苏晴（惊喜）：你这个展示桌，也太素了吧。\r
+林念：我本来想做的，然后忘了。\r
+苏晴（加油）：没事，交给我。\r
+旁白：她找了张牛皮纸，用马克笔手写了价目，字歪歪扭扭，但很好看。又把花挪了个位置。\r
+苏晴（开心）：你负责做蛋糕，我负责让它们看起来更好看。\r
+林念：那就拜托你啦。\r
+旁白：那天三款蛋糕很早就卖完了。有位阿姨问我们店在哪里，说想订生日蛋糕。\r
+旁白：收摊的时候，苏晴举着相机给我们拍了张合影。她说这张她要发朋友圈。\r
+\r
+### 第 18 个月 · 第一位员工\r
+\r
+- 事件ID：ch3_staff\r
+- 触发：月份=18\r
+- 场景：厨房\r
+- 奖励：员工+1，品质+5，口碑+4\r
+\r
+旁白：店里的活我一个人做不完了。妈妈说她年纪大了，站一天腰疼。\r
+旁白：来应聘的女孩叫小雨，二十岁，说话很轻，试做的时候一直低着头。\r
+小雨：我……我做得不太好。\r
+林念：我第一个月做得比你还差。\r
+小雨（惊讶）：真的吗？\r
+林念：真的。奶油打得像豆腐渣。\r
+旁白：她笑了一下，然后就留下来了。\r
+\r
+---\r
+\r
+## 第四章 · 第一家分店\r
+\r
+### 第 19 个月 · 开始教别人\r
+\r
+- 事件ID：ch4_teach\r
+- 触发：月份=19\r
+- 场景：厨房\r
+- 奖励：品质+6，员工+1\r
+\r
+旁白：教别人比自己做难得多。有些动作我做了几百遍，却说不清是怎么做的。\r
+林暖（温柔）：说不清的时候，就做给她看。手会记住。\r
+旁白：于是我在操作台前一遍一遍地抹面，小雨在旁边看。\r
+旁白：第三天，她抹出了第一个平整的面。虽然慢，但是平的。\r
+\r
+### 第 21 个月 · 苏晴的生日（第二年）\r
+\r
+- 事件ID：birthday_suqing_2\r
+- 触发：月份=21\r
+- 场景：店内\r
+- 奖励：友情值+20，照片:sq_birthday_2\r
+\r
+旁白：第二年九月，我在新店的装修图纸上画到一半，突然想起来今天是什么日子。\r
+旁白：打电话过去，她那边很吵，说在加班。\r
+苏晴（开心）：你居然主动打电话。\r
+林念：生日快乐。蛋糕我放在店里了，你下班来拿。\r
+苏晴（满足）：几点关门？\r
+林念：你几点来，我几点关。\r
+旁白：她十点半才到，头发被雨打湿了一点。\r
+旁白：我们把蛋糕切成两半，一人一半，坐在还没装好的吧台上吃。\r
+苏晴（思考）：你有没有觉得，我们俩现在都挺忙的。\r
+林念：嗯。\r
+苏晴（开心）：但是我一点都不担心。\r
+林念：为什么？\r
+苏晴（满足）：因为你在做自己想做的那件事啊。\r
+\r
+### 第 22 个月 · 礼盒尺寸\r
+\r
+- 事件ID：ch4_package\r
+- 触发：月份=22\r
+- 场景：店内\r
+- 奖励：口碑+6，知名度+6，友情值+10，照片:package\r
+\r
+旁白：新店要上礼盒系列。我设计了很久，样品寄来那天却发现尺寸全不对。\r
+苏晴（思考）：你这是在做什么？怎么这么多盒子？\r
+林念：一个一个试，看哪个能装下六寸的。\r
+苏晴（加油）：那我们一起试，快一点。\r
+旁白：我们把蛋糕放进不同的盒子里，量高度，试提绳，试叠放。桌上堆了一整片纸板。\r
+苏晴（惊喜）：这个！这个刚好，还不会晃。\r
+林念：你怎么知道。\r
+苏晴（满足）：因为我是专业试吃的。\r
+旁白：最后定下来的方案，是她挑的那个。\r
+\r
+### 第 24 个月 · 林念的生日\r
+\r
+- 事件ID：birthday_linian_2\r
+- 触发：月份=24\r
+- 场景：店内\r
+- 奖励：友情值+10，口碑+5，照片:ln_birthday_2\r
+\r
+旁白：第二年生日，我在新店盯装修，忙到晚上十点才回老店。\r
+旁白：推门的时候，灯是亮的。小雨、妈妈、苏晴，都在。\r
+苏晴（惊喜）：迟到了两个小时，寿星。\r
+林念：你们怎么……\r
+林暖（温柔）：生日总要过的。\r
+旁白：蛋糕是小雨做的。抹面不平，草莓摆得有点挤，但很好吃。\r
+小雨：我做了三次才成功。\r
+林念：这个比我第一次做的好多了。\r
+苏晴（开心）：听见没，老板夸你了。\r
+旁白：那天我们聊到很晚。走的时候，苏晴说她要把这张照片洗出来。\r
+旁白：我说你洗吧，反正你相册已经很厚了。\r
+\r
+---\r
+\r
+## 第五章 · 把喜欢的味道带到更多地方\r
+\r
+### 第 26 个月 · 标准配方\r
+\r
+- 事件ID：ch5_standard\r
+- 触发：月份=26\r
+- 场景：厨房\r
+- 奖励：品质+8，资金+1500\r
+\r
+林暖（认真）：开第二家店，最难的不是房租，是味道要一样。\r
+林念：我把每一步都写下来了。\r
+林暖（欣慰）：写下来还不够，要能让没学过的人照着做出来。\r
+旁白：于是我们把配方拆成了一张表：温度、克数、分钟。连抹面的角度都画了图。\r
+旁白：第一版拿给小雨试，她做出来还是不太一样。改到第四版，终于稳定了。\r
+\r
+### 第 29 个月 · 久违的周末\r
+\r
+- 事件ID：ch5_weekend\r
+- 触发：月份=29\r
+- 场景：户外\r
+- 奖励：友情值+20，照片:weekend\r
+\r
+旁白：那天苏晴发来消息，说我已经连续三周推掉她了。\r
+苏晴（思考）：这个周末不许加班。\r
+林念：我尽量。\r
+苏晴（加油）：不是尽量，是必须。\r
+旁白：于是我们去了老街，吃了很多东西，逛了很久。\r
+苏晴（开心）：你还记不记得高中那会儿，我们下课就去买两块钱的炸串。\r
+林念：记得。你每次都要加辣。\r
+苏晴（满足）：现在也是。\r
+旁白：走到一家花店门口，她停下来，说以后你的店开到哪儿，我就在哪儿买花。\r
+林念：那得开很多家。\r
+苏晴（开心）：所以你要努力啊。\r
+旁白：那天她拍了很多照片。最后一张是在河边，天快黑了。\r
+\r
+### 第 30 个月 · 第一家外地店\r
+\r
+- 事件ID：ch5_first_city\r
+- 触发：月份=30\r
+- 场景：店内\r
+- 奖励：门店+1，知名度+15\r
+\r
+林暖（温柔）：外地那家店，你打算自己去看吗？\r
+林念：嗯。下周。\r
+林暖（欣慰）：去吧。我在这儿看着。\r
+旁白：出发那天，妈妈往我包里塞了一盒饼干，说路上吃。\r
+旁白：火车开了很久。我一直在想，三年前我连蛋糕胚都做不好。\r
+\r
+---\r
+\r
+## 第六章 · 从小镇走向全国\r
+\r
+### 第 31 个月 · 团队\r
+\r
+- 事件ID：ch6_team\r
+- 触发：月份=31\r
+- 场景：店内\r
+- 奖励：员工+3，品质+10\r
+\r
+旁白：这一年我做的事，大部分不是做蛋糕。\r
+旁白：是开会、看报表、面试、签合同。有时候一整天都碰不到面粉。\r
+林念：妈，我是不是离蛋糕越来越远了。\r
+林暖（温柔）：你现在做的是让更多人能吃到蛋糕。\r
+旁白：她停了一下，又说：但每个月，你还是得自己做一次。\r
+林念：为什么。\r
+林暖（欣慰）：手不能忘。\r
+\r
+### 第 33 个月 · 苏晴的生日\r
+\r
+- 事件ID：birthday_suqing_3\r
+- 触发：月份=33\r
+- 场景：店内\r
+- 奖励：友情值+25，照片:sq_birthday_3\r
+\r
+旁白：第三年，她的生日我提前一周就记在了手机里。\r
+旁白：可那天我还是开会到晚上八点。到店的时候，她已经在门口坐着了。\r
+林念：对不起。\r
+苏晴（满足）：我就知道。所以我带了外卖。\r
+旁白：她提了两份面，还有一个小蛋糕——是她自己买的，不是店里做的。\r
+林念：你怎么买别人家的。\r
+苏晴（开心）：因为我想让你尝尝别家的味道。你现在是不是满脑子都是配方。\r
+旁白：我们坐在关了灯的门店里吃面。玻璃外面有人在拍照。\r
+苏晴（思考）：说真的，你累不累。\r
+林念：累。\r
+苏晴（温柔）：那你要记得，不开店也可以。你做什么我都来吃。\r
+旁白：我没说话。过了一会儿，我说：明年我还开。\r
+苏晴（开心）：那我明年还来。\r
+\r
+### 第 35 个月 · 一本相册\r
+\r
+- 事件ID：ch6_album\r
+- 触发：月份=35\r
+- 场景：店内\r
+- 奖励：友情值+15，照片:album\r
+\r
+旁白：苏晴抱着一个牛皮纸包的东西来店里，让我先把手上的活放下。\r
+苏晴（惊喜）：闭上眼睛。\r
+林念：你又搞什么。\r
+旁白：睁开眼的时候，桌上摊着一本相册。\r
+旁白：第一页是我站在旧店门口，穿着围裙，头发乱着。日期是三年前。\r
+旁白：后面是第一款新品、第一笔生日订单、第一次社区活动、第一家分店开业。\r
+苏晴（开心）：我全都留着。\r
+林念：……你什么时候拍的这些。\r
+苏晴（满足）：你忙着的时候啊。\r
+旁白：翻到最后一页，是空的。她说这一页留给你自己贴。\r
+苏晴（温柔）：你不是一直说做不好吗。你看看这些。\r
+旁白：我看了很久，合上相册，说了句谢谢。\r
+苏晴（开心）：谢什么，我只是负责记录。做的人是你。\r
+\r
+### 第 36 个月 · 结局 · 也是生日\r
+\r
+- 事件ID：finale\r
+- 触发：月份=36\r
+- 场景：旗舰店\r
+- 奖励：照片:finale\r
+\r
+旁白：旗舰店开业那天，正好是我的生日。\r
+旁白：门口排了很长的队。小雨在指挥取号，几个新店长站在旁边，紧张得一直整理围裙。\r
+旁白：妈妈来得最晚。她在门口站了很久，才走进来。\r
+林暖（欣慰）：招牌做得比我想的大。\r
+林念：你之前说太小了。\r
+林暖（温柔）：现在这样，挺好。\r
+旁白：苏晴举着相机，在人群里挤来挤去，一边拍一边喊让我别动。\r
+苏晴（开心）：寿星看这边——\r
+旁白：我站在店的中间，周围是灯光、蛋糕、很多人说话的声音。\r
+旁白：我想起三年前的冬天，我拖着行李箱回来，连奶油都打不好。\r
+旁白：那时候我以为，开店就是做蛋糕。\r
+旁白：现在我知道，做蛋糕只是其中很小的一部分。\r
+林暖（温柔）：现在，这家店真的可以放心交给你了。\r
+林念：其实最开始，我只是想试试看。\r
+苏晴（思考）：那现在呢？\r
+林念：现在想把它做得更好。\r
+苏晴（开心）：那我就继续等着吃新品啦。\r
+旁白：那天晚上打烊以后，我们三个人在后厨分了一个很小的蛋糕。\r
+旁白：白奶油，上面摆着一层无花果。切得很不均匀。\r
+旁白：妈妈说，明年这个时候，你还得自己做一次。\r
+旁白：我说好。\r
+旁白：从一块蛋糕开始，慢慢成为更好的自己。\r
+\r
+---\r
+\r
+## 随机事件\r
+\r
+### 随机 · 定制生日蛋糕\r
+\r
+- 事件ID：ev_custom\r
+- 触发：随机\r
+- 场景：店内\r
+- 奖励：口碑+3\r
+\r
+顾客：老板娘，我想订一个生日蛋糕，能做得特别一点吗？\r
+旁白：他说想给妻子一个惊喜，但说不清具体要什么。\r
+\r
+? 怎么回应？\r
+- 按经典款来做，稳妥一些|口碑+3，资金+200\r
+- 试着加点新装饰，冒一点险|品质+2，口碑+4\r
+- 多问几句，做出专属的款式|烘焙+3，口碑+5\r
+\r
+旁白：他走的时候说了好几句谢谢。\r
+\r
+### 随机 · 第一次自己挑蛋糕\r
+\r
+- 事件ID：ev_kid\r
+- 触发：随机\r
+- 场景：店内\r
+- 奖励：口碑+4\r
+\r
+旁白：一个大概七八岁的小男孩，趴在展示柜上看了很久。\r
+顾客：我只有二十块钱。\r
+林念：二十块可以买这个小的。\r
+顾客：可是我妈妈生日。\r
+旁白：他数了半天硬币，最后还是差三块。\r
+\r
+? 怎么办？\r
+- 帮他补上这三块钱|口碑+5，资金-3\r
+- 推荐一款刚好二十块的|口碑+2\r
+- 让他下次再来|口碑-1，资金+0\r
+\r
+旁白：他抱着盒子跑出去的时候，回头鞠了一躬。\r
+\r
+### 随机 · 门口的小猫\r
+\r
+- 事件ID：ev_cat\r
+- 触发：随机\r
+- 场景：店外\r
+- 奖励：口碑+2\r
+\r
+旁白：有只橘猫开始在门口蹲着。不叫，也不进来，就蹲着。\r
+苏晴（惊喜）：它在等谁啊。\r
+林念：可能等我掉东西。\r
+旁白：后来我们给它放了个碗，摆在门外。它来得越来越准时。\r
+旁白：有客人说，是因为这只猫才进店的。\r
+\r
+### 随机 · 妈妈的手写配方本\r
+\r
+- 事件ID：ev_mom_book\r
+- 触发：随机\r
+- 场景：厨房\r
+- 奖励：烘焙+4，配方:classic\r
+\r
+旁白：整理仓库的时候，我在一个铁盒子里翻到一本笔记。\r
+旁白：封皮已经磨白了，里面是妈妈的字，密密麻麻，还夹着几张发黄的纸。\r
+林暖（温柔）：这个啊，我年轻时候记的。\r
+林念：你那时候也记这些？\r
+林暖（欣慰）：记了十几年。有些方子后来不用了，就没再写。\r
+旁白：那天晚上我一页一页翻，翻到第三十页，看见一行小字：今天念念说蛋糕太甜了，下次少放糖。\r
+\r
+### 随机 · 员工的新想法\r
+\r
+- 事件ID：ev_staff_idea\r
+- 触发：随机\r
+- 场景：厨房\r
+- 奖励：品质+3\r
+\r
+小雨：老板，我能不能……试着做一款？\r
+林念：当然可以。\r
+小雨：如果不好吃呢。\r
+林念：那就再试一次。\r
+旁白：她做了一款加了柠檬皮的戚风。酸了一点，但很清爽。\r
+旁白：后来这款上了季节菜单。\r
+\r
+### 随机 · 有人在网上发了我们的蛋糕\r
+\r
+- 事件ID：ev_viral\r
+- 触发：随机\r
+- 场景：店内\r
+- 奖励：知名度+8\r
+\r
+旁白：那天早上，店还没开，门口就有人在等。\r
+林念：今天是什么日子？\r
+苏晴（惊喜）：你上热门了，自己不知道吗？\r
+旁白：一位客人拍的照片，被很多人转发了。\r
+旁白：照片里只有一个切开的蛋糕，和一双手。那双手是我的。\r
+\r
+---\r
+\r
+## 编辑说明\r
+\r
+### 怎么加一个新事件\r
+\r
+复制任意一个 \`###\` 开头的段落，改标题和内容即可。\`##\` 是章节，\`###\` 是一个事件。\r
+\r
+### 每行对话的格式\r
+\r
+\`\`\`\r
+角色名：台词\r
+角色名（表情）：台词\r
+旁白：描写\r
+\`\`\`\r
+\r
+- 冒号用中文全角「：」。\r
+- 不加角色名、只写「旁白」就是旁白，不显示头像。\r
+- 表情可以不写，会使用该角色的默认头像。\r
+\r
+### 当前可用的表情（没有的会自动退回默认）\r
+\r
+| 角色 | 可用表情 |\r
+| --- | --- |\r
+| 林念 | 暂无（只有默认头像，需要补画） |\r
+| 苏晴 | 开心、惊喜、思考、加油、好吃、满足 |\r
+| 林暖 | 开心、惊讶、欣慰、认真、担心、温柔 |\r
+\r
+### 触发条件怎么写\r
+\r
+- \`开局\`\r
+- \`月份=3\` 或 \`月份=9,21,33\`（逗号表示多个）\r
+- \`月份=12 且 口碑>=40\`\r
+- \`随机\`\r
+\r
+可用于条件的数值名：月份、资金、烘焙、品质、口碑、知名度、友情值、门店、员工、配方数。\r
+\r
+### 奖励怎么写\r
+\r
+逗号分隔，例如：\`资金+500，口碑+8，友情值+10，配方:strawberry，照片:sq_visit，员工+1，门店+1\`\r
+\r
+- \`资金\` / \`烘焙\` / \`品质\` / \`口碑\` / \`知名度\` / \`友情值\` / \`门店\` / \`员工\` 用 \`+数字\`\r
+- \`配方:编号\` 解锁指定蛋糕（编号见 \`src/data/cakes.js\`）\r
+- \`照片:编号\` 解锁相册里的一张图\r
+\r
+### 带选项的事件\r
+\r
+在对话中间插入一行 \`? 问题文字\`，紧接着写若干 \`- 选项文案|奖励\`：\r
+\r
+\`\`\`\r
+? 怎么回应？\r
+- 按经典款来做|口碑+3，资金+200\r
+- 试着加点新装饰|品质+2，口碑+4\r
+\`\`\`\r
+\r
+### 注意\r
+\r
+- 事件 ID 不能重复。\r
+- 同一月份有多个事件时，按文件里的顺序依次播放。\r
+- 文件里所有 \`##\` 章节标题只用于阅读，游戏不读。\r
+`,_c={月份:e=>e.month,资金:e=>e.money,烘焙:e=>e.skill,品质:e=>e.quality,口碑:e=>e.reputation,知名度:e=>e.fame,友情值:e=>e.friendship,门店:e=>e.stores,员工:e=>e.staff,配方数:e=>e.recipes.length};function vc(e,t){const n=_c[t];return n?n(e):0}function dr(e){const t=[];return e&&e.split(/[，,、]/).forEach(n=>{const s=n.trim();if(!s)return;let r=s.match(/^(.+?)\s*([+\-])\s*(\d+)$/);if(r){t.push({kind:"num",key:r[1].trim(),value:(r[2]==="-"?-1:1)*Number(r[3])});return}r=s.match(/^(.+?)\s*[:：]\s*(.+)$/),r&&t.push({kind:"id",key:r[1].trim(),value:r[2].trim()})}),t}function yc(e){const t=(e||"").trim();if(!t)return null;if(t==="开局")return{type:"start"};if(t==="随机")return{type:"random"};const n=[];for(const s of t.split("且")){const r=s.trim();if(!r)continue;const i=r.match(/^(.+?)\s*(>=|<=|==|=|>|<)\s*(.+)$/);if(!i)return null;n.push({key:i[1].trim(),op:i[2],values:i[3].split(/[,，]/).map(o=>o.trim())})}return n.length?{type:"cond",conds:n}:null}function bc(e,t){return!e||e.type!=="cond"?!1:e.conds.every(n=>{const s=Number(vc(t,n.key));if(n.op==="="||n.op==="==")return n.values.some(i=>Number(i)===s);const r=Number(n.values[0]);return n.op===">="?s>=r:n.op==="<="?s<=r:n.op===">"?s>r:n.op==="<"?s<r:!1})}const xc=/^([^\s：:（()【】]{1,8})(?:（([^）)]*)）)?\s*[：:]\s*(.*)$/;function wc(e,t,n){const s={},r=[];let i=!1;for(const o of t){const l=o.trim();if(!l||l.startsWith(">"))continue;if(l.startsWith("?")||l.startsWith("？")){r.push({type:"ask",text:l.slice(1).trim(),options:[]}),i=!0;continue}if(l.startsWith("-")){const p=l.replace(/^-\s*/,"");if(i){const g=p.search(/[|｜]/),C=r[r.length-1];g>=0?C.options.push({text:p.slice(0,g).trim(),rewards:dr(p.slice(g+1))}):C.options.push({text:p.trim(),rewards:[]});continue}const h=p.match(/^([^：:]+)[：:]\s*(.*)$/);h&&(s[h[1].trim()]=h[2].trim());continue}if(i=!1,l.startsWith("旁白")){const p=l.match(/^旁白\s*[：:]\s*(.*)$/);r.push({type:"say",speaker:null,text:p?p[1]:l});continue}const c=l.match(xc);c?r.push({type:"say",speaker:c[1],emotion:c[2]||"",text:c[3]}):n.push("「"+e+"」里有一行没看懂，已跳过："+l)}return s.事件ID?{id:s.事件ID,title:e,scene:s.场景||"",triggerText:s.触发||"",trigger:yc(s.触发),rewards:dr(s.奖励),beats:r}:null}function $c(e){const t=[],n=[],s=e.split(/\r?\n/);let r=null,i=[];const o=()=>{if(r!==null&&i.some(c=>/^-\s*事件ID\s*[：:]/.test(c.trim()))){const c=wc(r,i,t);c&&n.push(c)}i=[]};for(const l of s){const c=l.match(/^(#{2,3})\s+(.*)$/);if(c){o(),r=c[2].trim();continue}r!==null&&i.push(l)}return o(),{events:n,warnings:t}}const pt=$c(gc);typeof console<"u"&&(pt.warnings.length&&(console.warn("[剧情] 有 "+pt.warnings.length+" 行没解析成功："),pt.warnings.forEach(e=>console.warn("  "+e))),console.log("[剧情] 已加载 "+pt.events.length+" 个事件"));const Ai="alb-save-v2",Sc={资金:"money",烘焙:"skill",品质:"quality",口碑:"reputation",知名度:"fame",友情值:"friendship",门店:"stores",员工:"staff"},Cc=["skill","quality","reputation","fame","friendship"];function le(e,t,n){return Math.max(t,Math.min(n,e))}function Es(){return{month:1,ap:3,money:6e3,skill:8,quality:12,reputation:16,fame:6,stock:18,friendship:20,shopLevel:1,staff:0,stores:1,recipes:["plain"],photos:[],played:[],log:[],phase:"playing",ending:null,lastNet:0}}const f=Zt(Es()),Ne=Zt({events:[]}),Ti=V(()=>{const e=f.recipes.map(Ci);return e.length?Math.round(e.reduce((t,n)=>t+n.price,0)/e.length):128}),Mi=V(()=>{const e=1+(f.shopLevel-1)*.12;return Math.round(f.stores*(160+f.reputation*4.5+f.fame*3.5)*e)}),Oi=V(()=>Math.round(260+f.staff*650+(f.stores-1)*320+(f.shopLevel-1)*120)),Ii=V(()=>as[f.stores]||null),qt=V(()=>Jt.find(e=>e.lv===f.shopLevel+1)||null),gn=V(()=>Ct.find(e=>!f.recipes.includes(e.id)&&f.skill>=e.skill)||null),kc=V(()=>Ct.find(e=>!f.recipes.includes(e.id))||null);function tn(){try{localStorage.setItem(Ai,JSON.stringify(f))}catch{}}function Ec(){try{const e=localStorage.getItem(Ai);if(!e)return!1;const t=JSON.parse(e);return Object.keys(Es()).forEach(n=>{t[n]!==void 0&&(f[n]=t[n])}),!0}catch{return!1}}function hr(){Object.assign(f,Es()),Ne.events.length=0,tn()}function _e(e,t){f.log.unshift({month:f.month,text:e,tone:t||"normal"}),f.log.length>40&&f.log.pop()}function pr(e){const t=[];for(const n of e)if(n.kind==="num"){const s=Sc[n.key];s&&(f[s]=Cc.includes(s)?le(f[s]+n.value,0,100):Math.max(0,f[s]+n.value),t.push(n.key+(n.value>=0?"+":"")+n.value))}else n.key==="配方"?f.recipes.includes(n.value)||(f.recipes.push(n.value),t.push("解锁「"+Ci(n.value).name+"」")):n.key==="照片"&&(f.photos.includes(n.value)||(f.photos.push(n.value),t.push("获得纪念照片")));return t}function bt(e){f.money-=e}function Fi(e){switch(e){case"study":return{title:"学习烘焙",cost:0,note:"烘焙 "+Math.round(f.skill)+" → "+Math.round(le(f.skill+3,0,100))};case"sell":{const t=Math.min(f.stock,2+f.stores*2+Math.min(f.staff,f.stores*2));return{title:"营业接单",cost:0,note:f.stock<1?"没有库存，先去采购":"消耗 "+t+" 份原料，约收入 "+Pi(t),disabled:f.stock<1}}case"market":return{title:"宣传推广",cost:300+f.stores*120,note:"知名度 +3"};case"restock":return{title:"采购原料",cost:200+f.stores*110,note:"库存 +"+(12+f.stores*4)};case"research":return gn.value?{title:"研发「"+gn.value.name+"」",cost:400+gn.value.cost*2,note:"解锁新配方"}:{title:"研发新品",cost:0,note:kc.value?"烘焙技能不足，还做不出来":"所有配方都解锁了",disabled:!0};case"decorate":return qt.value?{title:"升级到「"+qt.value.name+"」",cost:qt.value.cost,note:"品质+3 口碑+3"}:{title:"装修升级",cost:0,note:"已经是最高等级",disabled:!0};case"hire":return{title:"招聘一名员工",cost:1500,note:"员工 +1，品质 +1"};case"branch":{const t=Ii.value;if(!t)return{title:"开设分店",cost:0,note:"已经开满全国",disabled:!0};const n=f.reputation>=t.rep&&f.fame>=t.fame,s=t.cost-f.money;return{title:"在"+t.name+"开店",cost:t.cost,note:n?s>0?t.note+"（还差 ¥"+s+"）":t.note:"需要口碑 "+t.rep+"、知名度 "+t.fame+"（当前 "+Math.round(f.reputation)+" / "+Math.round(f.fame)+"）",disabled:!n}}case"community":return{title:"参加社区活动",cost:0,note:"口碑 +4，友情值 +3"};default:return{title:e,cost:0,note:""}}}function Pi(e){const t=1+(f.shopLevel-1)*.1;return Math.round(Ti.value*e*(.3+f.quality/300+f.reputation/450)*t+f.fame*1.8*f.stores)}function As(e){if(f.ap<=0||f.phase!=="playing")return!1;const t=Fi(e);if(t.disabled||t.cost&&f.money<t.cost)return!1;switch(e){case"study":{const n=f.skill>=80?1.2:3;f.skill=le(f.skill+n,0,100),f.quality=le(f.quality+1.2,0,100),_e("在厨房待了一整天，烘焙 +"+n.toFixed(1));break}case"sell":{const n=Math.min(f.stock,2+f.stores*2+Math.min(f.staff,f.stores*2)),s=Pi(n);f.stock-=n,f.money+=s,f.reputation=le(f.reputation+1+.25*f.stores,0,100),f.fame=le(f.fame+.8,0,100),_e("今天卖出 "+n+" 份，收入 "+s,"good");break}case"market":{bt(t.cost),f.fame=le(f.fame+6+f.stores*1.2+(f.reputation>45?2:0),0,100),_e("发了新帖子，知名度上升");break}case"restock":{bt(t.cost),f.stock+=12+f.stores*4,_e("周叔送来一批原料，库存 +"+(12+f.stores*4));break}case"research":{const n=gn.value;if(!n)return!1;bt(t.cost),f.recipes.push(n.id),f.quality=le(f.quality+2,0,100),_e("研发成功："+n.name,"good");break}case"decorate":{const n=qt.value;if(!n)return!1;bt(t.cost),f.shopLevel=n.lv,f.quality=le(f.quality+3,0,100),f.reputation=le(f.reputation+3,0,100),_e("门店升级为「"+n.name+"」","good");break}case"hire":{bt(t.cost),f.staff+=1,f.quality=le(f.quality+1,0,100),_e("新的员工加入了，店里热闹了一点");break}case"branch":{const n=Ii.value;if(!n)return!1;bt(n.cost),f.stores+=1,f.reputation=le(f.reputation+2,0,100),_e("在"+n.name+"开了新店","good");break}case"community":{f.reputation=le(f.reputation+5,0,100),f.friendship=le(f.friendship+3,0,100),f.fame=le(f.fame+2,0,100),!f.photos.includes("community")&&f.month>=13?(f.photos.push("community"),_e("社区活动很顺利，拍了一张照片","good")):_e("社区活动很顺利，口碑 +4");break}default:return!1}return f.ap-=1,tn(),!0}function Ac(){return f.stores>=6?"national":f.stores>=3?"regional":"warm"}const Tc={national:{name:"全国连锁",title:"把喜欢的味道，带到了很多地方",text:"三十六个月，八座城市。你从一间连招牌都旧的社区小店，做到了一个能被别人记住名字的品牌。"},regional:{name:"区域品牌",title:"在这片地方，大家都认识这家店",text:"你没有开到最远，但每一个店里的客人，都知道你今天做的是哪一款。这就够了。"},warm:{name:"温暖小店",title:"还是一家小店，但是一家很好的小店",text:"有人问你为什么不扩张。你说，我想亲手做每一块蛋糕。这一年，你做到了。"}};function Mc(){if(f.phase!=="playing")return;const e=Mi.value,t=Oi.value,n=e-t;f.money+=n,f.lastNet=n,f.money<0?(f.money=0,f.reputation=le(f.reputation-3,0,100),_e("这个月入不敷出，勉强撑过去了（口碑 -3）","bad")):n>=0?_e("月末结算 +"+n,"good"):_e("月末结算 "+n,"bad"),f.stock=Math.max(0,Math.round(f.stock*.92)),f.month+=1,f.ap=3,f.month>36&&(f.month=36,f.phase="ended",f.ending=Ac()),tn(),Di()}function Di(){f.phase==="ended"&&f.ending;const e=pt.events.filter(n=>!f.played.includes(n.id)&&n.trigger&&n.trigger.type==="cond"&&bc(n.trigger,f)),t=pt.events.filter(n=>!f.played.includes(n.id)&&n.trigger&&n.trigger.type==="random");t.length&&Math.random()<.45&&e.push(t[Math.floor(Math.random()*t.length)]),e.sort((n,s)=>n.id.localeCompare(s.id)),e.forEach(n=>{Ne.events.find(s=>s.id===n.id)||Ne.events.push(n)})}function mr(){Di();const e=pt.events.find(t=>t.trigger&&t.trigger.type==="start");e&&!f.played.includes(e.id)&&Ne.events.unshift(e)}function Oc(e,t){f.played.includes(e.id)||f.played.push(e.id);const n=pr(e.rewards||[]);t&&t.length&&n.push(...pr(t)),n.length&&_e("剧情："+e.title,"story"),tn()}const Rn=(e,t)=>{const n=e.__vccOpts||e;for(const[s,r]of t)n[s]=r;return n},Ic={class:"sheet"},Fc={class:"sheet-head"},Pc={class:"t serif"},Dc={key:0,class:"small muted"},Rc={key:0,class:"say narration"},Lc={class:"txt"},Nc={key:1,class:"say"},jc={class:"av"},Hc=["src","alt"],qc={key:1,class:"fb"},Bc={class:"bubble"},Kc={class:"who"},Vc={class:"txt"},Uc={key:2,class:"say"},Wc={class:"bubble",style:{width:"100%"}},zc={class:"txt",style:{"margin-bottom":"10px"}},Gc={key:0,class:"opts"},Jc=["onClick"],Yc={key:0,class:"r"},Xc={class:"sheet-foot"},Zc={key:2,class:"small muted",style:{"text-align":"center"}},Qc={__name:"StoryModal",props:{ev:{type:Object,required:!0}},emits:["done"],setup(e,{emit:t}){const n=e,s=t,r=gt(0),i=gt([]),o=gt(null);hn(()=>n.ev.id,()=>{r.value=n.ev.beats.length?1:0,i.value=[]},{immediate:!0});const l=V(()=>n.ev.beats[r.value-1]||null),c=V(()=>n.ev.beats.slice(0,r.value)),p=V(()=>r.value>=n.ev.beats.length),h=V(()=>l.value&&l.value.type==="ask"),g={林念:"ln",苏晴:"sq",林暖:"nu"};function C(N){return!N.speaker||!ks[g[N.speaker]]?"":dc(g[N.speaker],N.emotion)}function M(N){return N.map(H=>H.kind==="num"?H.key+(H.value>=0?"+":"")+H.value:H.key+"："+H.value).join("，")}async function D(){await Br(),o.value&&(o.value.scrollTop=o.value.scrollHeight)}function I(){h.value||p.value||(r.value+=1,D())}function Q(N){i.value=i.value.concat(N.rewards||[]),r.value+=1,D()}function G(){Oc(n.ev,i.value),s("done")}return(N,H)=>(E(),T("div",{class:"mask",onClick:cs(I,["self"])},[u("div",Ic,[u("div",Fc,[u("div",Pc,x(e.ev.title),1),e.ev.scene?(E(),T("div",Dc,x(e.ev.scene),1)):ae("",!0)]),u("div",{class:"sheet-body",ref_key:"bodyEl",ref:o,onClick:I},[(E(!0),T(Z,null,we(c.value,(A,ee)=>(E(),T(Z,{key:ee},[A.type==="say"&&!A.speaker?(E(),T("div",Rc,[u("div",Lc,x(A.text),1)])):A.type==="say"?(E(),T("div",Nc,[u("div",jc,[C(A)?(E(),T("img",{key:0,src:C(A),alt:A.speaker},null,8,Hc)):(E(),T("span",qc,x(A.speaker.slice(0,1)),1))]),u("div",Bc,[u("div",Kc,x(A.speaker),1),u("div",Vc,x(A.text),1)])])):A.type==="ask"?(E(),T("div",Uc,[u("div",Wc,[H[0]||(H[0]=u("div",{class:"who"},"选择",-1)),u("div",zc,x(A.text),1)])])):ae("",!0)],64))),128)),h.value?(E(),T("div",Gc,[(E(!0),T(Z,null,we(l.value.options,(A,ee)=>(E(),T("button",{key:ee,class:"opt",type:"button",onClick:cs(ze=>Q(A),["stop"])},[St(x(A.text)+" ",1),A.rewards.length?(E(),T("span",Yc,x(M(A.rewards)),1)):ae("",!0)],8,Jc))),128))])):ae("",!0)],512),u("div",Xc,[p.value?(E(),T("button",{key:0,class:"btn primary block",type:"button",onClick:G}," 结束 ")):h.value?(E(),T("div",Zc,"选一个吧")):(E(),T("button",{key:1,class:"btn block",type:"button",onClick:I}," 继续 "))])])]))}},ea=Rn(Qc,[["__scopeId","data-v-b4aa96cc"]]),ta={class:"sheet"},na={class:"sheet-head between"},sa={class:"small muted"},ra={class:"sheet-body"},ia={class:"photos"},oa={class:"im"},la=["src","alt"],ca={key:1,style:{"font-size":"12px",color:"var(--caramel-soft)"}},aa={key:2,style:{"font-size":"20px",opacity:"0.35"}},ua={class:"cp"},fa={class:"ti"},da={class:"cc"},ha={__name:"AlbumPage",emits:["close"],setup(e){const t=V(()=>Object.keys(Cn).map(s=>({id:s,...Cn[s],owned:f.photos.includes(s)}))),n=V(()=>f.photos.length);return(s,r)=>(E(),T("div",{class:"mask",onClick:r[1]||(r[1]=cs(i=>s.$emit("close"),["self"]))},[u("div",ta,[u("div",na,[u("div",null,[r[2]||(r[2]=u("div",{class:"t serif"},"友情相册",-1)),u("div",sa,x(n.value)+" / "+x(t.value.length)+" 张",1)]),u("button",{class:"btn ghost",type:"button",onClick:r[0]||(r[0]=i=>s.$emit("close"))},"收起")]),u("div",ra,[u("div",ia,[(E(!0),T(Z,null,we(t.value,i=>(E(),T("div",{key:i.id,class:"photo"},[u("div",oa,[i.owned&&i.img?(E(),T("img",{key:0,src:i.img,alt:i.title},null,8,la)):i.owned?(E(),T("span",ca," 未冲印 ")):(E(),T("span",aa,"?"))]),u("div",ua,[u("div",fa,x(i.owned?i.title:"还没发生"),1),u("div",da,x(i.owned?i.caption:"继续经营，它会出现"),1)])]))),128))])])])]))}},pa={class:"shop-hero"},ma={class:"tag"},ga=["src"],_a={class:"cap"},va={class:"small muted"},ya={class:"card card-pad",style:{"margin-top":"12px"}},ba={class:"k"},xa={class:"track"},wa={class:"v"},$a={class:"card card-pad",style:{"margin-top":"12px"}},Sa={class:"between",style:{"margin-bottom":"6px"}},Ca={class:"small"},ka={class:"between",style:{"margin-bottom":"6px"}},Ea={class:"small"},Aa={class:"between",style:{"margin-bottom":"6px"}},Ta={class:"small"},Ma={class:"between"},Oa={class:"small"},Ia={class:"card card-pad",style:{"margin-top":"12px"}},Fa={key:0,class:"empty"},Pa={class:"d"},Da={class:"x"},Ra={__name:"ShopPage",setup(e){const t=V(()=>hc(f.shopLevel)),n=V(()=>ki(f.month)),s=V(()=>[{k:"烘焙",v:f.skill,cls:""},{k:"品质",v:f.quality,cls:""},{k:"口碑",v:f.reputation,cls:"sage"},{k:"知名度",v:f.fame,cls:"sage"},{k:"友情",v:f.friendship,cls:"pink"}]);return(r,i)=>(E(),T("div",null,[u("div",pa,[u("span",ma,x(t.value.name),1),u("img",{src:P(me)("shop-exterior.webp"),alt:"林记糕点铺"},null,8,ga),u("div",_a,[i[0]||(i[0]=u("div",{class:"n serif"},"林记糕点铺",-1)),u("div",va,x(n.value.name)+" · "+x(P(Ei)(P(f).month)),1)])]),u("div",ya,[i[1]||(i[1]=u("div",{class:"h2"},"店里的情况",-1)),(E(!0),T(Z,null,we(s.value,o=>(E(),T("div",{class:"stat",key:o.k},[u("span",ba,x(o.k),1),u("span",xa,[u("span",{class:Ke(["fill",o.cls]),style:Xt({width:o.v+"%"})},null,6)]),u("span",wa,x(Math.round(o.v)),1)]))),128))]),u("div",$a,[i[6]||(i[6]=u("div",{class:"h2"},"经营概况",-1)),u("div",Sa,[i[2]||(i[2]=u("span",{class:"small muted"},"门店 / 员工",-1)),u("span",Ca,x(P(f).stores)+" 家 · "+x(P(f).staff)+" 人",1)]),u("div",ka,[i[3]||(i[3]=u("span",{class:"small muted"},"原料库存",-1)),u("span",Ea,x(P(f).stock)+" 份",1)]),u("div",Aa,[i[4]||(i[4]=u("span",{class:"small muted"},"已解锁配方",-1)),u("span",Ta,x(P(f).recipes.length)+" 款",1)]),u("div",Ma,[i[5]||(i[5]=u("span",{class:"small muted"},"本月收支（预计）",-1)),u("span",Oa,x(P(f).lastNet>=0?"+":"")+x(P(f).lastNet),1)])]),u("div",Ia,[i[7]||(i[7]=u("div",{class:"h2"},[St("最近发生的事 "),u("span",{class:"sub"},"最新在上")],-1)),P(f).log.length?ae("",!0):(E(),T("div",Fa,"还没有记录。去「经营」做点什么吧。")),(E(!0),T(Z,null,we(P(f).log.slice(0,8),(o,l)=>(E(),T("div",{key:l,class:Ke(["logline",o.tone])},[u("span",Pa,x(o.month)+"月",1),u("span",Da,x(o.text),1)],2))),128))])]))}},La=Rn(Ra,[["__scopeId","data-v-1b56f6c5"]]),Na={class:"card card-pad"},ja={class:"between"},Ha={class:"row",style:{gap:"5px"}},qa={class:"act-grid",style:{"margin-top":"10px"}},Ba=["disabled","onClick"],Ka={class:"t"},Va={key:0,class:"c"},Ua={class:"n"},Wa={key:0,class:"small",style:{color:"var(--berry)",margin:"10px 2px 0"}},za={class:"card card-pad",style:{"margin-top":"12px"}},Ga={class:"between",style:{"margin-bottom":"5px"}},Ja={class:"small"},Ya={class:"between",style:{"margin-bottom":"5px"}},Xa={class:"small"},Za={class:"between",style:{"margin-bottom":"12px"}},Qa={class:"small"},eu={__name:"ManagePage",setup(e){const t=gt("");let n=0;const s=V(()=>pc.map(o=>{const l=Fi(o.id);return{...o,meta:l,disabled:f.ap<=0||l.disabled||l.cost>0&&f.money<l.cost}}));function r(o){As(o)?t.value="":t.value="现在做不了这件事",clearTimeout(n),n=setTimeout(()=>t.value="",1600)}function i(){Mc()}return(o,l)=>(E(),T("div",null,[u("div",Na,[u("div",ja,[l[0]||(l[0]=u("div",null,[u("div",{class:"h2",style:{margin:"0"}},"本月行动力"),u("div",{class:"small muted",style:{"margin-top":"2px"}}," 每个动作消耗 1 点，月底会重新给满 ")],-1)),u("div",Ha,[(E(),T(Z,null,we(3,c=>u("span",{key:c,class:Ke(["ap-dot",{on:c<=P(f).ap}])},null,2)),64))])])]),u("div",qa,[(E(!0),T(Z,null,we(s.value,c=>(E(),T("button",{key:c.id,class:"act",type:"button",disabled:c.disabled,onClick:p=>r(c.id)},[u("span",Ka,[u("span",null,x(c.meta.title),1),c.meta.cost>0?(E(),T("span",Va,"¥"+x(c.meta.cost),1)):ae("",!0)]),u("span",Ua,x(c.meta.note),1)],8,Ba))),128))]),t.value?(E(),T("p",Wa,x(t.value),1)):ae("",!0),u("div",za,[l[4]||(l[4]=u("div",{class:"h2"},"月底结算",-1)),u("div",Ga,[l[1]||(l[1]=u("span",{class:"small muted"},"自动收入（门店流水）",-1)),u("span",Ja,"+"+x(P(Mi)),1)]),u("div",Ya,[l[2]||(l[2]=u("span",{class:"small muted"},"固定支出（房租 / 工资 / 装修）",-1)),u("span",Xa,"-"+x(P(Oi)),1)]),u("div",Za,[l[3]||(l[3]=u("span",{class:"small muted"},"当前客单价（均值）",-1)),u("span",Qa,"¥"+x(P(Ti)),1)]),u("button",{class:"btn primary block",type:"button",onClick:i}," 结束这个月 "),l[5]||(l[5]=u("p",{class:"small muted",style:{margin:"9px 2px 0","text-align":"center"}}," 钱不够时不会倒闭，只会过得紧一点 ",-1))])]))}},tu={viewBox:"0 0 120 120",class:"cakeart","aria-hidden":"true"},nu=["fill"],su=["fill"],ru=["fill"],iu=["fill"],ou=["fill"],lu=["fill"],cu=["fill"],au=["fill"],uu=["fill"],fu=["fill"],du=["fill"],hu={__name:"CakeArt",props:{colors:{type:Object,default:()=>({sponge:"#F0D9AE",cream:"#FFF8EE",accent:"#E8B86D"})}},setup(e){return(t,n)=>(E(),T("svg",tu,[n[0]||(n[0]=u("ellipse",{cx:"60",cy:"104",rx:"39",ry:"6",fill:"rgba(107,74,52,0.10)"},null,-1)),n[1]||(n[1]=u("ellipse",{cx:"60",cy:"97",rx:"43",ry:"9",fill:"#FFFDF9",stroke:"rgba(107,74,52,0.12)"},null,-1)),u("path",{d:"M21 56 L99 56 L99 90 A39 8 0 0 1 21 90 Z",fill:e.colors.sponge},null,8,nu),u("rect",{x:"21",y:"56",width:"78",height:"15",fill:e.colors.cream},null,8,su),u("circle",{cx:"32",cy:"71",r:"4",fill:e.colors.cream},null,8,ru),u("circle",{cx:"48",cy:"71",r:"5.4",fill:e.colors.cream},null,8,iu),u("circle",{cx:"66",cy:"71",r:"4",fill:e.colors.cream},null,8,ou),u("circle",{cx:"84",cy:"71",r:"5",fill:e.colors.cream},null,8,lu),u("ellipse",{cx:"60",cy:"56",rx:"39",ry:"9.5",fill:e.colors.cream,stroke:"rgba(107,74,52,0.10)"},null,8,cu),u("circle",{cx:"46",cy:"54",r:"5",fill:e.colors.accent},null,8,au),u("circle",{cx:"66",cy:"52",r:"4.4",fill:e.colors.accent,opacity:"0.85"},null,8,uu),u("circle",{cx:"76",cy:"57",r:"3.4",fill:e.colors.accent,opacity:"0.7"},null,8,fu),u("circle",{cx:"55",cy:"58",r:"3",fill:e.colors.accent,opacity:"0.55"},null,8,du)]))}},pu=Rn(hu,[["__scopeId","data-v-93de33d5"]]),mu={class:"card card-pad",style:{"margin-bottom":"12px"}},gu={class:"small muted"},_u={class:"card"},vu={class:"art"},yu={class:"body"},bu={class:"name"},xu={key:0,class:"new"},wu={class:"desc"},$u={class:"nums"},Su={__name:"MenuPage",setup(e){const t=V(()=>Ct.map(s=>({...s,owned:f.recipes.includes(s.id),reachable:f.skill>=s.skill}))),n=V(()=>f.recipes[f.recipes.length-1]);return(s,r)=>(E(),T("div",null,[u("div",mu,[r[0]||(r[0]=u("div",{class:"h2",style:{"margin-bottom":"4px"}},"菜单",-1)),u("div",gu," 已解锁 "+x(P(f).recipes.length)+" / "+x(P(Ct).length)+" 款。烘焙技能到 "+x(Math.round(P(f).skill))+"， 每一款都有自己的门槛。 ",1)]),u("div",_u,[(E(!0),T(Z,null,we(t.value,i=>(E(),T("div",{key:i.id,class:Ke(["cake",{locked:!i.owned}])},[u("div",vu,[Ae(pu,{colors:i.colors},null,8,["colors"])]),u("div",yu,[u("div",bu,[u("span",null,x(i.name),1),i.id===n.value?(E(),T("span",xu,"新")):ae("",!0)]),u("div",wu,x(i.owned?i.desc:"烘焙 "+i.skill+" 后可以研发"),1),u("div",$u,[u("span",null,"售价 ¥"+x(i.price),1),u("span",null,"成本 ¥"+x(i.cost),1),u("span",null,"品质 +"+x(i.quality),1)])])],2))),128))])]))}},Cu={class:"shop-hero"},ku={class:"tag"},Eu=["src"],Au={class:"cap"},Tu={class:"n serif"},Mu={class:"small muted"},Ou={class:"card",style:{"margin-top":"12px"}},Iu={style:{flex:"1 1 auto"}},Fu={class:"nm"},Pu={class:"nt"},Du={key:0,class:"chip"},Ru={key:1,class:"chip"},Lu={class:"card card-pad",style:{"margin-top":"12px"}},Nu={class:"h2"},ju=["disabled"],Hu={key:1,class:"empty"},qu={__name:"DecorPage",setup(e){const t=V(()=>Jt.find(i=>i.lv===f.shopLevel)),n=V(()=>qt.value),s=V(()=>n.value&&f.money>=n.value.cost&&f.ap>0);function r(){s.value&&As("decorate")}return(i,o)=>(E(),T("div",null,[u("div",Cu,[u("span",ku,"Lv."+x(P(f).shopLevel),1),u("img",{src:P(me)("shop-exterior.webp"),alt:"店铺"},null,8,Eu),u("div",Au,[u("div",Tu,x(t.value.name),1),u("div",Mu,x(t.value.desc),1)])]),u("div",Ou,[(E(!0),T(Z,null,we(P(Jt),l=>(E(),T("div",{key:l.lv,class:Ke(["city",{on:l.lv<=P(f).shopLevel,off:l.lv>P(f).shopLevel}])},[o[0]||(o[0]=u("span",{class:"dot"},null,-1)),u("div",Iu,[u("div",Fu,"Lv."+x(l.lv)+" "+x(l.name),1),u("div",Pu,x(l.desc),1)]),l.lv===P(f).shopLevel?(E(),T("span",Du,"当前")):l.cost?(E(),T("span",Ru,"¥"+x(l.cost),1)):ae("",!0)],2))),128))]),u("div",Lu,[n.value?(E(),T(Z,{key:0},[u("div",Nu,"升级到 "+x(n.value.name),1),o[1]||(o[1]=u("p",{class:"small muted",style:{margin:"0 0 10px"}}," 装修会让客人愿意多坐一会儿。品质 +3，口碑 +3，流水上限也会高一点。 ",-1)),u("button",{class:"btn primary block",type:"button",disabled:!s.value,onClick:r},x(P(f).money>=n.value.cost?"花 ¥"+n.value.cost+" 装修":"还差 ¥"+(n.value.cost-P(f).money)),9,ju),o[2]||(o[2]=u("p",{class:"small muted",style:{margin:"8px 2px 0","text-align":"center"}}," 装修要花掉本月 1 点行动力 ",-1))],64)):(E(),T("div",Hu,"已经是最高等级了。这家店现在是你能做到的最好的样子。"))])]))}},Bu={class:"card card-pad",style:{"margin-bottom":"12px"}},Ku={class:"small muted"},Vu={class:"card"},Uu={style:{flex:"1 1 auto","min-width":"0"}},Wu={class:"nm"},zu={key:0,class:"chip sage"},Gu={key:1,class:"chip pink"},Ju={class:"nt"},Yu={key:0,class:"nt"},Xu={class:"card card-pad",style:{"margin-top":"12px"}},Zu={class:"h2"},Qu={class:"small muted",style:{margin:"0 0 10px"}},ef={class:"between small",style:{"margin-bottom":"6px"}},tf={class:"between small",style:{"margin-bottom":"6px"}},nf={class:"between small",style:{"margin-bottom":"12px"}},sf=["disabled"],rf={key:1,class:"empty"},of={__name:"MapPage",setup(e){const t=V(()=>as.map((s,r)=>{const i=r<f.stores,o=r===f.stores,l=f.reputation>=s.rep&&f.fame>=s.fame;return{...s,opened:i,isNext:o,met:l,can:o&&l&&f.money>=s.cost&&f.ap>0}}));function n(s){s.can&&As("branch")}return(s,r)=>(E(),T("div",null,[u("div",Bu,[r[1]||(r[1]=u("div",{class:"h2",style:{"margin-bottom":"4px"}},"门店地图",-1)),u("div",Ku," 已开 "+x(P(f).stores)+" / "+x(P(as).length)+" 家。开店需要钱、口碑和知名度，还要花 1 点行动力。 ",1)]),u("div",Vu,[(E(!0),T(Z,null,we(t.value,i=>(E(),T("div",{key:i.id,class:Ke(["city",{on:i.opened,off:!i.opened&&!i.isNext}])},[r[2]||(r[2]=u("span",{class:"dot"},null,-1)),u("div",Uu,[u("div",Wu,[St(x(i.name)+" ",1),i.opened&&i.id!=="qiyun"?(E(),T("span",zu,"营业中")):i.isNext?(E(),T("span",Gu,"下一家")):ae("",!0)]),u("div",Ju,x(i.note),1),i.opened?ae("",!0):(E(),T("div",Yu," 需要 口碑 "+x(i.rep)+" · 知名度 "+x(i.fame)+" · ¥"+x(i.cost),1))])],2))),128))]),u("div",Xu,[t.value[P(f).stores]?(E(),T(Z,{key:0},[u("div",Zu,"在 "+x(t.value[P(f).stores].name)+" 开店",1),u("p",Qu,x(t.value[P(f).stores].note),1),u("div",ef,[r[3]||(r[3]=u("span",{class:"muted"},"资金",-1)),u("span",null,"¥"+x(P(f).money)+" / ¥"+x(t.value[P(f).stores].cost),1)]),u("div",tf,[r[4]||(r[4]=u("span",{class:"muted"},"口碑",-1)),u("span",null,x(Math.round(P(f).reputation))+" / "+x(t.value[P(f).stores].rep),1)]),u("div",nf,[r[5]||(r[5]=u("span",{class:"muted"},"知名度",-1)),u("span",null,x(Math.round(P(f).fame))+" / "+x(t.value[P(f).stores].fame),1)]),u("button",{class:"btn primary block",type:"button",disabled:!t.value[P(f).stores].can,onClick:r[0]||(r[0]=i=>n(t.value[P(f).stores]))},x(t.value[P(f).stores].met?"签约开店":"条件还没到"),9,sf)],64)):(E(),T("div",rf,"八座城市都开了。全国布局完成。"))])]))}},lf={class:"card",style:{overflow:"hidden"}},cf={style:{display:"flex"}},af={class:"portrait"},uf=["src"],ff={style:{flex:"1 1 auto",padding:"14px 14px 14px 13px"}},df={class:"stat",style:{"margin-top":"12px"}},hf={class:"track"},pf={class:"v"},mf={class:"card card-pad",style:{"margin-top":"12px"}},gf={class:"between"},_f={class:"small muted",style:{"margin-top":"2px"}},vf={key:0,style:{"margin-top":"12px"}},yf={class:"small"},bf={class:"small muted"},xf={key:1,class:"empty"},wf={__name:"FriendPage",emits:["album"],setup(e){const t=ks.sq,n=V(()=>f.photos.length),s=V(()=>Object.keys(Cn).length),r=V(()=>f.photos.slice(-3).reverse().map(i=>({id:i,...Cn[i]})));return(i,o)=>(E(),T("div",null,[u("div",lf,[u("div",cf,[u("div",af,[u("img",{src:P(t).full,alt:"苏晴"},null,8,uf)]),u("div",ff,[o[2]||(o[2]=u("div",{class:"serif",style:{"font-size":"18px","font-weight":"600"}},"苏晴",-1)),o[3]||(o[3]=u("div",{class:"small muted"},"高中同学 · 22 岁 · 九月生日",-1)),o[4]||(o[4]=u("div",{class:"small",style:{"margin-top":"8px","line-height":"1.6"}}," 不在店里上班，也不拿工资。她有自己的生活，只是在几个重要的时刻会出现。 ",-1)),u("div",df,[o[1]||(o[1]=u("span",{class:"k"},"友情值",-1)),u("span",hf,[u("span",{class:"fill pink",style:Xt({width:P(f).friendship+"%"})},null,4)]),u("span",pf,x(Math.round(P(f).friendship)),1)])])])]),u("div",mf,[u("div",gf,[u("div",null,[o[5]||(o[5]=u("div",{class:"h2",style:{margin:"0"}},"友情相册",-1)),u("div",_f," 已收集 "+x(n.value)+" / "+x(s.value)+" 张 ",1)]),u("button",{class:"btn",type:"button",onClick:o[0]||(o[0]=l=>i.$emit("album"))},"翻一翻")]),r.value.length?(E(),T("div",vf,[(E(!0),T(Z,null,we(r.value,l=>(E(),T("div",{key:l.id,class:"between",style:{padding:"7px 0","border-bottom":"1px dashed var(--line-soft)"}},[u("span",yf,x(l.title),1),u("span",bf,x(l.caption.slice(0,12))+"…",1)]))),128))])):(E(),T("div",xf,"还没有照片。剧情推进后会自动收进来。"))]),o[6]||(o[6]=$l('<div class="card card-pad" style="margin-top:12px;" data-v-f9285910><div class="h2" data-v-f9285910>她发来的消息</div><div class="small" style="line-height:1.9;color:var(--caramel-soft);" data-v-f9285910><p style="margin:0 0 8px;" data-v-f9285910>「今天路过一家花店，看到一束花特别适合你的店。」</p><p style="margin:0 0 8px;" data-v-f9285910>「最近是不是又在忙新品？记得休息。」</p><p style="margin:0;" data-v-f9285910>「下次见面记得给我留一块蛋糕。」</p></div></div>',1))]))}},$f=Rn(wf,[["__scopeId","data-v-f9285910"]]),Sf={class:"app"},Cf={class:"topbar"},kf={class:"m serif"},Ef={class:"purse"},Af={class:"scroll"},Tf={class:"small muted",style:{margin:"-4px 2px 10px"}},Mf={class:"nav"},Of=["onClick"],If={class:"ico",viewBox:"0 0 24 24",width:"19",height:"19",fill:"none",stroke:"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round"},Ff=["d"],Pf={key:3,class:"mask"},Df={class:"sheet"},Rf={class:"sheet-body",style:{"padding-top":"22px"}},Lf={class:"small muted serif"},Nf={class:"serif",style:{"font-size":"20px",margin:"6px 0 10px","line-height":"1.5"}},jf={style:{"font-size":"14px","line-height":"1.85",color:"var(--caramel-soft)",margin:"0 0 18px"}},Hf={class:"card card-pad"},qf={class:"between small",style:{"margin-bottom":"6px"}},Bf={class:"between small",style:{"margin-bottom":"6px"}},Kf={class:"between small",style:{"margin-bottom":"6px"}},Vf={class:"between small"},Uf={__name:"App",setup(e){const t=[{id:"shop",label:"店铺",icon:"house"},{id:"manage",label:"经营",icon:"tray"},{id:"menu",label:"菜单",icon:"book"},{id:"decor",label:"装修",icon:"brush"},{id:"map",label:"地图",icon:"pin"},{id:"friend",label:"好友",icon:"heart"}],n=gt("manage"),s=gt(!1),r=gt(null);function i(){const M=location.hash.replace("#","");return t.some(D=>D.id===M)?M:"manage"}n.value=i(),window.addEventListener("hashchange",()=>n.value=i());const o=V(()=>ki(f.month)),l=V(()=>Ne.events.length),c=V(()=>f.phase==="ended"&&!Ne.events.length?Tc[f.ending]:null),p={house:"M3.5 10.8 12 4l8.5 6.8V20a1 1 0 0 1-1 1h-4.6v-6H9.1v6H4.5a1 1 0 0 1-1-1z",tray:"M4 9h16M5.5 9V19a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9M8 9V6.5A2.5 2.5 0 0 1 10.5 4h3A2.5 2.5 0 0 1 16 6.5V9",book:"M5 4.5h11.5A2.5 2.5 0 0 1 19 7v13H7.5A2.5 2.5 0 0 1 5 17.5zM5 17.5A2.5 2.5 0 0 1 7.5 15H19",brush:"M14.5 4 20 9.5 11 18.5l-5.5.5.5-5.5zM4 21c1.5 0 3-.8 3-2.5",pin:"M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z",heart:"M12 20s-7.5-4.6-7.5-9.5A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9C19.5 15.4 12 20 12 20z"};function h(){Ne.events.length&&(r.value=Ne.events[0])}function g(){Ne.events.shift(),r.value=null,tn(),Ne.events.length&&setTimeout(h,220)}function C(){hr(),n.value="manage",mr(),h()}return Qr(()=>{Ec()||hr(),mr(),h()}),(M,D)=>(E(),T("div",Sf,[u("div",Cf,[u("div",kf,[St(x(P(Ei)(P(f).month))+" ",1),u("small",null,"第 "+x(P(f).month)+" / 36 个月",1)]),u("div",Ef,[D[2]||(D[2]=u("span",{class:"y"},"¥",-1)),St(x(P(f).money.toLocaleString()),1)])]),u("div",Af,[u("div",Tf,x(o.value.name),1),n.value==="shop"?(E(),Ye(La,{key:0})):n.value==="manage"?(E(),Ye(eu,{key:1})):n.value==="menu"?(E(),Ye(Su,{key:2})):n.value==="decor"?(E(),Ye(qu,{key:3})):n.value==="map"?(E(),Ye(of,{key:4})):n.value==="friend"?(E(),Ye($f,{key:5,onAlbum:D[0]||(D[0]=I=>s.value=!0)})):ae("",!0)]),l.value?(E(),T("button",{key:0,class:"btn primary",type:"button",style:{position:"absolute",right:"14px",bottom:"calc(var(--nav-h) + 16px)","z-index":"20","box-shadow":"var(--shadow)"},onClick:h}," 有 "+x(l.value)+" 段剧情 ",1)):ae("",!0),u("div",Mf,[(E(),T(Z,null,we(t,I=>u("button",{key:I.id,type:"button",class:Ke({on:n.value===I.id}),onClick:Q=>n.value=I.id},[(E(),T("svg",If,[u("path",{d:p[I.icon]},null,8,Ff)])),u("span",null,x(I.label),1)],10,Of)),64))]),r.value?(E(),Ye(ea,{key:1,ev:r.value,onDone:g},null,8,["ev"])):ae("",!0),s.value?(E(),Ye(ha,{key:2,onClose:D[1]||(D[1]=I=>s.value=!1)})):ae("",!0),c.value?(E(),T("div",Pf,[u("div",Df,[u("div",Rf,[u("div",Lf,"结局 · "+x(c.value.name),1),u("h2",Nf,x(c.value.title),1),u("p",jf,x(c.value.text),1),u("div",Hf,[u("div",qf,[D[3]||(D[3]=u("span",{class:"muted"},"门店 / 员工",-1)),u("span",null,x(P(f).stores)+" 家 · "+x(P(f).staff)+" 人",1)]),u("div",Bf,[D[4]||(D[4]=u("span",{class:"muted"},"配方",-1)),u("span",null,x(P(f).recipes.length)+" / 12 款",1)]),u("div",Kf,[D[5]||(D[5]=u("span",{class:"muted"},"口碑 / 知名度",-1)),u("span",null,x(Math.round(P(f).reputation))+" / "+x(Math.round(P(f).fame)),1)]),u("div",Vf,[D[6]||(D[6]=u("span",{class:"muted"},"友情相册",-1)),u("span",null,x(P(f).photos.length)+" 张",1)])])]),u("div",{class:"sheet-foot"},[u("button",{class:"btn primary block",type:"button",onClick:C},"再开一次")])])])):ae("",!0)]))}};cc(Uf).mount("#app");

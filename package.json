@@ -1,0 +1,19 @@
+{
+  "name": "a-little-bakery-story",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node tools/make-standalone.mjs",
+    "preview": "vite preview --port 5180",
+    "single": "node tools/make-standalone.mjs"
+  },
+  "dependencies": {
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.7"
+  }
+}
