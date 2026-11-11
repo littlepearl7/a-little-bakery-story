@@ -124,9 +124,9 @@ function parseBlock(title, lines, warnings) {
 
     inChoice = false;
 
-    // 旁白
+    // 旁白（苏晴）：…… 这种带视角标注的也归为旁白
     if (line.startsWith('旁白')) {
-      const m = line.match(/^旁白\s*[：:]\s*(.*)$/);
+      const m = line.match(/^旁白\s*(?:（[^）]*）)?\s*[：:]\s*(.*)$/);
       beats.push({ type: 'say', speaker: null, text: m ? m[1] : line });
       continue;
     }

@@ -215,12 +215,12 @@ export const PHOTOS = {
 /* ---------------- 阶段 ---------------- */
 
 export const STAGES = [
-  { from: 1, to: 6, name: '第一章 · 从一块蛋糕开始' },
-  { from: 7, to: 12, name: '第二章 · 让更多人认识这家店' },
-  { from: 13, to: 18, name: '第三章 · 慢慢拥有自己的品牌' },
-  { from: 19, to: 24, name: '第四章 · 第一家分店' },
-  { from: 25, to: 30, name: '第五章 · 把喜欢的味道带到更多地方' },
-  { from: 31, to: 36, name: '第六章 · 从小镇走向全国' },
+  { from: 1, to: 6, name: '第一章 · 接手林记' },
+  { from: 7, to: 12, name: '第二章 · 熟悉的味道' },
+  { from: 13, to: 18, name: '第三章 · 让林记走得更远' },
+  { from: 19, to: 24, name: '第四章 · 从一家店到一支团队' },
+  { from: 25, to: 30, name: '第五章 · 找回林记的味道' },
+  { from: 31, to: 36, name: '第六章 · 把喜欢的味道带到全国' },
 ];
 
 export function stageOf(month) {

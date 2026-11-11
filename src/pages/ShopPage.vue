@@ -21,7 +21,7 @@ const stats = computed(() => [
       <span class="tag">{{ lv.name }}</span>
       <img :src="art('shop-exterior.webp')" alt="林记糕点铺" />
       <div class="cap">
-        <div class="n serif">林记糕点铺</div>
+        <div class="n serif">林记烘焙</div>
         <div class="small muted">
           {{ stage.name }} · {{ monthLabel(state.month) }}
         </div>

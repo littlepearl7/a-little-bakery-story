@@ -41,8 +41,8 @@ function finish(out) {
   // play.html 是纯 ASCII 名给 .bat 用，中文名给人看
   writeFileSync(join(dist, 'index.html'), out, 'utf8');
   writeFileSync(join(dist, 'play.html'), out, 'utf8');
-  writeFileSync(join(dist, '小镇蛋糕店.html'), out, 'utf8');
-  console.log('单文件版已生成：dist/index.html、play.html、小镇蛋糕店.html');
+  writeFileSync(join(dist, '林记烘焙.html'), out, 'utf8');
+  console.log('单文件版已生成：dist/index.html、play.html、林记烘焙.html');
   console.log('体积 ' + (Buffer.byteLength(out) / 1024).toFixed(0) + ' KB（图片仍在 dist/art/ 下）');
 }
 
