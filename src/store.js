@@ -5,9 +5,9 @@ import {
   PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
   STAGES, ENDINGS, stageByMonth, shopLevelInfo,
 } from './data';
-import { STORY, matchTrigger } from './story';
+import { STORY, evalTest, PARTNER_OF } from './story';
 
-const SAVE_KEY = 'alb-save-v5';
+const SAVE_KEY = 'alb-save-v6';
 export const DAYS_PER_MONTH = 5;
 
 const MOM_CAPACITY = 60; // 林暖每天的免费产能
@@ -15,7 +15,7 @@ const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
-    v: 5,
+    v: 6,
     month: 1,
     day: 1,
     cash: 12000,
@@ -64,6 +64,8 @@ export function newState() {
     log: [],
     phase: 'playing',
     ending: null,
+    acquired: false,
+    dailyIdx: 0,
     stage: 1,
     report: null,
   };
@@ -145,7 +147,7 @@ export function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.v !== 5) return false;
+    if (data.v !== 6) return false;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined) state[k] = data[k];
     });
@@ -221,6 +223,50 @@ function levelUpAll(amount) {
   });
 }
 
+/* ---------------- 选项效果 ----------------
+ * story.js 已经把「（`traditionScore + 5`，小雨信赖度 +10）」解析成结构化数组，
+ * 这里只负责落到状态上。
+ */
+
+export function applyGains(gains) {
+  const got = [];
+  for (const g of gains || []) {
+    switch (g.k) {
+      case 'style':
+        state.style[g.id] = (state.style[g.id] || 0) + g.v;
+        break;
+      case 'trust':
+        if (!g.id) break;
+        state.partnerTrust[g.id] = clamp((state.partnerTrust[g.id] || 0) + g.v);
+        break;
+      case 'skill':
+        if (!g.id) break;
+        state.partnerSkill[g.id] = Math.min(5, Math.round(((state.partnerSkill[g.id] || 1) + g.v) * 10) / 10);
+        break;
+      case 'loyalty':
+        state.loyalty = clamp(state.loyalty + g.v);
+        break;
+      case 'friend':
+        state.friendship = clamp(state.friendship + g.v);
+        break;
+      default:
+        break;
+    }
+    if (g.label) got.push(g.label);
+  }
+  return got;
+}
+
+/** 玩家在剧情里选了某个选项 */
+export function applyChoice(choice, opt, index) {
+  const got = applyGains(opt.gains);
+  // M32 的收购邀约：选第二项就是接受转让
+  if (choice && choice.node === '13.6' && index === 1) state.acquired = true;
+  if (got.length) log('选择：' + opt.label + '（' + got.join('，') + '）', 'story');
+  save();
+  return got;
+}
+
 /* ---------------- 伙伴 ---------------- */
 
 function joinPartner(id) {
@@ -269,6 +315,8 @@ export function actionInfo(id) {
         note: t ? '和 ' + t + ' 聊聊，信赖 +6' : '和妈妈聊聊，家庭默契 +4',
       };
     }
+    case 'sqchat':
+      return { name: '和苏晴聊聊', ap: 1, cost: 0, note: '友情 +3，她会说点什么' };
     case 'research':
       return { name: '新品研发', ap: 2, cost: 0, note: '选一款产品，熟练度 +1' };
     case 'market':
@@ -341,6 +389,16 @@ export function doAction(id, opt) {
         log('和妈妈聊了一会儿，家庭默契 +4');
       }
       break;
+    case 'sqchat': {
+      const list = STORY.daily;
+      if (!list.length) break;
+      const ev = list[state.dailyIdx % list.length];
+      state.dailyIdx += 1;
+      state.friendship = clamp(state.friendship + 3);
+      pushEvent(ev);
+      log('和苏晴聊了几句，友情 +3');
+      break;
+    }
     case 'research': {
       const pid = opt && opt.product ? opt.product : state.unlocked[0];
       const lv = state.levels[pid] || 1;
@@ -661,21 +719,34 @@ function endMonth() {
 
   const stageDone = STAGES.find((s) => s.to === finishedMonth && !s.final);
   if (stageDone) {
+    const sd = STORY.stages[stageDone.id];
     if (!checkStage(stageDone)) {
       state.phase = 'ended';
-      state.ending = stageDone.short;
+      state.ending = { ...stageDone.short, key: stageDone.short.key, text: '' };
+      if (sd && sd.failId) pushEvent(STORY.find(sd.failId));
       log('阶段目标没有达成', 'bad');
       save();
       return;
     }
     state.stage = stageDone.id + 1;
+    if (sd && sd.pass.length) {
+      pushEvent({
+        id: 'STAGE_PASS_' + stageDone.id,
+        title: stageDone.name + ' · 阶段达成',
+        chapter: stageDone.name,
+        kind: 'stage',
+        beats: sd.pass,
+      });
+    }
     log('第 ' + stageDone.id + ' 阶段目标达成', 'good');
   }
 
   if (state.month > 36) {
     state.month = 36;
     state.phase = 'ended';
-    state.ending = finalEnding();
+    const key = finalEndingKey();
+    state.ending = { ...ENDINGS[key], key };
+    pushEvent(STORY.find(FINAL_EVENT[key]));
     save();
     return;
   }
@@ -685,6 +756,15 @@ function endMonth() {
   queueStory();
 }
 
+const FINAL_EVENT = {
+  community: 'EVT_FINAL_END_COMMUNITY',
+  tradition: 'EVT_FINAL_END_TRADITION',
+  creative: 'EVT_FINAL_END_INNOVATION',
+  regional: 'EVT_FINAL_END_REGIONAL',
+  national: 'EVT_FINAL_END_NATIONAL',
+  transfer: 'EVT_FINAL_END_TRANSFER',
+};
+
 export function checkStage(stage) {
   if (!stage.goals.length) return true;
   const done = stage.goals.filter((g) => g.check(state));
@@ -693,54 +773,82 @@ export function checkStage(stage) {
   return true;
 }
 
-function finalEnding() {
-  if (state.storeCount >= 6) return { ...ENDINGS.national, key: 'national' };
-  if (state.storeCount >= 3) return { ...ENDINGS.regional, key: 'regional' };
+function finalEndingKey() {
+  if (state.acquired) return 'transfer';
+  if (state.storeCount >= 6) return 'national';
+  if (state.storeCount >= 3) return 'regional';
   const s = state.style;
   const top = Object.keys(s).sort((a, b) => s[b] - s[a])[0];
-  const map = { tradition: 'tradition', innovation: 'creative', community: 'community' };
-  const key = map[top] || 'community';
-  return { ...ENDINGS[key], key };
+  const map = {
+    tradition: 'tradition',
+    innovation: 'creative',
+    community: 'community',
+    efficiency: 'regional',
+  };
+  return map[top] || 'community';
 }
 
 /* ---------------- 剧情调度 ---------------- */
 
+function pushEvent(ev) {
+  if (!ev) return;
+  if (queue.events.find((e) => e.id === ev.id)) return;
+  queue.events.push(ev);
+}
+
+/** 主线事件：按月推进，条件不满足就继续等 */
 export function queueStory() {
-  const due = STORY.events.filter(
-    (ev) =>
-      !state.played.includes(ev.id) &&
-      ev.trigger &&
-      ev.trigger.type === 'cond' &&
-      matchTrigger(ev.trigger, state)
-  );
-
-  const randoms = STORY.events.filter(
-    (ev) => !state.played.includes(ev.id) && ev.trigger && ev.trigger.type === 'random'
-  );
-  if (randoms.length && Math.random() < 0.4) {
-    due.push(randoms[Math.floor(Math.random() * randoms.length)]);
-  }
-
-  due.sort((a, b) => a.id.localeCompare(b.id));
-  due.forEach((ev) => {
-    if (!queue.events.find((e) => e.id === ev.id)) queue.events.push(ev);
+  const due = STORY.events.filter((ev) => {
+    if (ev.kind !== 'main') return false;
+    if (state.played.includes(ev.id)) return false;
+    if (ev.month == null) return false;
+    if (state.month < ev.month) return false;
+    if (ev.test && !evalTest(ev.test, state)) return false;
+    return true;
   });
+
+  due.sort((a, b) => a.month - b.month || a.order - b.order);
+  due.forEach(pushEvent);
+
+  // 经营风格专属剧情：某项 ≥ 指定值且领先其他项
+  STORY.events
+    .filter((ev) => ev.kind === 'style' && !state.played.includes(ev.id) && evalTest(ev.test, state))
+    .forEach(pushEvent);
 }
 
 export function startGame() {
+  const pro = STORY.events.find((ev) => ev.kind === 'prologue');
+  if (pro && !state.played.includes(pro.id)) pushEvent(pro);
   queueStory();
-  const prologue = STORY.events.find((ev) => ev.trigger && ev.trigger.type === 'start');
-  if (prologue && !state.played.includes(prologue.id)) {
-    queue.events.unshift(prologue);
-  }
 }
 
-export function finishEvent(ev, chosenRewards) {
-  if (!state.played.includes(ev.id)) state.played.push(ev.id);
+export function finishEvent(ev) {
+  const ids = ev.ids && ev.ids.length ? ev.ids : [ev.id];
+  // 日常互动允许重复，不进已播列表
+  if (ev.kind !== 'daily') {
+    ids.forEach((id) => {
+      if (!state.played.includes(id)) state.played.push(id);
+    });
+  }
   const got = applyRewards(ev.rewards || []);
-  if (chosenRewards && chosenRewards.length) got.push(...applyRewards(chosenRewards));
   if (got.length) log('剧情：' + ev.title, 'story');
   save();
+}
+
+/** 伙伴个人结局：按信赖 / 专业挑一档 */
+export function partnerEndingOf(pid) {
+  const list = (STORY.partnerEndings || {})[pid];
+  if (!list || !list.length) return null;
+  if (list.length === 1) return list[0];
+  const trust = state.partnerTrust[pid] || 0;
+  const skill = state.partnerSkill[pid] || 0;
+  if (list.length >= 4) {
+    if (trust >= 70 && skill >= 3) return list[0];
+    if (trust >= 70) return list[1];
+    if (skill >= 3) return list[2];
+    return list[3];
+  }
+  return trust >= 70 ? list[0] : list[1];
 }
 
 export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo };

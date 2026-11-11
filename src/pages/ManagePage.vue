@@ -8,7 +8,7 @@ const flash = ref('');
 let timer = 0;
 
 const actions = computed(() =>
-  ['restock', 'feedback', 'talk', 'research', 'market', 'train', 'decorate', 'survey', 'branch'].map(
+  ['restock', 'feedback', 'talk', 'sqchat', 'research', 'market', 'train', 'decorate', 'survey', 'branch'].map(
     (id) => ({ id, info: actionInfo(id) })
   )
 );

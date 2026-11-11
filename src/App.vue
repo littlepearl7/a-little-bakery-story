@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { monthLabel } from './data';
+import { computed, onMounted, ref, watch } from 'vue';
+import { monthLabel, PARTNERS } from './data';
 import {
-  state, queue, load, reset, startGame, save, DAYS_PER_MONTH, stageInfo,
+  state, queue, load, reset, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import ShopPage from './pages/ShopPage.vue';
@@ -72,6 +72,30 @@ function restart() {
   startGame();
   openNext();
 }
+
+// 有新剧情（比如和苏晴聊了聊）就自动弹出来，不用手动点
+watch(
+  () => queue.events.length,
+  (n, old) => {
+    if (n > 0 && n > (old || 0) && !activeEvent.value && !dayReport.value && !monthReport.value) {
+      setTimeout(() => {
+        if (!activeEvent.value && queue.events.length) openNext();
+      }, 90);
+    }
+  }
+);
+
+const partnerLines = computed(() => {
+  if (!ending.value) return [];
+  const out = PARTNERS.filter((p) => state.staff.includes(p.id)).map((p) => ({
+    name: p.nick,
+    role: p.role,
+    ...(partnerEndingOf(p.id) || {}),
+  }));
+  const mom = partnerEndingOf('mom');
+  if (mom) out.push({ name: '林暖', role: '母亲', ...mom });
+  return out.filter((x) => x.title);
+});
 
 onMounted(() => {
   const had = load();
@@ -201,7 +225,10 @@ onMounted(() => {
           <h2 class="serif" style="font-size: 20px; margin: 6px 0 10px; line-height: 1.5">
             {{ ending.title }}
           </h2>
-          <p style="font-size: 14px; line-height: 1.85; color: var(--caramel-soft); margin: 0 0 18px">
+          <p
+            v-if="ending.text"
+            style="font-size: 14px; line-height: 1.85; color: var(--caramel-soft); margin: 0 0 18px"
+          >
             {{ ending.text }}
           </p>
           <div class="card card-pad">
@@ -218,6 +245,16 @@ onMounted(() => {
               <span>{{ Math.round(state.reputation) }} / {{ Math.round(state.popularity) }}</span>
             </div>
           </div>
+
+          <div v-if="partnerLines.length" class="card card-pad" style="margin-top: 12px">
+            <div class="h2">他们的后来</div>
+            <div v-for="(p, i) in partnerLines" :key="i" class="pl">
+              <div class="pn">
+                {{ p.name }}<span class="muted small"> · {{ p.title }}</span>
+              </div>
+              <div class="pt">{{ p.text }}</div>
+            </div>
+          </div>
         </div>
         <div class="sheet-foot">
           <button class="btn primary block" type="button" @click="restart">再开一次</button>
@@ -226,3 +263,24 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.pl {
+  padding: 8px 0;
+  border-top: 1px dashed var(--line);
+}
+.pl:first-of-type {
+  border-top: 0;
+}
+.pn {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--caramel);
+}
+.pt {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+</style>

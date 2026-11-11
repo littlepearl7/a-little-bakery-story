@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { PRODUCTS, PHOTOS, CITIES } from '../data';
 import { state, priceOf } from '../store';
+import { STORY } from '../story';
 import CakeArt from '../components/CakeArt.vue';
 
 const seg = ref('product');
@@ -9,6 +10,8 @@ const seg = ref('product');
 const products = computed(() =>
   PRODUCTS.map((p) => ({
     ...p,
+    flavor: (STORY.codex[p.id] || {}).flavor || p.desc,
+    hint: (STORY.codex[p.id] || {}).hint || '',
     owned: state.unlocked.includes(p.id),
     lv: Math.round((state.levels[p.id] || 1) * 10) / 10,
     price: priceOf(p.id),
@@ -55,7 +58,8 @@ const cities = computed(() =>
             <span>{{ p.name }}</span>
             <span v-if="p.owned" class="chip" style="font-size: 10px">Lv{{ p.lv }}</span>
           </div>
-          <div class="desc">{{ p.owned ? p.desc : '第 ' + p.month + ' 个月解锁' }}</div>
+          <div class="desc">{{ p.owned ? p.flavor : '第 ' + p.month + ' 个月解锁' }}</div>
+          <div v-if="p.owned && p.hint" class="hint">配方：{{ p.hint }}</div>
           <div v-if="p.owned" class="nums">
             <span>¥{{ p.price }}</span>
             <span>{{ p.diff }} 点/个</span>
@@ -129,5 +133,14 @@ const cities = computed(() =>
   color: var(--caramel);
   font-weight: 600;
   box-shadow: var(--shadow);
+}
+</style>
+
+<style scoped>
+.hint {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--ink-2);
+  opacity: 0.85;
 }
 </style>

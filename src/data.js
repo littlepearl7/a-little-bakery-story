@@ -73,9 +73,9 @@ export const PRODUCTS = [
   { id: 'festival', name: '节日限定蛋糕', month: 20, diff: 22, price: 328, demand: 2,
     desc: '一年只做几次。包装盒是专门订的。',
     colors: { sponge: '#EADCCB', cream: '#FFFBF5', accent: '#C2554F' } },
-  { id: 'signature', name: '招牌 · 从一块开始', month: 26, diff: 22, price: 398, demand: 2,
-    desc: '三层夹心，切开是三种颜色，像三年。',
-    colors: { sponge: '#F0D9AE', cream: '#FFFDF8', accent: '#8A6A4F' } },
+  { id: 'signature', name: '桂花栗子蛋糕', month: 26, diff: 22, price: 398, demand: 2,
+    desc: '外婆旧配方与现代工艺的结晶。栗子甜则少放糖，桂花香淡则后撒。',
+    colors: { sponge: '#EEDCBB', cream: '#FFFCF5', accent: '#C89B3C' } },
 ];
 
 export function productById(id) {
@@ -272,6 +272,10 @@ export const ENDINGS = {
   national: {
     name: '全国连锁品牌', title: '从一块蛋糕开始，慢慢成为更好的自己',
     text: '林记建立了完整的研发、生产、供应链和运营体系。高端主题旗舰店正式开业。',
+  },
+  transfer: {
+    name: '转让', title: '招牌还挂在街口，只是不再由她掌舵',
+    text: '林记的招牌依然会挂在各个城市的街口，经典配方的蛋糕依然每天出炉。苏晴在门口等她，接过她手里的纸箱。',
   },
 };
 
