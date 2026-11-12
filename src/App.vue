@@ -12,6 +12,7 @@ import KitchenPage from './pages/KitchenPage.vue';
 import PartnersPage from './pages/PartnersPage.vue';
 import ManagePage from './pages/ManagePage.vue';
 import CodexPage from './pages/CodexPage.vue';
+import SceneMapPage from './pages/SceneMapPage.vue';
 
 const TABS = [
   { id: 'shop', label: '店铺', icon: 'house' },
@@ -30,6 +31,10 @@ const ICONS = {
 };
 
 const tab = ref('shop');
+const scene = ref('shop');
+const activePanel = ref('');
+function openPanel(name) { activePanel.value = name; }
+function closePanel() { activePanel.value = ''; }
 const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
@@ -149,28 +154,41 @@ onMounted(() => {
       <div class="purse"><span class="y">¥</span>{{ state.cash.toLocaleString() }}</div>
     </div>
 
-    <div class="scroll">
-      <div class="between" style="margin: -4px 2px 10px">
+    <div class="scroll scene-scroll">
+      <div class="between scene-meta">
         <span class="small muted">{{ stageInfo.name }}</span>
-        <span class="chip" style="font-size: 10px">行动力 {{ state.ap }}</span>
+        <span class="chip">行动力 {{ state.ap }} · 体力 {{ state.stamina }}</span>
       </div>
 
       <button
         v-if="devEnabled && state.phase === 'playing'"
         class="btn"
         type="button"
-        style="width: 100%; margin: 0 0 10px"
+        style="width:100%;margin:0 0 8px"
         :disabled="!!activeEvent || !!dayReport"
         @click="devSkipMonth"
-      >
-        开发者后门 · 跳过本月
-      </button>
+      >开发者后门 · 跳过本月</button>
 
-      <ShopPage v-if="tab === 'shop'" @closed="onClosed" />
-      <KitchenPage v-else-if="tab === 'kitchen'" />
-      <PartnersPage v-else-if="tab === 'partners'" />
-      <ManagePage v-else-if="tab === 'manage'" />
-      <CodexPage v-else-if="tab === 'codex'" />
+      <SceneMapPage :scene="scene" @change-scene="scene = $event" @open-panel="openPanel" />
+
+      <div v-if="activePanel" class="scene-panel-mask" @click.self="closePanel">
+        <section class="scene-panel">
+          <header class="scene-panel-head">
+            <div>
+              <div class="small muted">林记烘焙 · {{ monthLabel(state.month) }}</div>
+              <strong>{{ ({shop:'店铺营业', kitchen:'今日制作', partners:'伙伴与员工', manage:'经营与研发', codex:'手账与图鉴'})[activePanel] || '经营' }}</strong>
+            </div>
+            <button type="button" class="scene-panel-close" @click="closePanel">✕</button>
+          </header>
+          <div class="scene-panel-content">
+            <ShopPage v-if="activePanel === 'shop'" @closed="onClosed" />
+            <KitchenPage v-else-if="activePanel === 'kitchen'" />
+            <PartnersPage v-else-if="activePanel === 'partners'" />
+            <ManagePage v-else-if="activePanel === 'manage'" />
+            <CodexPage v-else-if="activePanel === 'codex'" />
+          </div>
+        </section>
+      </div>
     </div>
 
     <button
@@ -183,28 +201,21 @@ onMounted(() => {
       有 {{ pending }} 段剧情
     </button>
 
-    <div class="nav">
-      <button
-        v-for="t in TABS"
-        :key="t.id"
-        type="button"
-        :class="{ on: tab === t.id }"
-        @click="tab = t.id"
-      >
-        <svg
-          class="ico"
-          viewBox="0 0 24 24"
-          width="19"
-          height="19"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path :d="ICONS[t.icon]" />
-        </svg>
-        <span>{{ t.label }}</span>
+    <div class="nav scene-nav">
+      <button :class="{ on: !activePanel && scene === 'shop' }" type="button" @click="closePanel(); scene = 'shop'">
+        <span class="nav-emoji">🏠</span><span>店内</span>
+      </button>
+      <button :class="{ on: scene === 'street' && !activePanel }" type="button" @click="closePanel(); scene = 'street'">
+        <span class="nav-emoji">🗺️</span><span>小镇</span>
+      </button>
+      <button :class="{ on: activePanel === 'partners' }" type="button" @click="openPanel('partners')">
+        <span class="nav-emoji">👥</span><span>伙伴</span>
+      </button>
+      <button :class="{ on: activePanel === 'manage' }" type="button" @click="openPanel('manage')">
+        <span class="nav-emoji">📋</span><span>任务</span>
+      </button>
+      <button :class="{ on: activePanel === 'codex' }" type="button" @click="openPanel('codex')">
+        <span class="nav-emoji">📖</span><span>手账</span>
       </button>
     </div>
 
@@ -385,4 +396,16 @@ onMounted(() => {
   line-height: 1.75;
   color: var(--ink-2);
 }
+
+.scene-scroll { padding: 8px 0 calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
+.scene-meta { padding: 0 14px 7px; flex:0 0 auto; }
+.scene-nav { z-index:30; }
+.scene-nav button { gap:1px; }
+.scene-nav .nav-emoji { font-size:19px; line-height:1.2; }
+.scene-panel-mask { position:absolute; inset:0; z-index:35; background:rgba(36,25,17,.45); display:flex; align-items:flex-end; }
+.scene-panel { width:100%; max-height:88%; display:flex; flex-direction:column; overflow:hidden; border-radius:22px 22px 0 0; background:var(--cream); box-shadow:0 -10px 40px rgba(40,25,15,.24); }
+.scene-panel-head { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:13px 17px 11px; border-bottom:1px solid var(--line); background:var(--paper); }
+.scene-panel-head strong { display:block; font-size:18px; }
+.scene-panel-close { width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:var(--cream); color:var(--caramel); font-size:16px; cursor:pointer; }
+.scene-panel-content { overflow:auto; -webkit-overflow-scrolling:touch; padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 20px); }
 </style>
