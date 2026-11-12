@@ -1,7 +1,7 @@
 /**
  * 剧情解析器 V5。
  *
- * 唯一数据源是项目根目录的 v5_0.md —— 改那个文件就改剧情，不用动代码。
+ * 唯一数据源是 story/文案v6.md —— 改那个文件就改剧情，不用动代码。
  * 解析目标：把剧本拆成 [{ id, title, month, kind, test, beats }]。
  *
  * 支持的写法（都在 v5_0.md 里实际用到）：
@@ -15,7 +15,7 @@
  *   角色：台词 / 角色（表情）：台词 / 旁白（视角）：...
  */
 
-import raw from '../v5_0.md?raw';
+import raw from '../story/文案v6.md?raw';
 
 /* ---------------- 名词表 ---------------- */
 
@@ -291,7 +291,7 @@ function parseBlock(lines, opts = {}) {
         continue;
       }
 
-      const om = body.match(/^\*\s*\*\*选项([A-Z])[：:](.+?)\*\*(.*)$/);
+      const om = body.match(/^[-*]\s*\*\*选项([A-Z])[：:](.+?)\*\*(.*)$/);
       if (om && curChoice) {
         const ctxName = guessPartner([body, curChoice.prompt].join(' '));
         const rest = om[3] || '';
@@ -318,7 +318,8 @@ function parseBlock(lines, opts = {}) {
       const rest = (mark[2] || '').replace(/^[：:]\s*/, '').trim();
 
       // 事件 ID / 触发条件 / 状态变更 / 初始状态 / 检查条件：元数据
-      if (/^事件ID/.test(inner)) {
+      // 注意：事件ID 有时跟在「触发条件｜」后面，所以不能只看行首
+      if (inner.indexOf('事件ID') >= 0) {
         const parts = inner.split('｜');
         parts.forEach((p) => {
           const idx = p.search(/[：:]/);
@@ -417,6 +418,16 @@ function parseBlock(lines, opts = {}) {
         continue;
       }
 
+      // 第X幕：幕内分节，可能带「（若某人信赖度 ≥ N）」
+      const act = inner.match(/^第[一二三四五六七八九十]+幕[：:]\s*(.*)$/);
+      if (act) {
+        const cond = parseCondText(act[1]);
+        const label = act[1].replace(/[（(]\s*若[^）)]*[）)]/g, '').trim();
+        push({ t: 'act', text: label, test: cond || null });
+        if (rest) push({ t: 'nar', text: rest });
+        continue;
+      }
+
       // 机制说明 / 其他标记：当作小标题
       if (rest) push({ t: 'nar', text: rest });
       continue;
@@ -463,7 +474,26 @@ function parseBlock(lines, opts = {}) {
   }
 
   meta.title = opts.title || '';
-  return { beats, meta };
+  return { beats: wrapActs(beats), meta };
+}
+
+/** 幕级条件：把这个 act 到下一个 act 之间的内容整体包成 cond */
+function wrapActs(beats) {
+  const out = [];
+  let i = 0;
+  while (i < beats.length) {
+    const b = beats[i];
+    if (b.t === 'act' && b.test) {
+      let j = i + 1;
+      while (j < beats.length && beats[j].t !== 'act') j++;
+      out.push({ t: 'cond', test: b.test, then: beats.slice(i, j), else: [] });
+      i = j;
+    } else {
+      out.push(b);
+      i++;
+    }
+  }
+  return out;
 }
 
 function guessPartner(text) {
@@ -706,10 +736,10 @@ function parseStory(md) {
             const list = [];
             for (const raw of sub.lines) {
               const line = raw.trim();
-              const m = line.match(/^\*\s*\*\*【(.+?)】\*\*\s*(.*)$/);
+              const m = line.match(/^[-*]\s*\*\*【(.+?)】\*\*\s*(.*)$/);
               if (m) {
-                list.push({ title: m[1], text: m[2] });
-              } else if (list.length && line) {
+                list.push({ title: m[1], text: (m[2] || '').trim() });
+              } else if (list.length && line && !/^[-*#]/.test(line)) {
                 list[list.length - 1].text += line;
               }
             }
@@ -805,10 +835,21 @@ export const STORY = parseStory(raw);
 if (typeof console !== 'undefined') {
   const kinds = {};
   STORY.events.forEach((e) => (kinds[e.kind] = (kinds[e.kind] || 0) + 1));
+  let choices = 0;
+  let options = 0;
+  STORY.events.forEach((e) => {
+    (e.beats || []).forEach((b) => {
+      if (b.t === 'choice') {
+        choices += 1;
+        options += b.options.length;
+      }
+    });
+  });
   console.log(
     '[剧情] 已加载 ' + STORY.events.length + ' 个事件（' +
       Object.keys(kinds).map((k) => k + ' ' + kinds[k]).join('，') +
-      '），日常互动 ' + STORY.daily.length + ' 段，阶段结算 ' + Object.keys(STORY.stages).length + ' 组'
+      '），日常互动 ' + STORY.daily.length + ' 段，阶段结算 ' + Object.keys(STORY.stages).length +
+      ' 组，选择 ' + choices + ' 处 / ' + options + ' 项'
   );
   if (STORY.warnings.length) STORY.warnings.forEach((w) => console.warn('[剧情] ' + w));
 }

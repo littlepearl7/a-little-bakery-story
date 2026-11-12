@@ -19,7 +19,7 @@ let autoTimer = 0;
 function firstContent(beats) {
   for (let i = 0; i < beats.length; i++) {
     const t = beats[i].t;
-    if (t !== 'scene' && t !== 'cg' && t !== 'cgend') return i;
+    if (t !== 'scene' && t !== 'cg' && t !== 'cgend' && t !== 'act') return i;
   }
   return Math.max(0, beats.length - 1);
 }
@@ -40,6 +40,13 @@ const sceneIdx = computed(() => {
   return -1;
 });
 const scene = computed(() => (sceneIdx.value >= 0 ? list.value[sceneIdx.value] : null));
+const actLabel = computed(() => {
+  for (let i = idx.value; i >= 0; i--) {
+    if (list.value[i].t === 'act') return list.value[i].text;
+    if (list.value[i].t === 'scene') return '';
+  }
+  return '';
+});
 const bgKey = computed(() => (scene.value ? sceneKey(scene.value.text) : 'shop'));
 const bg = computed(() => BG[bgKey.value] || BG.shop);
 const bgSrc = computed(() => bgSrcOf(bg.value));
@@ -65,8 +72,16 @@ const cgKey = computed(() => {
 const cg = computed(() => (cgKey.value ? cgOf(cgKey.value) : null));
 
 const cast = computed(() => {
+  // 换场景或换幕都重新站人，避免上一幕的人一直挂在台上
+  let from = 0;
+  for (let i = idx.value; i >= 0; i--) {
+    if (list.value[i].t === 'scene' || list.value[i].t === 'act') {
+      from = i + 1;
+      break;
+    }
+  }
   const out = [];
-  for (let i = sceneIdx.value + 1; i <= idx.value; i++) {
+  for (let i = from; i <= idx.value; i++) {
     const b = list.value[i];
     if (b.t === 'say' && SPRITE[b.who] && spriteReady(b.who) && !out.includes(b.who)) out.push(b.who);
   }
@@ -120,7 +135,7 @@ function nextIndex(from) {
   let i = from + 1;
   while (i < list.value.length) {
     const t = list.value[i].t;
-    if (t === 'scene' || t === 'cg' || t === 'cgend') i++;
+    if (t === 'scene' || t === 'cg' || t === 'cgend' || t === 'act') i++;
     else break;
   }
   return Math.min(i, list.value.length - 1);
@@ -224,7 +239,8 @@ onUnmounted(() => {
       <div class="vn-top">
         <div class="vn-titles">
           <div class="vn-chapter">{{ ev.title }}</div>
-          <div class="vn-scene" v-if="scene">{{ scene.text }}</div>
+          <div class="vn-scene" v-if="actLabel">{{ actLabel }}</div>
+          <div class="vn-scene" v-else-if="scene">{{ scene.text }}</div>
         </div>
         <div class="vn-tools">
           <button type="button" :class="{ on: auto }" @click.stop="toggleAuto">自动</button>
