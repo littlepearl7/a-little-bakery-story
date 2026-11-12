@@ -3,7 +3,7 @@
 import { reactive, computed } from 'vue';
 import {
   PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
-  STAGES, ENDINGS, stageByMonth, shopLevelInfo,
+  STAGES, ENDINGS, stageByMonth, shopLevelInfo, DEVICES, deviceById,
 } from './data';
 import { STORY, evalTest, PARTNER_OF } from './story';
 
@@ -33,6 +33,7 @@ export function newState() {
     stamina: 100,
     maxStamina: 100,
     stock: 60,
+    devices: {},
     shelf: {},
     plan: {},
     prices: {},
@@ -77,12 +78,43 @@ export const queue = reactive({ events: [] });
 
 /* ---------------- 派生值 ---------------- */
 
+/* ---------------- 设备 ---------------- */
+
+export function deviceTier(id) {
+  return state.devices[id] || 0;
+}
+
+/** 当前等级带来的数值；0 级为 0 */
+export function deviceValue(id) {
+  const d = deviceById(id);
+  const t = deviceTier(id);
+  return t && d ? d.tiers[t - 1].value : 0;
+}
+
+export function deviceNext(id) {
+  const d = deviceById(id);
+  const t = deviceTier(id);
+  return d && t < d.tiers.length ? d.tiers[t] : null;
+}
+
+export function upgradeDevice(id) {
+  const next = deviceNext(id);
+  if (!next || state.cash < next.cost) return false;
+  state.cash -= next.cost;
+  state.devices[id] = deviceTier(id) + 1;
+  state.monthCost += next.cost;
+  log('升级了' + deviceById(id).name + '，' + next.text, 'good');
+  save();
+  return true;
+}
+
 export const availableProducts = computed(() =>
   PRODUCTS.filter((p) => state.unlocked.includes(p.id))
 );
 
 export const capacity = computed(
-  () => state.stamina + MOM_CAPACITY + state.staff.length * STAFF_CAPACITY
+  () =>
+    state.stamina + MOM_CAPACITY + state.staff.length * STAFF_CAPACITY + deviceValue('oven')
 );
 
 function priceTier(id) {
@@ -92,7 +124,7 @@ function priceTier(id) {
 export function priceOf(id) {
   const p = productById(id);
   const lv = state.levels[id] || 1;
-  return Math.round(p.price * priceTier(id).priceMul * (1 + (lv - 1) * 0.05));
+  return Math.round(p.price * priceTier(id).priceMul * (1 + (lv - 1) * 0.05) * (1 + deviceValue('cashier')));
 }
 
 export function demandOf(id) {
@@ -107,7 +139,8 @@ export function demandOf(id) {
         mult *
         priceTier(id).demandMul *
         (1 + (lv - 1) * 0.06) *
-        (1 + (state.storeCount - 1) * 0.7)
+        (1 + (state.storeCount - 1) * 0.7) *
+        (1 + deviceValue('display'))
     )
   );
 }
@@ -300,7 +333,7 @@ function cdLeft(id) {
 export function actionInfo(id) {
   switch (id) {
     case 'restock':
-      return { name: '原料采购', ap: 1, cost: 600, note: '原料 +12 份', disabled: state.cash < 600 };
+      return { name: '原料采购', ap: 1, cost: 600, note: '原料 +' + (12 + deviceValue('warehouse')) + ' 份', disabled: state.cash < 600 };
     case 'feedback': {
       const left = cdLeft('feedback');
       return {
@@ -369,10 +402,13 @@ export function doAction(id, opt) {
   const cashBefore = state.cash;
 
   switch (id) {
-    case 'restock':
+    case 'restock': {
+      const qty = 12 + deviceValue('warehouse');
       state.cash -= 600;
-      state.stock += 12;
-      log('原料 +12 份');
+      state.stock += qty;
+      log('原料 +' + qty + ' 份');
+      break;
+    }
       break;
     case 'feedback':
       state.reputation = clamp(state.reputation + 1.5);
@@ -490,8 +526,8 @@ export function makeCakes() {
     return { ok: false, msg: '产能不够。今天的产能是 ' + capacity.value + ' 点，还差 ' + (pts - capacity.value) };
   }
 
-  const free = MOM_CAPACITY + state.staff.length * STAFF_CAPACITY;
-  const selfCost = Math.max(0, pts - free);
+  const free = MOM_CAPACITY + state.staff.length * STAFF_CAPACITY + deviceValue('oven');
+  const selfCost = Math.round(Math.max(0, pts - free) * (1 - deviceValue('mixer')));
 
   state.stock -= needStock;
   state.stamina = Math.max(0, state.stamina - selfCost);
@@ -527,7 +563,7 @@ export function rollOrders() {
       type,
       product: p.id,
       qty,
-      pay: Math.round(priceOf(p.id) * qty * (isCustom ? 1.6 : 1.25)),
+      pay: Math.round(priceOf(p.id) * qty * (isCustom ? 1.6 * (1 + deviceValue('packing')) : 1.25)),
       taken: false,
     });
   }
@@ -616,7 +652,9 @@ export function closeDay(mode) {
 
   let gain = 0;
   if (left > 0) {
-    gain = Math.round(value * m.cashRate);
+    // 冷藏柜只加成「打折卖掉」，其它处理方式不额外换钱
+    const rate = m.cashRate > 0 ? m.cashRate + deviceValue('fridge') : 0;
+    gain = Math.round(value * rate);
     state.cash += gain;
     if (m.community) state.style.community += m.community * 0.3;
   }
@@ -853,4 +891,4 @@ export function partnerEndingOf(pid) {
   return trust >= 70 ? list[0] : list[1];
 }
 
-export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo };
+export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo, DEVICES, deviceById };

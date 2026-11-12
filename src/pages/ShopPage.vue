@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { art, shopLevelInfo, monthLabel, productById } from '../data';
+import { art, shopLevelInfo, monthLabel, productById, DEVICES } from '../data';
 import {
   state, capacity, openShop, closeDay, takeOrder, DAYS_PER_MONTH,
-  monthFixedCost, LEFTOVER_MODES,
+  monthFixedCost, LEFTOVER_MODES, deviceTier, deviceNext, upgradeDevice,
 } from '../store';
 
 const emit = defineEmits(['closed']);
@@ -17,6 +17,21 @@ const shelfRows = computed(() =>
     .map((id) => ({ id, name: productById(id).name, qty: state.shelf[id] }))
 );
 const showClose = ref(false);
+
+const devices = computed(() =>
+  DEVICES.map((d) => {
+    const tier = deviceTier(d.id);
+    return {
+      id: d.id,
+      name: d.name,
+      note: d.note,
+      desc: d.desc,
+      tier,
+      now: tier ? d.tiers[tier - 1].text : '',
+      next: deviceNext(d.id),
+    };
+  })
+);
 
 function pick(mode) {
   const report = closeDay(mode);
@@ -131,6 +146,34 @@ function pick(mode) {
     </div>
 
     <div class="card card-pad" style="margin-top: 12px">
+      <div class="between" style="margin-bottom: 6px">
+        <div class="h2" style="margin: 0">设备</div>
+        <span class="small muted">买了立刻生效</span>
+      </div>
+      <div v-for="d in devices" :key="d.id" class="dev">
+        <div class="dev-body">
+          <div class="dev-name">
+            {{ d.name }}
+            <span class="dots"><i v-for="i in 3" :key="i" :class="{ on: i <= d.tier }"></i></span>
+            <span class="chip" style="font-size: 10px">{{ d.tier ? d.now : d.note }}</span>
+          </div>
+          <div class="dev-desc">{{ d.desc }}</div>
+          <div class="dev-next" v-if="d.next">升级：{{ d.next.text }}</div>
+          <div class="dev-next" v-else>已经是最好的了</div>
+        </div>
+        <button
+          class="btn"
+          type="button"
+          style="height: 34px; padding: 0 12px; font-size: 12.5px; flex: 0 0 auto"
+          :disabled="!d.next || state.cash < d.next.cost"
+          @click="upgradeDevice(d.id)"
+        >
+          {{ d.next ? '¥' + d.next.cost : '满级' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="card card-pad" style="margin-top: 12px">
       <div class="h2">统计</div>
       <div
         class="stat"
@@ -151,6 +194,51 @@ function pick(mode) {
 </template>
 
 <style scoped>
+.dev {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px dashed var(--line);
+}
+.dev:first-of-type {
+  border-top: 0;
+}
+.dev-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dev-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.dots {
+  display: inline-flex;
+  gap: 3px;
+}
+.dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--apricot-deep);
+}
+.dots i.on {
+  background: var(--sage);
+}
+.dev-desc {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.dev-next {
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--caramel-soft);
+}
 .shelf-left {
   padding: 10px 12px;
   border-radius: 12px;

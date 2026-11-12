@@ -164,6 +164,66 @@ export function shopLevelInfo(lv) {
   return SHOP_LEVELS.find((s) => s.lv === lv) || SHOP_LEVELS[0];
 }
 
+/* ---------------- 设备 ----------------
+ * 七件设备，各三级。value 的含义见 store.js 里的用法注释。
+ */
+
+export const DEVICES = [
+  { id: 'oven', name: '烤箱', note: '产能',
+    desc: '好烤箱能一次进更多盘，出品也更稳。',
+    tiers: [
+      { cost: 2500, value: 40, text: '产能 +40' },
+      { cost: 7500, value: 90, text: '产能 +90' },
+      { cost: 22000, value: 150, text: '产能 +150' },
+    ] },
+  { id: 'mixer', name: '搅拌机', note: '省力',
+    desc: '奶油和面糊交给它，自己少使点劲。',
+    tiers: [
+      { cost: 2000, value: 0.1, text: '自付体力 -10%' },
+      { cost: 6500, value: 0.2, text: '自付体力 -20%' },
+      { cost: 19000, value: 0.3, text: '自付体力 -30%' },
+    ] },
+  { id: 'fridge', name: '冷藏柜', note: '剩货',
+    desc: '当天没卖完的，第二天还能打折卖掉一部分。',
+    tiers: [
+      { cost: 1800, value: 0.1, text: '剩货回收 +10%' },
+      { cost: 5500, value: 0.18, text: '剩货回收 +18%' },
+      { cost: 16000, value: 0.26, text: '剩货回收 +26%' },
+    ] },
+  { id: 'display', name: '展示柜', note: '客流',
+    desc: '摆得好看，路过的人就更愿意进来。',
+    tiers: [
+      { cost: 3000, value: 0.06, text: '需求 +6%' },
+      { cost: 9000, value: 0.13, text: '需求 +13%' },
+      { cost: 30000, value: 0.2, text: '需求 +20%' },
+    ] },
+  { id: 'packing', name: '包装台', note: '定制',
+    desc: '定制单拼的就是最后那一下体面。',
+    tiers: [
+      { cost: 2600, value: 0.1, text: '定制收入 +10%' },
+      { cost: 7500, value: 0.22, text: '定制收入 +22%' },
+      { cost: 24000, value: 0.35, text: '定制收入 +35%' },
+    ] },
+  { id: 'warehouse', name: '仓库', note: '采购',
+    desc: '一次能囤更多原料，少跑几趟。',
+    tiers: [
+      { cost: 1600, value: 6, text: '单次采购 +6 份' },
+      { cost: 5000, value: 12, text: '单次采购 +12 份' },
+      { cost: 15000, value: 20, text: '单次采购 +20 份' },
+    ] },
+  { id: 'cashier', name: '收银系统', note: '售价',
+    desc: '扫码点单，客单价能往上提一点。',
+    tiers: [
+      { cost: 2400, value: 0.03, text: '售价 +3%' },
+      { cost: 7000, value: 0.06, text: '售价 +6%' },
+      { cost: 26000, value: 0.1, text: '售价 +10%' },
+    ] },
+];
+
+export function deviceById(id) {
+  return DEVICES.find((d) => d.id === id);
+}
+
 /* ---------------- 行动 ---------------- */
 
 export const ACTIONS = [
