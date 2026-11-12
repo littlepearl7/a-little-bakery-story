@@ -119,6 +119,43 @@ export const RECIPE_INGREDIENTS = {
   signature: [['高山秋栗', '金桂冻', '戚风胚']],
 };
 
+// 主库存采用基础包、乳制基底和特色食材；研发提示与营业生产共享这份配方表。
+export const INGREDIENTS = [
+  { id: 'base', name: '基础烘焙包', price: 20 },
+  { id: 'dairy', name: '乳制基底', price: 10 },
+  { id: 'decor', name: '裱花装饰料', price: 5 },
+  { id: 'strawberry', name: '鲜草莓', price: 10 },
+  { id: 'cocoa', name: '可可粉', price: 10 },
+  { id: 'taro', name: '荔浦芋泥', price: 10 },
+  { id: 'crisp', name: '焦糖杏仁薄脆', price: 10 },
+  { id: 'matcha', name: '春日抹茶粉', price: 10 },
+  { id: 'redbean', name: '蜜红豆', price: 10 },
+  { id: 'mango', name: '台农芒果泥', price: 10 },
+  { id: 'mascarpone', name: '马斯卡彭', price: 10 },
+  { id: 'coffee', name: '浓缩咖啡液', price: 10 },
+  { id: 'fig', name: '波姬红无花果', price: 10 },
+  { id: 'seasonal', name: '四季时令鲜果', price: 10 },
+  { id: 'filling', name: '定制夹心', price: 10 },
+  { id: 'redrice', name: '传统红曲', price: 10 },
+  { id: 'chestnut', name: '高山秋栗', price: 10 },
+  { id: 'osmanthus', name: '金桂冻', price: 10 },
+];
+
+export const RECIPE_BOM = {
+  plain: { base: 1, dairy: 1 },
+  strawberry: { base: 1, dairy: 1, strawberry: 1 },
+  chocolate: { base: 1, dairy: 1, cocoa: 1 },
+  taro: { base: 1, dairy: 1, taro: 1, crisp: 1 },
+  matcha: { base: 1, dairy: 1, matcha: 1, redbean: 1 },
+  mango: { base: 1, dairy: 1, mango: 1 },
+  tiramisu: { base: 1, mascarpone: 1, coffee: 1 },
+  fig: { base: 1, dairy: 1, fig: 1 },
+  seasonal: { base: 1, dairy: 1, seasonal: 1, filling: 1 },
+  custom: { base: 2, dairy: 1, filling: 1, decor: 1 },
+  festival: { base: 1, dairy: 1, chestnut: 1, decor: 1 },
+  signature: { base: 1, dairy: 1, chestnut: 1, osmanthus: 1 },
+};
+
 export const DECORATIONS = [
   { id: 'greenery', name: '窗边绿植', category: '绿植', cost: 600, shopLevel: 1 },
   { id: 'lamp', name: '暖黄吊灯', category: '灯具', cost: 1200, shopLevel: 1 },

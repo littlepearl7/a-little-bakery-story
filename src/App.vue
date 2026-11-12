@@ -142,33 +142,7 @@ const partnerLines = computed(() => {
   return out.filter((x) => x.title);
 });
 
-/* ---------------- 背景音乐 ---------------- */
-
-const musicOn = ref(localStorage.getItem('alb-music') !== 'off');
-let bgm = null;
-
-function toggleMusic() {
-  musicOn.value = !musicOn.value;
-  localStorage.setItem('alb-music', musicOn.value ? 'on' : 'off');
-  if (!bgm) return;
-  if (musicOn.value) bgm.play().catch(() => {});
-  else bgm.pause();
-}
-
-function ensureBgm() {
-  if (bgm) {
-    if (musicOn.value) bgm.play().catch(() => {});
-    return;
-  }
-  bgm = new Audio(import.meta.env.BASE_URL + 'audio/bgm.mp3');
-  bgm.loop = true;
-  bgm.volume = 0.4;
-  if (musicOn.value) bgm.play().catch(() => {});
-}
-
 onMounted(() => {
-  // 浏览器要求先有用户交互才允许出声：第一次点屏幕就起音乐
-  window.addEventListener('pointerdown', ensureBgm, { once: true });
   preloadSprites();
   const had = load();
   if (!had) reset();
@@ -184,12 +158,7 @@ onMounted(() => {
         {{ monthLabel(state.month) }}
         <small>第 {{ state.month }} / 36 月 · 第 {{ state.day }} / {{ DAYS_PER_MONTH }} 日</small>
       </div>
-      <div class="topbar-right">
-        <button class="music" type="button" :title="musicOn ? '关掉音乐' : '打开音乐'" @click.stop="toggleMusic">
-          {{ musicOn ? '♪' : '×' }}
-        </button>
-        <div class="purse"><span class="y">¥</span>{{ state.cash.toLocaleString() }}</div>
-      </div>
+      <div class="purse"><span class="y">¥</span>{{ state.cash.toLocaleString() }}</div>
     </div>
 
     <div class="scroll scene-scroll">
