@@ -271,7 +271,10 @@ onUnmounted(() => {
 <style scoped>
 .vn {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 300;
   display: flex;
   justify-content: center;
@@ -292,19 +295,28 @@ onUnmounted(() => {
 /* 背景 */
 .vn-bg {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background-size: cover;
 }
 .vn-bg-img {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 .vn-veil {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background:
     radial-gradient(120% 80% at 50% 6%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%),
     radial-gradient(130% 100% at 50% 46%, rgba(0, 0, 0, 0) 42%, rgba(58, 34, 20, 0.34) 100%),
@@ -315,7 +327,10 @@ onUnmounted(() => {
 .vn-stage::after {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 8;
   pointer-events: none;
   opacity: 0.06;
@@ -326,7 +341,10 @@ onUnmounted(() => {
 /* CG */
 .vn-cg {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 5;
   background: #1a1410;
 }
@@ -363,7 +381,10 @@ onUnmounted(() => {
 /* 立绘 */
 .vn-cast {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 6;
   pointer-events: none;
 }

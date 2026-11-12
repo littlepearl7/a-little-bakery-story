@@ -95,15 +95,25 @@ export function resolveBeats(beats, st) {
 
 /* ---------------- 效果（选项里的括号说明） ---------------- */
 
+function eachMatch(re, text, fn) {
+  // Chrome 61 没有 String.prototype.matchAll，用 exec 循环代替
+  re.lastIndex = 0;
+  let m = re.exec(text);
+  while (m) {
+    fn(m);
+    m = re.exec(text);
+  }
+}
+
 function parseGains(text, ctxPartner) {
   const out = [];
   if (!text) return out;
 
-  for (const m of text.matchAll(/(tradition|innovation|efficiency|community)Score\s*\+\s*(\d+)/g)) {
+  eachMatch(/(tradition|innovation|efficiency|community)Score\s*\+\s*(\d+)/g, text, (m) => {
     out.push({ k: 'style', id: m[1], v: Number(m[2]), label: STYLE_NAME[m[1]] + ' +' + m[2] });
-  }
+  });
 
-  for (const m of text.matchAll(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*\+\s*(\d+)/g)) {
+  eachMatch(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*\+\s*(\d+)/g, text, (m) => {
     const name = NAMES[m[1]];
     out.push({
       k: 'trust',
@@ -111,22 +121,26 @@ function parseGains(text, ctxPartner) {
       v: Number(m[2]),
       label: m[1] + '信赖 +' + m[2],
     });
-  }
+  });
 
-  for (const m of text.matchAll(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)?专业能力\s*\+\s*(\d+)/g)) {
+  eachMatch(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)?专业能力\s*\+\s*(\d+)/g, text, (m) => {
     const name = m[1] ? NAMES[m[1]] : ctxPartner;
     const pid = PARTNER_OF[name];
-    if (!pid) continue;
+    if (!pid) return;
     out.push({ k: 'skill', id: pid, v: Number(m[2]) / 10, label: (m[1] || PARTNER_NICK[pid]) + '专业 +' + m[2] });
-  }
+  });
 
-  // 不带名字的「信赖度 +N」按选项上下文里的角色算
-  for (const m of text.matchAll(/(?<![小知可清])(?<![周许唐叶])信赖度\s*\+\s*(\d+)/g)) {
+  // 不带名字的「信赖度 +N」按选项上下文里的角色算。
+  // 用「前文是否以某个角色名结尾」判断，避免用后行断言（Chrome 61 不支持）
+  const nameWords = Object.keys(NAMES);
+  eachMatch(/信赖度\s*\+\s*(\d+)/g, text, (m) => {
+    const prev = text.slice(0, m.index);
+    if (nameWords.some((n) => prev.endsWith(n))) return;
     const pid = PARTNER_OF[ctxPartner];
-    if (!pid) continue;
-    if (out.some((g) => g.k === 'trust' && g.id === pid)) continue;
+    if (!pid) return;
+    if (out.some((g) => g.k === 'trust' && g.id === pid)) return;
     out.push({ k: 'trust', id: pid, v: Number(m[1]), label: PARTNER_NICK[pid] + '信赖 +' + m[1] });
-  }
+  });
 
   if (/顾客忠诚度增加|忠诚度提升/.test(text)) out.push({ k: 'loyalty', v: 4, label: '忠诚 +4' });
   if (/友情值增加/.test(text)) out.push({ k: 'friend', v: 5, label: '友情 +5' });
