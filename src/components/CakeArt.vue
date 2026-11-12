@@ -1,11 +1,23 @@
 <script setup>
-defineProps({
+import { computed } from 'vue';
+import { art, artStatus } from '../data';
+
+const props = defineProps({
+  id: { type: String, default: '' },
   colors: { type: Object, default: () => ({ sponge: '#F0D9AE', cream: '#FFF8EE', accent: '#E8B86D' }) },
 });
+
+// 有产品图就用图，没有就退回手绘 SVG
+const src = computed(() =>
+  props.id && artStatus('cake-' + props.id + '.webp') === 'ok'
+    ? art('cake-' + props.id + '.webp')
+    : ''
+);
 </script>
 
 <template>
-  <svg viewBox="0 0 120 120" class="cakeart" aria-hidden="true">
+  <img v-if="src" :src="src" alt="" class="cakeart photo" />
+  <svg v-else viewBox="0 0 120 120" class="cakeart" aria-hidden="true">
     <ellipse cx="60" cy="104" rx="39" ry="6" fill="rgba(107,74,52,0.10)" />
     <ellipse cx="60" cy="97" rx="43" ry="9" fill="#FFFDF9" stroke="rgba(107,74,52,0.12)" />
     <path d="M21 56 L99 56 L99 90 A39 8 0 0 1 21 90 Z" :fill="colors.sponge" />
@@ -27,5 +39,8 @@ defineProps({
   display: block;
   width: 100%;
   height: 100%;
+}
+.cakeart.photo {
+  object-fit: contain;
 }
 </style>

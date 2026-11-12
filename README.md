@@ -44,6 +44,7 @@ npm run build
 | `bg-shop.webp` `bg-kitchen.webp` … | `public/art/` | 场景背景，11 个 key 见 `src/vn.js` |
 | `cg-festival.webp` `cg-finale.webp` … | `public/art/` | 整屏 CG，key 由文案里的 `【CG：…】` 指定 |
 | `ln-sprite.webp` `xy-sprite.webp` … | `public/art/` | 立绘（透明底），缺图就不站人 |
+| `cake-<id>.webp` | `public/art/` | 12 款蛋糕的产品图，缺图退回手绘 SVG |
 
 要哪些图、每张怎么描述，写在 **`素材需求.md`** 里，可以直接粘给绘图工具。
 
@@ -147,6 +148,7 @@ public/art/                ← 切好的美术资源
 picture/                   ← 原始设定集与蛋糕图
 tools/crop_art.py          ← 切图脚本
 tools/cutout.py            ← 立绘去底（抠透明）
+tools/cake_art.py          ← 蛋糕产品图转 webp（含文件名映射）
 tools/grid_preview.py      ← 给原图打网格，用来量切图坐标
 tools/make-standalone.mjs  ← 生成可双击的单文件 HTML
 素材需求.md                 ← 还缺哪些图 + 可直接粘的 prompt
@@ -179,6 +181,7 @@ tools/make-standalone.mjs  ← 生成可双击的单文件 HTML
 - M27 的伙伴专属协助按信赖度自动分流（高养成 / 保底）
 - 结局弹层带「他们的后来」，按养成挑档
 - 图鉴里的风味描述与配方提示取自文案 14.1
+- 12 款蛋糕已接入产品实拍图，厨房排产与图鉴都能看到
 - 月末经营报告、本地存档
 
 ## 尚未实现

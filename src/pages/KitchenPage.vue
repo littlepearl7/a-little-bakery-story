@@ -67,7 +67,7 @@ function doMake() {
 
     <div class="card" style="margin-top: 12px">
       <div v-for="r in rows" :key="r.id" class="cake">
-        <div class="art"><CakeArt :colors="r.colors" /></div>
+        <div class="art"><CakeArt :id="r.id" :colors="r.colors" /></div>
         <div class="body">
           <div class="name">
             <span>{{ r.name }}</span>

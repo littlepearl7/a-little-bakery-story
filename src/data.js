@@ -1,9 +1,34 @@
 /** 静态数据：产品、伙伴、城市、装修、行动、阶段目标、结局。数值都在这调。 */
 
+import { reactive } from 'vue';
+
 const base = import.meta.env.BASE_URL;
 
 export function art(file) {
   return base + 'art/' + file;
+}
+
+/**
+ * 图片是否真的存在。缺图就返回空串，界面用兜底方案，不会出现破图。
+ * pending 表示还在加载，调用方按「暂时没有」处理即可。
+ */
+const probes = reactive({});
+
+export function artStatus(file) {
+  if (!file) return 'no';
+  const src = art(file);
+  const s = probes[src];
+  if (s) return s;
+  probes[src] = 'pending';
+  const im = new Image();
+  im.onload = () => {
+    probes[src] = 'ok';
+  };
+  im.onerror = () => {
+    probes[src] = 'no';
+  };
+  im.src = src;
+  return 'pending';
 }
 
 /* ---------------- 角色 ---------------- */

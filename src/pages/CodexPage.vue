@@ -52,7 +52,7 @@ const cities = computed(() =>
 
     <div v-if="seg === 'product'" class="card">
       <div v-for="p in products" :key="p.id" class="cake" :class="{ locked: !p.owned }">
-        <div class="art"><CakeArt :colors="p.colors" /></div>
+        <div class="art"><CakeArt :id="p.id" :colors="p.colors" /></div>
         <div class="body">
           <div class="name">
             <span>{{ p.name }}</span>

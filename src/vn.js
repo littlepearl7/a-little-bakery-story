@@ -7,8 +7,7 @@
  * 没图的时候用分层渐变兜底，不至于开天窗。
  */
 
-import { reactive } from 'vue';
-import { art } from './data';
+import { art, artStatus } from './data';
 
 /* ---------------- 场景 ---------------- */
 
@@ -167,26 +166,6 @@ const SPRITE_DEF = {
 };
 
 export const SPRITE = SPRITE_DEF;
-
-/* 图片是否真的存在：不存在就不占位，免得出现破图 */
-const probes = reactive({});
-
-export function artStatus(file) {
-  if (!file) return 'no';
-  const src = art(file);
-  const s = probes[src];
-  if (s) return s;
-  probes[src] = 'pending';
-  const im = new Image();
-  im.onload = () => {
-    probes[src] = 'ok';
-  };
-  im.onerror = () => {
-    probes[src] = 'no';
-  };
-  im.src = src;
-  return 'pending';
-}
 
 /** 有立绘就返回地址，没有就返回空串（对话框仍然显示名字） */
 export function spriteOf(name) {
