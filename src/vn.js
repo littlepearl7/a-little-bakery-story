@@ -137,41 +137,113 @@ const RULES = [
   [/咖啡店|咖啡馆|下午茶/, 'cafe'],
   [/市集|生活节|文化节|展览|活动当天|摊位/, 'market'],
   [/旗舰店|新店|分店|开业|门店/, 'store'],
+  [/宿舍|卧室|家里|房间/, 'home'],
   [/教室|学校|晚自习|办公室|班会|走廊/, 'school'],
   [/河边|公园|街角|长椅|散步/, 'park'],
-  [/宿舍|卧室|家里|房间|厨房里/, 'home'],
   [/打烊|深夜|晚上|夜里|关灯|路灯/, 'night'],
   [/工作室|设计室|画室/, 'studio'],
   [/店内|店里|店内景|展示柜|柜台|烘焙店|林记烘焙/, 'shop'],
   [/街上|街道|门口|路上|镇|巷/, 'street'],
 ];
 
+/**
+ * 事件 → 场景。文案里只有 2 处【场景】标记，其余靠这张表定，
+ * 整段剧情背景保持不变，不会一句一换。
+ */
+const MAIN_SCENE = {
+  1: 'home', 2: 'shop', 3: 'kitchen', 4: 'shop', 5: 'shop', 6: 'market',
+  7: 'shop', 8: 'shop', 9: 'kitchen', 10: 'shop', 11: 'shop', 12: 'shop',
+  13: 'kitchen', 14: 'shop', 15: 'shop', 16: 'market', 17: 'street', 18: 'shop',
+  19: 'store', 20: 'shop', 21: 'shop', 22: 'store', 23: 'shop', 24: 'shop',
+  25: 'shop', 26: 'kitchen', 27: 'kitchen', 28: 'street', 29: 'market', 30: 'shop',
+  31: 'store', 32: 'street', 33: 'store', 34: 'store', 35: 'studio', 36: 'shop',
+};
+
+const FRIEND_SCENE = {
+  1: 'shop', 2: 'street', 3: 'street', 4: 'shop', 5: 'park', 6: 'market',
+  7: 'night', 8: 'shop', 9: 'studio', 10: 'cafe', 11: 'studio', 12: 'shop',
+  13: 'kitchen', 14: 'shop', 15: 'street', 16: 'park', 17: 'street', 18: 'shop',
+  19: 'store', 20: 'street', 21: 'cafe', 22: 'night', 23: 'cafe', 24: 'studio',
+  25: 'street', 26: 'street', 27: 'kitchen', 28: 'shop', 29: 'park', 30: 'studio',
+  31: 'cafe', 32: 'street', 33: 'store', 34: 'studio', 35: 'school', 36: 'shop',
+};
+
+/** 事件的默认场景；short/style/final 这类用标题关键词兜底 */
+export function sceneKeyOfEvent(ev) {
+  if (!ev) return 'shop';
+  if (ev.kind === 'main' && MAIN_SCENE[ev.month]) return MAIN_SCENE[ev.month];
+  if (ev.kind === 'friend' && FRIEND_SCENE[ev.month]) return FRIEND_SCENE[ev.month];
+  return sceneKey(ev.title) || 'shop';
+}
+
 export function sceneKey(text) {
   const t = text || '';
   for (const [re, key] of RULES) if (re.test(t)) return key;
-  return 'shop';
+  return '';
 }
 
 /* ---------------- 立绘 ---------------- */
 
+/**
+ * 每个角色两套立绘：
+ *   in  —— 在店里干活，穿围裙
+ *   out —— 出门、在家、在别人地盘，穿便装
+ * 用哪套由当前场景决定，见 SCENE_WEAR。
+ */
 const SPRITE_DEF = {
-  林念: { file: 'ln-sprite.webp', face: 'ln-face.webp' },
-  苏晴: { file: 'sq-sprite.webp', face: 'sq-exp-1.webp' },
-  林暖: { file: 'nu-sprite.webp', face: 'nu-exp-6.webp' },
-  // 下面四位还没画，文件按这个名字丢进 public/art/ 就会自动出现
-  周雨桐: { file: 'xy-sprite.webp', face: 'xy-face.webp' },
-  许知遥: { file: 'zy-sprite.webp', face: 'zy-face.webp' },
-  唐鸢: { file: 'ty-sprite.webp', face: 'ty-face.webp' },
-  叶星河: { file: 'xh-sprite.webp', face: 'xh-face.webp' },
+  林念: { in: 'ln-sprite-in.webp', out: 'ln-sprite-out.webp', face: 'ln-face.webp' },
+  苏晴: { in: 'sq-sprite-in.webp', out: 'sq-sprite-out.webp', face: 'sq-face.webp' },
+  林暖: { in: 'nu-sprite-in.webp', out: 'nu-sprite-out.webp', face: 'nu-face.webp' },
+  周雨桐: { in: 'xy-sprite-in.webp', out: 'xy-sprite-out.webp', face: 'xy-face.webp' },
+  许知遥: { in: 'zy-sprite-in.webp', out: 'zy-sprite-out.webp', face: 'zy-face.webp' },
+  唐鸢: { in: 'ty-sprite-in.webp', out: 'ty-sprite-out.webp', face: 'ty-face.webp' },
+  叶星河: { in: 'xh-sprite-in.webp', out: 'xh-sprite-out.webp', face: 'xh-face.webp' },
 };
 
 export const SPRITE = SPRITE_DEF;
 
-/** 有立绘就返回地址，没有就返回空串（对话框仍然显示名字） */
-export function spriteOf(name) {
+/** 只有林记自己的店面才穿围裙；出门、家里、别人的店、学校都是便装 */
+const SCENE_WEAR = {
+  shop: 'in',
+  kitchen: 'in',
+  store: 'in',
+  street: 'out',
+  home: 'out',
+  cafe: 'out',
+  market: 'out',
+  school: 'out',
+  park: 'out',
+  night: 'out',
+  studio: 'out',
+};
+
+/** 场景 key → 'in' | 'out' */
+export function wearOf(sceneKeyName) {
+  return SCENE_WEAR[sceneKeyName] || 'out';
+}
+
+function spriteFile(name, wear) {
   const d = SPRITE_DEF[name];
   if (!d) return '';
-  return artStatus(d.file) === 'ok' ? art(d.file) : '';
+  // 缺哪套就退回另一套，避免整个角色不上台
+  if (artStatus(d[wear]) === 'ok') return d[wear];
+  const other = wear === 'in' ? 'out' : 'in';
+  return artStatus(d[other]) === 'ok' ? d[other] : '';
+}
+
+/** 有立绘就返回地址，没有就返回空串（对话框仍然显示名字） */
+export function spriteOf(name, wear) {
+  const f = spriteFile(name, wear || 'out');
+  return f ? art(f) : '';
+}
+
+/** 开场就把立绘和头像拉进缓存，免得人物要等一拍才出现 */
+export function preloadSprites() {
+  Object.keys(SPRITE_DEF).forEach((name) => {
+    const d = SPRITE_DEF[name];
+    ['in', 'out', 'face'].forEach((k) => artStatus(d[k]));
+  });
+  Object.keys(BG).forEach((k) => artStatus(BG[k].img));
 }
 
 export function faceOfName(name) {
@@ -180,9 +252,8 @@ export function faceOfName(name) {
   return artStatus(d.face) === 'ok' ? art(d.face) : '';
 }
 
-export function spriteReady(name) {
-  const d = SPRITE_DEF[name];
-  return !!d && artStatus(d.file) === 'ok';
+export function spriteReady(name, wear) {
+  return !!spriteFile(name, wear || 'out');
 }
 
 /* ---------------- CG ---------------- */

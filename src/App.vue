@@ -5,6 +5,7 @@ import {
   state, queue, load, reset, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
+import { preloadSprites } from './vn';
 import ShopPage from './pages/ShopPage.vue';
 import KitchenPage from './pages/KitchenPage.vue';
 import PartnersPage from './pages/PartnersPage.vue';
@@ -101,6 +102,7 @@ const partnerLines = computed(() => {
 });
 
 onMounted(() => {
+  preloadSprites();
   const had = load();
   if (!had) reset();
   startGame();

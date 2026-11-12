@@ -2,9 +2,14 @@
 import { computed } from 'vue';
 import { CHARACTERS, PARTNERS, PHOTOS } from '../data';
 import { state } from '../store';
+import { spriteOf } from '../vn';
 
 const mom = CHARACTERS.nu;
 const sq = CHARACTERS.sq;
+
+// 伙伴档案里都用店内立绘（她们在林记的时候）
+const momSprite = computed(() => spriteOf('林暖', 'in') || mom.full);
+const sqSprite = computed(() => spriteOf('苏晴', 'in') || sq.full);
 
 const rows = computed(() =>
   PARTNERS.map((p) => {
@@ -26,7 +31,7 @@ const photoTotal = computed(() => Object.keys(PHOTOS).length);
   <div>
     <div class="card" style="overflow: hidden">
       <div style="display: flex">
-        <div class="portrait"><img :src="mom.full" alt="林暖" /></div>
+        <div class="portrait"><img :src="momSprite" alt="林暖" /></div>
         <div style="flex: 1 1 auto; padding: 14px">
           <div class="serif" style="font-size: 18px; font-weight: 600">林暖</div>
           <div class="small muted">母亲 · 林记上一任经营者</div>
@@ -44,7 +49,7 @@ const photoTotal = computed(() => Object.keys(PHOTOS).length);
 
     <div class="card" style="margin-top: 12px; overflow: hidden">
       <div style="display: flex">
-        <div class="portrait"><img :src="sq.full" alt="苏晴" /></div>
+        <div class="portrait"><img :src="sqSprite" alt="苏晴" /></div>
         <div style="flex: 1 1 auto; padding: 14px">
           <div class="serif" style="font-size: 18px; font-weight: 600">苏晴</div>
           <div class="small muted">高中好友 · 摄影从业者</div>
@@ -118,8 +123,9 @@ const photoTotal = computed(() => Object.keys(PHOTOS).length);
   display: block;
   width: 100%;
   height: 100%;
+  /* 档案卡里取上半身，比整条塞进去饱满 */
   object-fit: cover;
-  object-position: 50% 4%;
+  object-position: 50% 5%;
 }
 .mate {
   display: flex;

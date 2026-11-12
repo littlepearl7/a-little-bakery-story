@@ -2,7 +2,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue';
 import { state, finishEvent, applyChoice } from '../store';
 import { resolveBeats } from '../story';
-import { BG, SPRITE, bgSrcOf, cgOf, faceOfName, sceneKey, spriteOf, spriteReady } from '../vn';
+import { BG, SPRITE, bgSrcOf, cgOf, faceOfName, sceneKey, sceneKeyOfEvent, spriteOf, spriteReady, wearOf } from '../vn';
 
 const props = defineProps({ ev: { type: Object, required: true } });
 const emit = defineEmits(['done']);
@@ -47,9 +47,19 @@ const actLabel = computed(() => {
   }
   return '';
 });
-const bgKey = computed(() => (scene.value ? sceneKey(scene.value.text) : 'shop'));
+const baseKey = computed(() => sceneKeyOfEvent(props.ev));
+const bgKey = computed(() => {
+  // 文案里写了【场景：…】就以它为准，认不出来再用事件默认场景
+  if (scene.value) {
+    const k = sceneKey(scene.value.text);
+    if (k) return k;
+  }
+  return baseKey.value;
+});
 const bg = computed(() => BG[bgKey.value] || BG.shop);
 const bgSrc = computed(() => bgSrcOf(bg.value));
+/** 店里穿围裙、出门换便装 */
+const wear = computed(() => wearOf(bgKey.value));
 const flashback = computed(
   () => !!scene.value && /回忆|闪回|高中|高三|晚自习|那年|那一年/.test(scene.value.text)
 );
@@ -71,21 +81,45 @@ const cgKey = computed(() => {
 });
 const cg = computed(() => (cgKey.value ? cgOf(cgKey.value) : null));
 
+/**
+ * 台上只站一个人：谁在说话就站谁。
+ * 旁白时保留上一位开口的角色，不至于画面突然空掉。
+ */
+/** 旁白里的常见称呼 → 角色名 */
+const NICKNAME = {
+  念念: '林念',
+  小雨: '周雨桐',
+  知遥: '许知遥',
+  阿鸢: '唐鸢',
+  鸢姐: '唐鸢',
+  星河: '叶星河',
+  妈妈: '林暖',
+};
+
 const cast = computed(() => {
-  // 换场景或换幕都重新站人，避免上一幕的人一直挂在台上
-  let from = 0;
+  const can = (who) => who && SPRITE[who] && spriteReady(who, wear.value);
+
+  // 有人说话就站他
+  if (isSay.value && can(cur.value.who)) return [cur.value.who];
+
+  // 旁白里点了谁的名字，就让谁上台 —— 这样「林暖皱起眉」不会还站着苏晴
+  const t = (cur.value && cur.value.text) || '';
+  for (const name of Object.keys(SPRITE)) {
+    if (can(name) && t.indexOf(name) >= 0) return [name];
+  }
+  for (const nick of Object.keys(NICKNAME)) {
+    if (t.indexOf(nick) >= 0 && can(NICKNAME[nick])) return [NICKNAME[nick]];
+  }
+
+  // 谁都没提到：保留上一位开口的角色，别让画面空掉
   for (let i = idx.value; i >= 0; i--) {
-    if (list.value[i].t === 'scene' || list.value[i].t === 'act') {
-      from = i + 1;
-      break;
-    }
-  }
-  const out = [];
-  for (let i = from; i <= idx.value; i++) {
     const b = list.value[i];
-    if (b.t === 'say' && SPRITE[b.who] && spriteReady(b.who) && !out.includes(b.who)) out.push(b.who);
+    if (b.t === 'say' && can(b.who)) return [b.who];
   }
-  return out;
+  for (const b of list.value) {
+    if (b.t === 'say' && can(b.who)) return [b.who];
+  }
+  return [];
 });
 
 const speaker = computed(() => (isSay.value ? cur.value.who : ''));
@@ -106,9 +140,9 @@ watch(
 
 const SLOTS = { 1: [50], 2: [31, 69], 3: [22, 50, 78] };
 
-function slotStyle(i, n) {
-  const pos = SLOTS[n] || SLOTS[3];
-  return { left: (pos[i] || 50) + '%', zIndex: 10 + i };
+function slotStyle(i) {
+  // 单人演出：固定在偏中间的位置
+  return { left: '50%', zIndex: 10 + i };
 }
 
 /* ---------------- 打字机 ---------------- */
@@ -226,12 +260,12 @@ onUnmounted(() => {
       <div class="vn-cast">
         <div
           v-for="(c, i) in cast"
-          :key="c + '-' + cast.length"
+          :key="c"
           class="vn-actor"
           :class="{ dim: speaker && speaker !== c, off: !speaker }"
-          :style="slotStyle(i, cast.length)"
+          :style="slotStyle(i)"
         >
-          <img :src="spriteOf(c)" :alt="c" />
+          <img :src="spriteOf(c, wear)" :alt="c" />
         </div>
       </div>
 
@@ -347,9 +381,10 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 8;
+  display: none; /* TEST */
+  z-index: 5;
   pointer-events: none;
-  opacity: 0.06;
+  opacity: 0.05;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
 }
@@ -406,11 +441,12 @@ onUnmounted(() => {
 }
 .vn-actor {
   position: absolute;
-  bottom: 0;
-  height: 66%;
+  /* 脚正好落在对话框上沿，露在画面里的部分才是完整的 */
+  bottom: 19%;
+  height: 60%;
   transform: translateX(-50%);
-  transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
-  animation: actorIn 0.45s ease both;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: actorIn 0.4s ease both;
 }
 .vn-actor img {
   height: 100%;
@@ -419,12 +455,7 @@ onUnmounted(() => {
   filter: drop-shadow(0 10px 18px rgba(40, 24, 14, 0.35));
 }
 .vn-actor.dim {
-  opacity: 0.62;
-  filter: saturate(0.82) brightness(0.92);
-  transform: translateX(-50%) scale(0.975);
-}
-.vn-actor.off {
-  opacity: 0.52;
+  opacity: 0.9;
 }
 @keyframes actorIn {
   from {
@@ -506,9 +537,10 @@ onUnmounted(() => {
   z-index: 30;
   min-height: 166px;
   padding: 18px 20px 20px;
-  background: linear-gradient(180deg, rgba(255, 250, 242, 0.94), rgba(250, 240, 226, 0.97));
-  backdrop-filter: blur(9px);
-  box-shadow: 0 -10px 26px rgba(52, 31, 20, 0.18);
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(251, 243, 232, 0.985));
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -12px 30px rgba(52, 31, 20, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   cursor: pointer;
 }
 .vn-box::before {

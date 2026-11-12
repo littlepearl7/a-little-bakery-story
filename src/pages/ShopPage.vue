@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { art, shopLevelInfo, monthLabel, productById, DEVICES } from '../data';
+import { art, artStatus, shopLevelInfo, monthLabel, productById, DEVICES } from '../data';
 import {
   state, capacity, openShop, closeDay, takeOrder, DAYS_PER_MONTH,
   monthFixedCost, LEFTOVER_MODES, deviceTier, deviceNext, upgradeDevice,
@@ -17,6 +17,12 @@ const shelfRows = computed(() =>
     .map((id) => ({ id, name: productById(id).name, qty: state.shelf[id] }))
 );
 const showClose = ref(false);
+
+/** 店铺插画按等级换：Lv1 社区小店 → Lv4 高端主题门店 */
+const heroSrc = computed(() => {
+  const f = 'shop-lv' + state.shopLevel + '.webp';
+  return artStatus(f) === 'ok' ? art(f) : art('shop-exterior.webp');
+});
 
 const devices = computed(() =>
   DEVICES.map((d) => {
@@ -44,7 +50,7 @@ function pick(mode) {
   <div>
     <div class="shop-hero">
       <span class="tag">{{ lv.name }}</span>
-      <img :src="art('shop-exterior.webp')" alt="林记烘焙" />
+      <img :src="heroSrc" alt="林记烘焙" />
       <div class="cap">
         <div class="n serif">林记烘焙</div>
         <div class="small muted">
