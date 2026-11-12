@@ -276,7 +276,7 @@ export const ACTIONS = [
   { id: 'restock', name: '原料采购', ap: 1, hint: '花钱补原料' },
   { id: 'feedback', name: '顾客反馈', ap: 1, hint: '口碑与忠诚度' },
   { id: 'talk', name: '伙伴交流', ap: 1, hint: '提升信赖度' },
-  { id: 'research', name: '新品研发', ap: 2, hint: '提高产品熟练度' },
+  { id: 'lab', name: '烘焙实验室', ap: 0, hint: '试做新品、改良配方、查看实验档案' },
   { id: 'market', name: '市场宣传', ap: 2, hint: '知名度与品牌' },
   { id: 'train', name: '员工培训', ap: 2, hint: '专业能力' },
   { id: 'decorate', name: '店铺装修', ap: 2, hint: '升级店铺' },

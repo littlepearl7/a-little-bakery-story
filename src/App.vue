@@ -33,8 +33,15 @@ const ICONS = {
 const tab = ref('shop');
 const scene = ref('shop');
 const activePanel = ref('');
-function openPanel(name) { activePanel.value = name; }
-function closePanel() { activePanel.value = ''; }
+const activeManageSection = ref('overview');
+function openPanel(name, section = 'overview') {
+  activePanel.value = name;
+  if (name === 'manage') activeManageSection.value = section;
+}
+function closePanel() {
+  activePanel.value = '';
+  activeManageSection.value = 'overview';
+}
 const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
@@ -184,7 +191,7 @@ onMounted(() => {
             <ShopPage v-if="activePanel === 'shop'" @closed="onClosed" />
             <KitchenPage v-else-if="activePanel === 'kitchen'" />
             <PartnersPage v-else-if="activePanel === 'partners'" />
-            <ManagePage v-else-if="activePanel === 'manage'" />
+            <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" />
             <CodexPage v-else-if="activePanel === 'codex'" />
           </div>
         </section>

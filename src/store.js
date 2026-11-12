@@ -3,10 +3,11 @@
 import { reactive, computed } from 'vue';
 import {
   PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
-  RECIPE_INGREDIENTS, DECORATIONS, CUSTOMERS,
+  DECORATIONS, CUSTOMERS,
   STAGES, ENDINGS, stageByMonth, shopLevelInfo, DEVICES, deviceById,
 } from './data';
 import { STORY, evalTest, PARTNER_OF } from './story';
+import { evaluateResearchTrial, evaluateSignatureTrial, improvementFor } from './lab';
 
 const SAVE_KEY = 'alb-save-v6';
 export const DAYS_PER_MONTH = 5;
@@ -57,8 +58,10 @@ export function newState() {
       photos: [],
       decorations: [],
       endings: [],
+      labReports: {},
       newGamePlusRuns: 0,
     },
+    labPending: null,
     newGamePlus: false,
     doneOrders: 0,
     customOrders: 0,
@@ -156,15 +159,6 @@ function recordCustomerPurchases(soldByProduct) {
   });
 }
 
-function productCanBeResearched(productId) {
-  const product = PRODUCTS.find((item) => item.id === productId);
-  return !!product && product.month > 0 && product.month <= state.month && !state.unlocked.includes(productId);
-}
-
-function availableRecipes() {
-  return PRODUCTS.filter((product) => productCanBeResearched(product.id));
-}
-
 function priceTier(id) {
   return PRICE_TIERS[state.prices[id] || 'std'];
 }
@@ -242,6 +236,7 @@ export function load() {
       ])
     );
     state.career = { ...newState().career, ...(data.career || {}) };
+    state.career.labReports = { ...newState().career.labReports, ...((data.career || {}).labReports || {}) };
     recordCareer();
     return true;
   } catch (e) {
@@ -275,6 +270,113 @@ function recordCareer() {
   }
   state.career = career;
   return career;
+}
+
+function recordLabReport(productId, kind, report) {
+  const existing = state.career.labReports[productId] || {};
+  state.career.labReports[productId] = {
+    ...existing,
+    [kind]: {
+      ...report,
+      run: (state.career.newGamePlusRuns || 0) + 1,
+      month: state.month,
+    },
+  };
+}
+
+function labResult(ok, message) {
+  return { ok, message };
+}
+
+export function beginResearchTrial(attempt) {
+  if (state.phase !== 'playing') return labResult(false, '当前不能进行实验。');
+  if (state.labPending) return labResult(false, '请先处理上次试吃结果。');
+  if (state.ap < 2) return labResult(false, '至少需要 2 点行动力：试吃消耗 1 点，合格后上架还需 1 点。');
+  if (state.stock < 1) return labResult(false, '原料不足，先采购原料。');
+
+  const productId = attempt && attempt.productId;
+  const product = PRODUCTS.find((item) => item.id === productId);
+  if (!product || state.unlocked.includes(productId) || product.month <= 0 || product.month > state.month) {
+    return labResult(false, '这款产品还未开放研发，或已经上架。');
+  }
+  if (productId === 'signature' && (!attempt || attempt.type !== 'signature')) {
+    return labResult(false, '桂花栗子蛋糕需要进入 M26 专属复原。');
+  }
+  const trial = productId === 'signature'
+    ? evaluateSignatureTrial(attempt)
+    : evaluateResearchTrial(productId, attempt || {});
+  if (!trial) return labResult(false, '实验参数不完整，请检查每一项选择。');
+
+  state.ap -= 1;
+  state.stock -= 1;
+  state.labPending = trial;
+  log('试做「' + product.name + '」消耗 1 点行动力和 1 份原料', 'story');
+  save();
+  return labResult(true, '试吃完成。');
+}
+
+export function publishResearch() {
+  const trial = state.labPending;
+  if (state.phase !== 'playing' || !trial || !trial.passed) return labResult(false, '这份试吃结果还未达到上架要求。');
+  if (state.ap < 1) return labResult(false, '行动力不足；试吃结果已保存，明天可以继续。');
+  const product = PRODUCTS.find((item) => item.id === trial.productId);
+  if (!product || product.month > state.month || state.unlocked.includes(trial.productId)) {
+    return labResult(false, '产品状态已变化，请返回实验室确认。');
+  }
+
+  state.ap -= 1;
+  state.unlocked.push(product.id);
+  state.levels[product.id] = trial.refined ? 1.5 : 1;
+  recordLabReport(product.id, 'development', {
+    ...trial,
+    type: trial.type === 'signature' ? 'signature' : 'development',
+    feedback: trial.type === 'signature' ? ['外婆配方复原成功，桂香与秋栗的层次都找回来了。'] : trial.feedback,
+  });
+  state.labPending = null;
+  log('「' + product.name + '」研发完成并正式上架，' + (trial.refined ? '精制品质，熟练度 Lv1.5' : '熟练度 Lv1'), 'good');
+  save();
+  return labResult(true, product.name + (trial.type === 'signature' ? '复原成功，已加入菜单。' : '已正式上架。'));
+}
+
+export function discardResearchTrial() {
+  if (!state.labPending) return false;
+  state.labPending = null;
+  save();
+  return true;
+}
+
+export function improveProduct(productId, answer) {
+  if (state.phase !== 'playing') return labResult(false, '当前不能进行改良。');
+  const product = PRODUCTS.find((item) => item.id === productId);
+  const diagnostic = improvementFor(productId);
+  if (!product || !diagnostic || !state.unlocked.includes(productId)) return labResult(false, '这款产品目前不能改良。');
+  const level = state.levels[productId] || 1;
+  if (level >= 5) return labResult(false, '这款产品已达到熟练度上限。');
+  if (!Number.isInteger(answer) || answer < 0 || answer >= diagnostic.options.length) return labResult(false, '请选择一个改良方案。');
+  if (state.ap < 2) return labResult(false, '至少需要 2 点行动力完成一次改良。');
+  if (state.stock < 1) return labResult(false, '原料不足，先采购原料。');
+
+  state.ap -= 1;
+  state.stock -= 1;
+  if (answer !== diagnostic.correct) {
+    const feedback = '这次试吃没有解决问题。' + diagnostic.feedback;
+    log('改良「' + product.name + '」未通过试吃，消耗了 1 份原料', 'story');
+    save();
+    return { ...labResult(false, feedback), retry: true, feedback };
+  }
+
+  state.ap -= 1;
+  state.levels[productId] = Math.min(5, level + 1);
+  state.style.innovation += 3;
+  const report = {
+    type: 'improvement', score: 100,
+    levelBefore: level, levelAfter: state.levels[productId],
+    feedback: [diagnostic.feedback],
+  };
+  recordLabReport(productId, 'improvement', report);
+  log('改良「' + product.name + '」成功，熟练度提升至 Lv' + state.levels[productId], 'good');
+  save();
+  return { ...labResult(true, diagnostic.feedback), feedback: diagnostic.feedback, level: state.levels[productId] };
 }
 
 export function startNewGamePlus() {
@@ -482,22 +584,6 @@ export function actionInfo(id) {
         disabled: used,
       };
     }
-    case 'recipe': {
-      const available = availableRecipes();
-      return {
-        name: '新品研发', ap: 2, cost: 0,
-        note: available.length ? '搭配食材，解锁当月新品' : '当月没有待研发的配方',
-        disabled: available.length === 0,
-      };
-    }
-    case 'research': {
-      const available = state.unlocked.filter((productId) => (state.levels[productId] || 1) < 5);
-      return {
-        name: '熟练度练习', ap: 2, cost: 0,
-        note: available.length ? '选一款产品，熟练度 +1' : '已解锁产品均达到熟练度上限',
-        disabled: available.length === 0,
-      };
-    }
     case 'market':
       return { name: '市场宣传', ap: 2, cost: 800, note: '知名度 +3，品牌 +2', disabled: state.cash < 800 };
     case 'train':
@@ -583,31 +669,6 @@ export function doAction(id, opt) {
       state.autoStory = true;
       pushEvent(ev);
       log('和苏晴聊了一晚，友情 +3');
-      break;
-    }
-    case 'recipe': {
-      const productId = opt && opt.product;
-      const product = PRODUCTS.find((item) => item.id === productId);
-      const combinations = RECIPE_INGREDIENTS[productId];
-      const ingredients = opt && Array.isArray(opt.ingredients) ? [...new Set(opt.ingredients)].sort() : [];
-      const correct = combinations && combinations.some((combination) => {
-        const answer = [...combination].sort();
-        return answer.length === ingredients.length && answer.every((item, index) => item === ingredients[index]);
-      });
-      if (!product || !productCanBeResearched(productId) || !correct) return false;
-      state.unlocked.push(productId);
-      state.levels[productId] = 1;
-      log('研发成功，解锁「' + product.name + '」', 'good');
-      break;
-    }
-    case 'research': {
-      const pid = opt && opt.product ? opt.product : state.unlocked[0];
-      if (!state.unlocked.includes(pid)) return false;
-      const lv = state.levels[pid] || 1;
-      if (lv >= 5) return false;
-      state.levels[pid] = Math.min(5, lv + 1);
-      state.style.innovation += 3;
-      log('推进了「' + productById(pid).name + '」的做法，熟练度提升');
       break;
     }
     case 'market':

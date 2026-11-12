@@ -4,6 +4,7 @@ import { PRODUCTS, PHOTOS, CITIES, CUSTOMERS, DECORATIONS, STAGES, ENDINGS } fro
 import { state, priceOf } from '../store';
 import { STORY } from '../story';
 import CakeArt from '../components/CakeArt.vue';
+import { cgOf } from '../vn';
 
 const seg = ref('product');
 
@@ -30,6 +31,11 @@ const photos = computed(() =>
     collected: state.career.photos.includes(id),
   }))
 );
+const labReports = computed(() => PRODUCTS.map((product) => ({
+  ...product,
+  reports: state.career.labReports[product.id] || {},
+})).filter((product) => product.reports.development || product.reports.improvement));
+const osmanthusCG = computed(() => cgOf('osmanthus').src);
 
 const cities = computed(() =>
   CITIES.map((c) => ({
@@ -96,6 +102,7 @@ function collectionStatus(item) {
           { k: 'photo', t: '相册' },
           { k: 'city', t: '门店' },
           { k: 'collection', t: '收藏' },
+          { k: 'lab', t: '实验档案' },
         ]"
         :key="s.k"
         type="button"
@@ -141,6 +148,36 @@ function collectionStatus(item) {
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-else-if="seg === 'lab'" class="lab-list">
+      <div v-if="!labReports.length" class="card card-pad small muted">完成一次新品上架或配方改良后，报告会保存在这里。</div>
+      <article v-for="product in labReports" :key="product.id" class="card card-pad lab-report">
+        <div class="between">
+          <div class="h2" style="margin: 0">{{ product.name }}</div>
+          <span class="chip" style="font-size: 10px">{{ state.career.products.includes(product.id) ? '配方已收录' : '已研发' }}</span>
+        </div>
+        <img v-if="product.reports.development?.type === 'signature' && osmanthusCG" class="lab-cg" :src="osmanthusCG" alt="桂花栗子蛋糕复原插画" />
+        <div v-for="kind in ['development', 'improvement']" :key="kind" class="lab-entry">
+          <template v-if="product.reports[kind]">
+            <div class="between">
+              <strong>{{ kind === 'improvement' ? '配方改良' : product.reports[kind].type === 'signature' ? '外婆配方复原' : product.reports[kind].refined ? '精制新品研发' : '新品研发' }}</strong>
+              <span class="small muted">第 {{ product.reports[kind].run }} 轮 · M{{ product.reports[kind].month }}</span>
+            </div>
+            <div v-if="kind === 'development'" class="lab-scores">
+              <span>总分 {{ product.reports[kind].score }}</span>
+              <span v-for="metric in [
+                { key: 'flavor', label: '风味' },
+                { key: 'texture', label: '口感' },
+                { key: 'appearance', label: '外观' },
+                { key: 'cost', label: '成本' },
+              ]" :key="metric.key">{{ metric.label }} {{ product.reports[kind].scores[metric.key] }}</span>
+            </div>
+            <div v-else class="small muted">熟练度 Lv{{ product.reports[kind].levelBefore }} → Lv{{ product.reports[kind].levelAfter }}</div>
+            <p v-for="note in product.reports[kind].feedback" :key="note" class="lab-note">{{ note }}</p>
+          </template>
+        </div>
+      </article>
     </div>
 
     <div v-else-if="seg === 'city'" class="card">
@@ -223,10 +260,16 @@ function collectionStatus(item) {
   box-shadow: var(--shadow);
 }
 .customer-list,
-.collection {
+.collection,
+.lab-list {
   display: grid;
   gap: 10px;
 }
+.lab-report { display: grid; gap: 8px; }
+.lab-entry { padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; }
+.lab-scores { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-top: 6px; color: var(--ink-2); font-size: 11px; }
+.lab-note { margin: 5px 0 0; color: var(--caramel-soft); font-size: 11px; line-height: 1.65; }
+.lab-cg { width: 100%; max-height: 220px; border-radius: 12px; object-fit: cover; }
 .customer .cc {
   margin-top: 4px;
   color: var(--ink-2);

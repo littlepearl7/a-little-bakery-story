@@ -64,7 +64,7 @@ const layouts = {
   ],
   kitchen: [
     { id:'kitchen-make', x:31, y:50, icon:'🍰', label:'制作蛋糕', kind:'panel', value:'kitchen', desc:'安排今天的生产和定价' },
-    { id:'kitchen-recipe', x:73, y:31, icon:'🧪', label:'研发实验室', kind:'panel', value:'manage', desc:'研发新品、改良配方与提升熟练度' },
+    { id:'kitchen-recipe', x:73, y:31, icon:'🧪', label:'研发实验室', kind:'panel', value:'manage', section:'lab', desc:'试做新品、诊断配方并记录实验报告' },
     { id:'kitchen-mom', x:62, y:65, icon:'💬', label:'问问妈妈', kind:'action', value:'momchat', desc:'和林暖交流烘焙心得' },
     { id:'kitchen-back', x:18, y:79, icon:'↩', label:'返回店内', kind:'scene', value:'shop', desc:'回到蛋糕店前厅' },
   ],
@@ -135,7 +135,7 @@ function activate(spot) {
     return;
   }
   if (spot.kind === 'panel') {
-    emit('open-panel', spot.value);
+    emit('open-panel', spot.value, spot.section || 'overview');
     return;
   }
   selected.value = spot;
