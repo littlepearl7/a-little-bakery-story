@@ -13,47 +13,27 @@ import PartnersPage from './pages/PartnersPage.vue';
 import ManagePage from './pages/ManagePage.vue';
 import CodexPage from './pages/CodexPage.vue';
 import SceneMapPage from './pages/SceneMapPage.vue';
-
-const TABS = [
-  { id: 'shop', label: '店铺', icon: 'house' },
-  { id: 'kitchen', label: '厨房', icon: 'bowl' },
-  { id: 'partners', label: '伙伴', icon: 'heart' },
-  { id: 'manage', label: '经营', icon: 'list' },
-  { id: 'codex', label: '图鉴', icon: 'book' },
-];
-
-const ICONS = {
-  house: 'M3.5 10.8 12 4l8.5 6.8V20a1 1 0 0 1-1 1h-4.6v-6H9.1v6H4.5a1 1 0 0 1-1-1z',
-  bowl: 'M4 11h16a8 8 0 0 1-8 8 8 8 0 0 1-8-8zM9 7.5c0-1.5 1-2 1-3M13 7.5c0-1.5 1-2 1-3',
-  heart: 'M12 20s-7.5-4.6-7.5-9.5A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.9C19.5 15.4 12 20 12 20z',
-  list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
-  book: 'M5 4.5h11.5A2.5 2.5 0 0 1 19 7v13H7.5A2.5 2.5 0 0 1 5 17.5zM5 17.5A2.5 2.5 0 0 1 7.5 15H19',
-};
-
-const tab = ref('shop');
+import SupplierPage from './pages/SupplierPage.vue';
+import RenovationPage from './pages/RenovationPage.vue';
 const scene = ref('shop');
 const activePanel = ref('');
 const activeManageSection = ref('overview');
+const activeShopSection = ref('counter');
 function openPanel(name, section = 'overview') {
   activePanel.value = name;
   if (name === 'manage') activeManageSection.value = section;
+  if (name === 'shop') activeShopSection.value = section;
 }
 function closePanel() {
   activePanel.value = '';
   activeManageSection.value = 'overview';
+  activeShopSection.value = 'counter';
 }
 const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
 const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
-
-function tabFromHash() {
-  const h = location.hash.replace('#', '');
-  return TABS.some((t) => t.id === h) ? h : 'shop';
-}
-tab.value = tabFromHash();
-window.addEventListener('hashchange', () => (tab.value = tabFromHash()));
 
 const ending = computed(() =>
   state.phase === 'ended' && state.ending && !queue.events.length && !endingDismissed.value ? state.ending : null
@@ -89,7 +69,8 @@ function nextDay() {
 
 function restart() {
   if (!startNewGamePlus()) return;
-  tab.value = 'shop';
+  scene.value = 'shop';
+  activePanel.value = '';
   endingDismissed.value = false;
   startGame();
   openNext();
@@ -174,7 +155,7 @@ onMounted(() => {
         style="width:100%;margin:0 0 8px"
         :disabled="!!activeEvent || !!dayReport"
         @click="devSkipMonth"
-      >开发者后门 · 跳过本月</button>
+      >开发者后门 · 跳到下个月</button>
 
       <SceneMapPage :scene="scene" @change-scene="scene = $event" @open-panel="openPanel" />
 
@@ -183,15 +164,17 @@ onMounted(() => {
           <header class="scene-panel-head">
             <div>
               <div class="small muted">林记烘焙 · {{ monthLabel(state.month) }}</div>
-              <strong>{{ ({shop:'店铺营业', kitchen:'今日制作', partners:'伙伴与员工', manage:'经营与研发', codex:'手账与图鉴'})[activePanel] || '经营' }}</strong>
+              <strong>{{ ({shop:'柜台营业', kitchen:'后厨操作台', partners:'员工排班板', manage:'经营手账', codex:'图鉴与相册', supplier:'食材采购', renovation:'店铺升级'})[activePanel] || '经营' }}</strong>
             </div>
             <button type="button" class="scene-panel-close" @click="closePanel">✕</button>
           </header>
           <div class="scene-panel-content">
-            <ShopPage v-if="activePanel === 'shop'" @closed="onClosed" />
-            <KitchenPage v-else-if="activePanel === 'kitchen'" />
+            <ShopPage v-if="activePanel === 'shop'" :paused="!!activeEvent" @closed="onClosed" />
+            <RenovationPage v-else-if="activePanel === 'renovation'" />
+            <SupplierPage v-else-if="activePanel === 'supplier'" />
+            <KitchenPage v-else-if="activePanel === 'kitchen'" :paused="!!activeEvent" />
             <PartnersPage v-else-if="activePanel === 'partners'" />
-            <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" />
+            <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" @open-panel="openPanel" />
             <CodexPage v-else-if="activePanel === 'codex'" />
           </div>
         </section>
@@ -202,29 +185,11 @@ onMounted(() => {
       v-if="pending"
       class="btn primary"
       type="button"
-      style="position: absolute; right: 14px; bottom: calc(var(--nav-h) + 16px); z-index: 20; box-shadow: var(--shadow)"
+      style="position: absolute; right: 14px; bottom: 16px; z-index: 20; box-shadow: var(--shadow)"
       @click="openNext"
     >
       有 {{ pending }} 段剧情
     </button>
-
-    <div class="nav scene-nav">
-      <button :class="{ on: !activePanel && scene === 'shop' }" type="button" @click="closePanel(); scene = 'shop'">
-        <span class="nav-emoji">🏠</span><span>店内</span>
-      </button>
-      <button :class="{ on: scene === 'street' && !activePanel }" type="button" @click="closePanel(); scene = 'street'">
-        <span class="nav-emoji">🗺️</span><span>小镇</span>
-      </button>
-      <button :class="{ on: activePanel === 'partners' }" type="button" @click="openPanel('partners')">
-        <span class="nav-emoji">👥</span><span>伙伴</span>
-      </button>
-      <button :class="{ on: activePanel === 'manage' }" type="button" @click="openPanel('manage')">
-        <span class="nav-emoji">📋</span><span>任务</span>
-      </button>
-      <button :class="{ on: activePanel === 'codex' }" type="button" @click="openPanel('codex')">
-        <span class="nav-emoji">📖</span><span>手账</span>
-      </button>
-    </div>
 
     <StoryModal v-if="activeEvent" :ev="activeEvent" @done="doneEvent" />
 
@@ -404,11 +369,8 @@ onMounted(() => {
   color: var(--ink-2);
 }
 
-.scene-scroll { padding: 8px 0 calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
+.scene-scroll { padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
 .scene-meta { padding: 0 14px 7px; flex:0 0 auto; }
-.scene-nav { z-index:30; }
-.scene-nav button { gap:1px; }
-.scene-nav .nav-emoji { font-size:19px; line-height:1.2; }
 .scene-panel-mask { position:absolute; inset:0; z-index:35; background:rgba(36,25,17,.45); display:flex; align-items:flex-end; }
 .scene-panel { width:100%; max-height:88%; display:flex; flex-direction:column; overflow:hidden; border-radius:22px 22px 0 0; background:var(--cream); box-shadow:0 -10px 40px rgba(40,25,15,.24); }
 .scene-panel-head { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:13px 17px 11px; border-bottom:1px solid var(--line); background:var(--paper); }

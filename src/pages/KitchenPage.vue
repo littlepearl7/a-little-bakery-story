@@ -1,161 +1,159 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { PRICE_TIERS } from '../data';
-import {
-  state, availableProducts, capacity, planPoints, priceOf, demandOf, setPlan, makeCakes,
-} from '../store';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { INGREDIENTS, productById } from '../data';
+import { state, availableProducts, capacity, planPoints, priceOf, setPlan, beginProductionTest, finishProductionTest, makeCakes, pantryUnits, ingredientTotals, missingIngredients, save } from '../store';
 import CakeArt from '../components/CakeArt.vue';
 
-const msg = ref('');
-const msgBad = ref(false);
-let timer = 0;
-
+const props = defineProps({ paused: { type: Boolean, default: false } });
+const notice = ref('');
+const pulse = ref(0);
+const step = ref(0);
+const fruitPicks = ref([]);
+let animation = 0;
 const points = computed(() => planPoints());
-const planCount = computed(() => Object.values(state.plan).reduce((a, b) => a + b, 0));
-const rows = computed(() =>
-  availableProducts.value.map((p) => ({
-    ...p,
-    lv: state.levels[p.id] || 1,
-    price: priceOf(p.id),
-    demand: demandOf(p.id),
-    tier: state.prices[p.id] || 'std',
-    qty: state.plan[p.id] || 0,
-  }))
-);
+const needs = computed(() => ingredientTotals());
+const missing = computed(() => missingIngredients());
+const rows = computed(() => availableProducts.value.map((product) => ({
+  ...product,
+  qty: state.plan[product.id] || 0,
+  price: priceOf(product.id),
+})));
+const customRequests = computed(() => state.orders.filter((order) => order.taken));
+const mini = computed(() => state.productionMini);
+const qualityName = computed(() => state.productionResult?.quality === 'perfect' ? '完美 · 售价 +10%' : state.productionResult?.quality === 'fine' ? '精致 · 售价 +5%' : '普通品质');
+const pattern = computed(() => {
+  const patterns = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];
+  return patterns[mini.value?.pattern || 0];
+});
+const materials = computed(() => Object.entries(needs.value).map(([id, qty]) => ({ id, name: INGREDIENTS.find((item) => item.id === id)?.name || id, qty })));
+const challengeText = computed(() => {
+  if (!state.challenge) return '';
+  if (state.challenge.type === 'stock') return '精准备货：预约优先，剩货率不超过 10%。';
+  if (state.challenge.type === 'new') return '新品主题日：' + productById(state.challenge.target).name + ' 至少交付 3 个。';
+  return '定制专场：完成当天定制要求。';
+});
 
 function bump(id, delta) {
-  const cur = state.plan[id] || 0;
-  setPlan(id, cur + delta);
+  setPlan(id, (state.plan[id] || 0) + delta);
 }
 
-function setTier(id, tier) {
-  state.prices[id] = tier;
+function smartStock() {
+  const plan = {};
+  customRequests.value.forEach((order) => { plan[order.product] = (plan[order.product] || 0) + order.qty; });
+  const target = Math.max(3, Math.min(12, Math.round(({ 1: 4, 2: 6, 3: 8, 4: 10 })[state.shopLevel] + state.reputation / 35)));
+  let remaining = Math.max(0, target - Object.values(plan).reduce((sum, qty) => sum + qty, 0));
+  const popular = availableProducts.value.slice().sort((a, b) => ((state.monthSold[b.id] || 0) + b.demand) - ((state.monthSold[a.id] || 0) + a.demand));
+  for (let i = 0; i < remaining && popular.length; i++) {
+    const id = popular[i % Math.min(3, popular.length)].id;
+    plan[id] = Math.min(12, (plan[id] || 0) + 1);
+  }
+  state.plan = plan;
+  save();
 }
 
-function doMake() {
-  const r = makeCakes();
-  msg.value = r.msg;
-  msgBad.value = !r.ok;
-  clearTimeout(timer);
-  timer = setTimeout(() => (msg.value = ''), 2200);
+function start() {
+  if (points.value > capacity.value) return say('今天的产能不够，先减少计划数量。');
+  if (Object.keys(missing.value).length) return say('有原料缺货，请先去食材铺采购。');
+  if (!state.plan || !Object.keys(state.plan).length) return say('先给今天排一些蛋糕。');
+  if (beginProductionTest()) {
+    step.value = 0;
+    pulse.value = 0;
+    fruitPicks.value = [];
+    say('今天的主打工序抽到了「' + gameName(mini.value?.type) + '」。');
+  }
 }
+
+function gameName(type) { return ({ mix: '搅拌', oven: '出炉火候', piping: '裱花', fruit: '摆果' })[type] || '制作'; }
+function say(value) { notice.value = value; }
+
+function tick() { if (!props.paused && !document.hidden && mini.value && ['mix', 'oven'].includes(mini.value.type)) pulse.value = (pulse.value + 2.4) % 100; }
+function stopTiming() {
+  const target = mini.value?.window || 66;
+  const distance = Math.abs(pulse.value - target);
+  result(Math.max(0, 100 - Math.round(distance * 3)));
+}
+function clickPattern(index) {
+  if (index !== pattern.value[step.value]) return result(55);
+  step.value += 1;
+  if (step.value >= pattern.value.length) result(100);
+}
+function pickFruit(index) {
+  const picks = [...fruitPicks.value, index];
+  fruitPicks.value = picks;
+  if (picks.length === 3) result(picks.every((value, position) => value === pattern.value[position]) ? 100 : 60);
+}
+function result(score) {
+  const result = finishProductionTest(score, false);
+  say(result.msg || result.message || qualityName.value);
+}
+function skip() {
+  const result = finishProductionTest(0, true);
+  say(result.msg || result.message || '采用普通品质出炉。');
+}
+function clearPlan() { state.plan = {}; save(); }
+
+watch(mini, (value) => {
+  if (value && !animation) animation = window.setInterval(tick, 80);
+  if (!value && animation) { clearInterval(animation); animation = 0; }
+}, { immediate: true });
+onMounted(() => { if (mini.value && !animation) animation = window.setInterval(tick, 80); });
+onBeforeUnmount(() => { if (animation) clearInterval(animation); });
 </script>
 
 <template>
   <div>
     <div class="card card-pad">
-      <div class="between" style="margin-bottom: 8px">
-        <div class="h2" style="margin: 0">厨房</div>
-        <span class="chip" :class="points > capacity ? 'pink' : 'sage'">
-          产能 {{ points }} / {{ capacity }}
-        </span>
-      </div>
-      <div class="track" style="height: 8px; background: var(--apricot); border-radius: 999px; overflow: hidden">
-        <div
-          style="height: 100%; border-radius: 999px; transition: width .3s"
-          :style="{
-            width: Math.min(100, (points / Math.max(1, capacity)) * 100) + '%',
-            background: points > capacity ? '#d95b67' : 'linear-gradient(90deg,#e9c9a3,#d9a06a)',
-          }"
-        ></div>
-      </div>
-      <div class="between small muted" style="margin-top: 8px">
-        <span>原料 {{ state.stock }} 份 · 计划 {{ planCount }} 个</span>
-        <span>体力 {{ state.stamina }}</span>
+      <div class="between"><div class="h2" style="margin:0">今日生产计划</div><span class="chip" :class="points > capacity ? 'pink' : 'sage'">产能 {{ points }}/{{ capacity }}</span></div>
+      <div class="between small muted" style="margin-top:7px"><span>库存 {{ pantryUnits }}/{{ state.warehouseCapacity }} 份</span><span>体力 {{ state.stamina }}</span></div>
+      <button class="btn block" style="margin-top:9px" type="button" :disabled="state.dayPhase !== 'prep'" @click="smartStock">智能备货 · 先满足已接预约</button>
+      <div v-if="state.dayPhase === 'prep' && challengeText" class="challenge-note small"><strong>今日经营挑战</strong><span>{{ challengeText }}成功后营业收入 +5%。</span></div>
+    </div>
+
+    <div v-if="customRequests.length" class="card card-pad compact-card"><strong>已接预约</strong><div v-for="order in customRequests" :key="order.id" class="small muted">{{ productById(order.product).name }} ×{{ order.qty }}{{ order.due ? ' · 装饰：' + order.due : '' }}</div></div>
+
+    <div class="product-list">
+      <div v-for="product in rows" :key="product.id" class="product-row">
+        <div class="product-art"><CakeArt :id="product.id" :colors="product.colors" /></div>
+        <div class="product-copy"><strong>{{ product.name }}</strong><span>¥{{ product.price }} · 产能 {{ product.diff }}</span><span>熟练度 Lv{{ Math.round((state.levels[product.id] || 1) * 10) / 10 }}</span></div>
+        <div class="quantity"><button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(product.id, -1)">−</button><span>{{ product.qty }}</span><button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(product.id, 1)">+</button></div>
       </div>
     </div>
 
-    <div class="card" style="margin-top: 12px">
-      <div v-for="r in rows" :key="r.id" class="cake">
-        <div class="art"><CakeArt :id="r.id" :colors="r.colors" /></div>
-        <div class="body">
-          <div class="name">
-            <span>{{ r.name }}</span>
-            <span class="chip" style="font-size: 10px">Lv{{ Math.round(r.lv * 10) / 10 }}</span>
-          </div>
-          <div class="nums">
-            <span>¥{{ r.price }}</span>
-            <span>预计卖 {{ r.demand }} 个</span>
-            <span>{{ r.diff }} 点/个</span>
-          </div>
-          <div class="tiers">
-            <button
-              v-for="(t, key) in PRICE_TIERS"
-              :key="key"
-              type="button"
-              class="tier"
-              :class="{ on: r.tier === key }"
-              @click="setTier(r.id, key)"
-            >
-              {{ t.label }}
-            </button>
-          </div>
-        </div>
-        <div class="stepper">
-          <button type="button" @click="bump(r.id, -1)">−</button>
-          <span>{{ r.qty }}</span>
-          <button type="button" @click="bump(r.id, 1)">+</button>
-        </div>
-      </div>
+    <div class="card card-pad compact-card">
+      <div class="between"><strong>材料预算</strong><span class="small muted">预计 {{ Object.values(state.plan).reduce((sum, qty) => sum + qty, 0) }} 个蛋糕</span></div>
+      <div v-if="!materials.length" class="small muted" style="margin-top:5px">选择产品和数量后会列出配方用料。</div>
+      <div v-for="item in materials" :key="item.id" class="between small" style="margin-top:5px"><span>{{ item.name }}</span><span :class="{ missing: missing[item.id] }">{{ item.qty }} 份 · 库存 {{ state.pantry[item.id] || 0 }}{{ missing[item.id] ? ' · 缺 ' + Math.ceil(missing[item.id]) : '' }}</span></div>
     </div>
 
-    <p v-if="msg" class="small" :style="{ color: msgBad ? 'var(--berry)' : '#6c8a55', margin: '10px 2px 0' }">
-      {{ msg }}
-    </p>
+    <div v-if="mini" class="card card-pad minigame">
+      <div class="between"><div class="h2" style="margin:0">主打工序 · {{ gameName(mini.type) }}</div><span class="chip">{{ productById(mini.product).name }}</span></div>
+      <template v-if="mini.type === 'mix' || mini.type === 'oven'">
+        <p class="small muted">{{ mini.type === 'mix' ? '指针进入绿色区间时停下搅拌。' : '在最佳火候区间及时出炉。' }}</p>
+        <div class="gauge"><span class="target" :style="{ left: (mini.window - 8) + '%' }"></span><i :style="{ left: pulse + '%' }"></i></div>
+        <button class="btn primary block" type="button" @click="stopTiming">停下</button>
+      </template>
+      <template v-else-if="mini.type === 'piping'">
+        <p class="small muted">按提示顺序点亮三处裱花位置。</p><div class="pattern">{{ pattern.map((value) => ['花心','左侧','右侧'][value]).join(' → ') }}</div>
+        <div class="target-buttons"><button v-for="(name,index) in ['花心','左侧','右侧']" :key="name" class="btn" type="button" @click="clickPattern(index)">{{ name }}</button></div>
+      </template>
+      <template v-else>
+        <p class="small muted">按提示顺序摆放三种鲜果。</p><div class="pattern">{{ pattern.map((value) => ['草莓','蓝莓','薄荷'][value]).join(' → ') }}</div>
+        <div class="target-buttons"><button v-for="(name,index) in ['草莓','蓝莓','薄荷']" :key="name" class="btn" type="button" @click="pickFruit(index)">{{ name }}</button></div>
+      </template>
+      <button class="btn block" style="margin-top:8px" type="button" @click="skip">跳过 · 普通品质保底</button>
+    </div>
 
-    <button class="btn primary block" style="margin-top: 12px" type="button" @click="doMake">
-      开始制作（消耗原料与体力）
-    </button>
-    <p class="small muted" style="margin: 9px 2px 0; text-align: center">
-      妈妈每天帮 60 点产能，每位伙伴 40 点，超出部分才用你的体力
-    </p>
+    <div v-else-if="state.productionResult" class="card card-pad compact-card"><strong>本批品质：{{ qualityName }}</strong><div class="small muted">{{ state.productionResult.quality === 'normal' ? '基础品质，不影响批量成品。' : '效果已记在主打蛋糕批次中。' }}</div></div>
+
+    <button v-if="state.dayPhase === 'prep' && !mini && !state.productionResult" class="btn primary block" style="margin-top:10px" type="button" :disabled="!Object.keys(state.plan).length" @click="start">开始制作 · 随机关键工序</button>
+    <button v-if="state.dayPhase === 'prep' && state.productionResult" class="btn primary block" style="margin-top:10px" type="button" :disabled="points > capacity || Object.keys(missing).length > 0" @click="makeCakes">完成今日批量制作</button>
+    <button v-if="state.dayPhase === 'prep' && Object.keys(state.plan).length" class="btn block" style="margin-top:8px" type="button" @click="clearPlan">清空计划</button>
+    <div v-if="state.dayPhase === 'service-ready' || state.dayPhase === 'service' || state.dayPhase === 'closing'" class="card card-pad compact-card"><div class="h2">今日成品</div><div v-for="id in Object.keys(state.shelf).filter((key) => state.shelf[key] > 0)" :key="id" class="between small"><span>{{ productById(id).name }}</span><span>{{ state.shelf[id] }} 个</span></div><div v-if="state.dayPhase === 'service-ready'" class="small muted">前往柜台开门营业。</div></div>
+    <p v-if="notice" class="small muted" role="status">{{ notice }}</p>
+    <div class="small muted tips">设备、妈妈和伙伴提供产能；超出免费产能的部分才消耗体力。主打蛋糕小游戏只作用于这款产品的当日批次。</div>
   </div>
 </template>
 
 <style scoped>
-.tiers {
-  display: flex;
-  margin-top: 6px;
-}
-.tier {
-  height: 22px;
-  padding: 0 9px;
-  margin-right: 6px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 11px;
-  font-family: inherit;
-  cursor: pointer;
-}
-.tier.on {
-  background: var(--caramel);
-  border-color: var(--caramel);
-  color: #fff8ef;
-}
-.stepper {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  align-self: center;
-  gap: 2px;
-}
-.stepper button {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--paper);
-  color: var(--caramel);
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-}
-.stepper span {
-  min-width: 22px;
-  text-align: center;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-}
+.compact-card{margin-top:9px}.challenge-note{display:grid;gap:2px;margin-top:8px;padding:8px;border-radius:9px;background:#fff8ec}.challenge-note strong{color:var(--caramel)}.product-list{margin-top:9px;background:var(--paper);border-radius:12px;padding:0 10px;box-shadow:var(--shadow)}.product-row{display:flex;align-items:center;gap:8px;min-height:68px;border-bottom:1px solid var(--line-soft)}.product-row:last-child{border-bottom:0}.product-art{width:47px;height:47px;overflow:hidden;border-radius:9px;flex:0 0 47px}.product-art :deep(*){width:100%;height:100%}.product-copy{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.product-copy strong{font-size:12px}.product-copy span{font-size:10px;color:var(--ink-2)}.quantity{display:flex;align-items:center;gap:4px}.quantity button{width:36px;height:42px;border:1px solid var(--line);border-radius:9px;background:#fffaf2;color:var(--caramel);font-size:18px}.quantity span{min-width:18px;text-align:center}.missing{color:var(--berry)}.minigame{margin-top:11px;border:1px solid #d7bd9b}.minigame p{margin:8px 0}.gauge{position:relative;height:20px;margin:15px 4px 13px;border-radius:999px;background:linear-gradient(90deg,#d8a7a0 0 42%,#a9b99b 42% 58%,#d8a7a0 58%);overflow:hidden}.gauge .target{position:absolute;top:0;height:100%;width:16%;background:#9db38577}.gauge i{position:absolute;top:-3px;width:4px;height:27px;background:#553522;box-shadow:0 0 0 2px #fff}.pattern{padding:10px;border-radius:8px;background:var(--apricot);font-size:13px;text-align:center;color:var(--caramel)}.target-buttons{display:flex;gap:6px;margin-top:8px}.target-buttons button{flex:1;min-height:42px;padding:5px;font-size:11px}.tips{display:block;margin-top:10px;line-height:1.6}
 </style>

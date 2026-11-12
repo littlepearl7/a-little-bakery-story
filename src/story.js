@@ -143,8 +143,6 @@ function parseGains(text, ctxPartner) {
   });
 
   if (/顾客忠诚度增加|忠诚度提升/.test(text)) out.push({ k: 'loyalty', v: 4, label: '忠诚 +4' });
-  if (/友情值增加/.test(text)) out.push({ k: 'friend', v: 5, label: '友情 +5' });
-
   return out;
 }
 

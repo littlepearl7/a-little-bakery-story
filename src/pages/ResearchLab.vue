@@ -7,7 +7,7 @@ import {
   RESEARCH_TASKS, recipeOptions,
 } from '../lab';
 import {
-  state, beginResearchTrial, publishResearch, discardResearchTrial, improveProduct,
+  state, beginResearchTrial, publishResearch, discardResearchTrial, improveProduct, pantryUnits, canConsumeRecipe,
 } from '../store';
 import { cgOf } from '../vn';
 
@@ -158,7 +158,7 @@ function stageLabel(report) {
     <header class="lab-head">
       <div>
         <div class="lab-title">林记烘焙实验室</div>
-        <div class="lab-sub">行动力 {{ state.ap }}/{{ state.maxAp }} · 原料 {{ state.stock }} 份 · 每次试吃消耗 1 点行动力和 1 份原料</div>
+        <div class="lab-sub">行动力 {{ state.ap }}/{{ state.maxAp }} · 分类原料 {{ pantryUnits }} 份 · 试做消耗所选蛋糕配方用料的四分之一</div>
       </div>
       <button v-if="page !== 'home' && !state.labPending" class="back" type="button" @click="back">返回</button>
     </header>
@@ -269,8 +269,8 @@ function stageLabel(report) {
         <div class="field-title">装饰取舍 <span class="small muted">越丰富，外观越高，成本分越低</span></div>
         <button v-for="(option, index) in DECORATION_LEVELS" :key="option" type="button" class="choice" :class="{ chosen: decoration === index }" @click="decoration = index">{{ option }} · 外观 {{ [72, 90, 100][index] }} / 成本 {{ COST_SCORES[index] }}</button>
       </div>
-      <button class="btn primary block" type="button" :disabled="state.ap < 2 || state.stock < 1 || state.phase !== 'playing'" @click="startTaste">开始试吃 · 1 点行动力 + 1 份原料</button>
-      <div class="small muted">合格后上架再消耗 1 点行动力，成功研发总计 2 点。{{ state.stock < 1 ? '原料不足，先采购原料。' : state.ap < 2 ? '当前行动力不足以完成一次试做。' : '' }}</div>
+      <button class="btn primary block" type="button" :disabled="state.ap < 2 || !canConsumeRecipe(selectedProduct, 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startTaste">开始试吃 · 1 点行动力</button>
+      <div class="small muted">失败也会消耗这次投入的材料；合格后上架再消耗 1 点行动力。{{ !canConsumeRecipe(selectedProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < 2 ? '当前行动力不足以完成一次试做。' : '' }}</div>
     </div>
 
     <div v-else-if="page === 'signature'" class="card card-pad form">
@@ -292,7 +292,8 @@ function stageLabel(report) {
         <div class="field-title">金桂的加入时间</div>
         <button v-for="(option, index) in ['烘烤前加入', '蛋糕冷却后撒', '装盒前现撒']" :key="option" type="button" class="choice" :class="{ chosen: process === index }" @click="process = index">{{ option }}</button>
       </div>
-      <button class="btn primary block" type="button" :disabled="state.ap < 2 || state.stock < 1 || state.phase !== 'playing'" @click="startSignatureTaste">试吃复原配方 · 1 点行动力 + 1 份原料</button>
+      <button class="btn primary block" type="button" :disabled="state.ap < 2 || !canConsumeRecipe('signature', 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startSignatureTaste">试吃复原配方 · 1 点行动力</button>
+      <div class="small muted">失败也会消耗已投入材料，合格后完成复原再消耗 1 点行动力。</div>
     </div>
 
     <div v-else-if="page === 'improve'" class="card card-pad form">
@@ -303,8 +304,8 @@ function stageLabel(report) {
         <span>{{ option }}</span>
       </label>
       <p v-if="improvementFeedback" class="small feedback-line">{{ improvementFeedback }}</p>
-      <button class="btn primary block" type="button" :disabled="improvementAnswer < 0 || state.ap < 2 || state.stock < 1 || submitting || state.phase !== 'playing'" @click="submitImprovement">提交改良试验 · 1 点行动力 + 1 份原料</button>
-      <div class="small muted">答对后再消耗 1 点行动力，熟练度提升 1 级。{{ state.stock < 1 ? '原料不足，先采购原料。' : state.ap < 2 ? '当前行动力不足以完成一次改良。' : '' }}</div>
+      <button class="btn primary block" type="button" :disabled="improvementAnswer < 0 || state.ap < 2 || !canConsumeRecipe(improvementProduct, 0.25) || submitting || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="submitImprovement">提交改良试验 · 1 点行动力</button>
+      <div class="small muted">试做消耗配方材料的四分之一；答对后再消耗 1 点行动力，熟练度提升 1 级。{{ !canConsumeRecipe(improvementProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < 2 ? '当前行动力不足以完成一次改良。' : '' }}</div>
     </div>
 
     <p v-if="notice" class="small notice">{{ notice }}</p>

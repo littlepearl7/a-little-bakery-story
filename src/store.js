@@ -3,7 +3,7 @@
 import { reactive, computed } from 'vue';
 import {
   PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
-  DECORATIONS, CUSTOMERS,
+  DECORATIONS, CUSTOMERS, INGREDIENTS, RECIPE_BOM,
   STAGES, ENDINGS, stageByMonth, shopLevelInfo, DEVICES, deviceById,
 } from './data';
 import { STORY, evalTest, PARTNER_OF } from './story';
@@ -17,7 +17,7 @@ const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
-    v: 6,
+    v: 7,
     month: 1,
     day: 1,
     cash: 12000,
@@ -25,7 +25,6 @@ export function newState() {
     popularity: 10,
     loyalty: 20,
     brand: 5,
-    friendship: 20,
     shopLevel: 1,
     storeCount: 1,
     cities: ['qiyun'],
@@ -34,9 +33,13 @@ export function newState() {
     maxAp: 8,
     stamina: 100,
     maxStamina: 100,
-    stock: 60,
+    pantry: { base: 12, dairy: 8, decor: 2, strawberry: 2, cocoa: 2 },
+    legacyStock: 0,
+    warehouseCapacity: 120,
+    ngpDiscountUsed: false,
     devices: {},
     shelf: {},
+    batches: [],
     plan: {},
     prices: {},
     levels: { plain: 1, strawberry: 1, chocolate: 1 },
@@ -47,6 +50,14 @@ export function newState() {
     momBond: 10,
     style: { tradition: 0, innovation: 0, efficiency: 0, community: 0 },
     orders: [],
+    dayPhase: 'prep',
+    service: null,
+    productionMini: null,
+    productionResult: null,
+    staffAssignments: { picker: null, packer: null, auto: false },
+    challenge: null,
+    challengeDayIndex: 0,
+    challengeDone: false,
     decorations: [],
     regularCustomers: {
       chen: { purchases: 0, lastPurchaseDay: 0, stories: [] },
@@ -85,8 +96,8 @@ export function newState() {
     phase: 'playing',
     ending: null,
     acquired: false,
-    friendMonth: 0,
     autoStory: false,
+    sqchatMonth: 0,
     stage: 1,
     report: null,
   };
@@ -118,9 +129,10 @@ export function deviceNext(id) {
 
 export function upgradeDevice(id) {
   const next = deviceNext(id);
-  if (!next || state.cash < next.cost) return false;
+  if (!next || state.phase !== 'playing' || state.dayPhase !== 'prep' || state.cash < next.cost) return false;
   state.cash -= next.cost;
   state.devices[id] = deviceTier(id) + 1;
+  if (id === 'warehouse') state.warehouseCapacity = [120, 180, 240, 320][state.devices[id]];
   state.monthCost += next.cost;
   log('升级了' + deviceById(id).name + '，' + next.text, 'good');
   save();
@@ -137,6 +149,90 @@ export const capacity = computed(
 );
 
 export const decorationComfort = computed(() => Math.min(4, state.decorations.length));
+
+export const pantryUnits = computed(() =>
+  Object.values(state.pantry || {}).reduce((sum, quantity) => sum + Number(quantity || 0), 0)
+);
+
+export function ingredientTotals(plan = state.plan) {
+  return Object.entries(plan || {}).reduce((totals, [productId, qty]) => {
+    const bom = RECIPE_BOM[productId] || {};
+    Object.entries(bom).forEach(([id, amount]) => {
+      totals[id] = (totals[id] || 0) + amount * qty;
+    });
+    return totals;
+  }, {});
+}
+
+export function missingIngredients(plan = state.plan) {
+  const totals = {};
+  let legacy = state.legacyStock || 0;
+  Object.entries(plan || {}).forEach(([productId, qty]) => {
+    for (let n = 0; n < qty; n++) {
+      if (legacy >= 1) { legacy -= 1; continue; }
+      Object.entries(RECIPE_BOM[productId] || {}).forEach(([id, amount]) => { totals[id] = (totals[id] || 0) + amount; });
+    }
+  });
+  Object.keys(totals).forEach((id) => { totals[id] = Math.max(0, totals[id] - ((state.pantry || {})[id] || 0)); });
+  return Object.fromEntries(Object.entries(totals).filter(([, need]) => need > 0));
+}
+
+export function canConsumeRecipe(productId, portion = 1) {
+  if ((state.legacyStock || 0) >= portion) return true;
+  return Object.entries(RECIPE_BOM[productId] || {}).every(([id, amount]) =>
+    ((state.pantry || {})[id] || 0) + 0.0001 >= amount * portion
+  );
+}
+
+function consumeRecipe(productId, portion = 1) {
+  const bom = RECIPE_BOM[productId] || {};
+  const need = Object.fromEntries(Object.entries(bom).map(([id, amount]) => [id, amount * portion]));
+  if ((state.legacyStock || 0) >= portion) {
+    state.legacyStock = Math.round((state.legacyStock - portion) * 100) / 100;
+    return true;
+  }
+  if (!canConsumeRecipe(productId, portion)) return false;
+  Object.entries(need).forEach(([id, amount]) => {
+    state.pantry[id] = Math.round(((state.pantry[id] || 0) - amount) * 100) / 100;
+  });
+  return true;
+}
+
+export function buyIngredients(cart) {
+  if (state.phase !== 'playing' || state.dayPhase !== 'prep' || state.ap < 1) {
+    return { ok: false, message: '准备阶段需要 1 点行动力采购。' };
+  }
+  const entries = Object.entries(cart || {}).filter(([, qty]) => Number(qty) > 0);
+  if (!entries.length || entries.some(([id, qty]) => {
+    const item = INGREDIENTS.find((entry) => entry.id === id);
+    return !item || item.month > state.month || !Number.isInteger(Number(qty));
+  })) {
+    return { ok: false, message: '请选择原料和整数购买数量。' };
+  }
+  const items = Object.fromEntries(entries.map(([id, qty]) => [id, Number(qty)]));
+  const totalUnits = Object.values(items).reduce((sum, qty) => sum + qty, 0);
+  const price = entries.reduce((sum, [id, qty]) => sum + INGREDIENTS.find((item) => item.id === id).price * qty, 0);
+  const discount = state.newGamePlus && !state.ngpDiscountUsed ? Math.min(300, price) : 0;
+  const payable = price - discount;
+  if (pantryUnits.value + totalUnits > state.warehouseCapacity) return { ok: false, message: '仓库容量不足，请减少购买数量。' };
+  if (state.cash < payable) return { ok: false, message: '资金不足。' };
+
+  state.ap -= 1;
+  state.cash -= payable;
+  state.monthCost += payable;
+  Object.entries(items).forEach(([id, qty]) => { state.pantry[id] = (state.pantry[id] || 0) + qty; });
+  if (state.newGamePlus && !state.ngpDiscountUsed) state.ngpDiscountUsed = true;
+  log('采购了 ' + entries.map(([id, qty]) => INGREDIENTS.find((item) => item.id === id).name + ' ×' + qty).join('、') + (discount ? '，二周目优惠 ¥' + discount : ''), 'good');
+  save();
+  return { ok: true, message: '采购完成，共 ¥' + payable + '。' };
+}
+
+export function restockPlan() {
+  const missing = missingIngredients();
+  const cart = {};
+  Object.entries(missing).forEach(([id, qty]) => { cart[id] = Math.ceil(qty); });
+  return cart;
+}
 
 export function customersToday() {
   return CUSTOMERS.filter((customer) => state.month >= customer.month && state.day === customer.day);
@@ -156,6 +252,28 @@ function recordCustomerPurchases(soldByProduct) {
     } else {
       log(customer.name + '买走了一份' + productById(customer.product).name);
     }
+  });
+}
+
+function customerChallenges() {
+  const newProducts = PRODUCTS.filter((product) => product.month === state.month && state.unlocked.includes(product.id));
+  const options = [
+    { type: 'stock', target: '' },
+    { type: 'custom', target: '' },
+  ];
+  if (newProducts.length) options.push({ type: 'new', target: newProducts[Math.floor(Math.random() * newProducts.length)].id });
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+function startChallengeForDay() {
+  if (state.challengeDayIndex === state.dayIndex && state.challenge) return;
+  state.challenge = customerChallenges();
+  state.challengeDayIndex = state.dayIndex;
+}
+
+function addLegacyRecipe(pantry, productId, quantity) {
+  Object.entries(RECIPE_BOM[productId] || {}).forEach(([ingredient, amount]) => {
+    pantry[ingredient] = (pantry[ingredient] || 0) + amount * quantity;
   });
 }
 
@@ -225,10 +343,45 @@ export function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.v !== 6) return false;
+    if (data.v !== 6 && data.v !== 7) return false;
+    const migrated = data.v === 6;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined && k !== 'regularCustomers' && k !== 'career') state[k] = data[k];
     });
+    if (data.v === 6) {
+      state.pantry = {};
+      let legacy = Math.max(0, Number(data.stock || 0));
+      Object.entries(data.plan || {}).forEach(([productId, quantity]) => {
+        const planned = Math.min(legacy, Math.max(0, Number(quantity) || 0));
+        if (planned) addLegacyRecipe(state.pantry, productId, planned);
+        legacy -= planned;
+      });
+      const oldProducts = (data.unlocked || ['plain']).filter((id) => RECIPE_BOM[id]);
+      const fallback = oldProducts.length ? oldProducts : ['plain'];
+      const wholeCredits = Math.floor(legacy);
+      for (let i = 0; i < wholeCredits; i++) addLegacyRecipe(state.pantry, fallback[i % fallback.length], 1);
+      const fraction = legacy - wholeCredits;
+      if (fraction) fallback.forEach((id) => addLegacyRecipe(state.pantry, id, fraction / fallback.length));
+      state.legacyStock = 0;
+      state.cash += Number(data.monthRev || 0);
+      state.v = 7;
+      state.dayPhase = data.daySold || data.dayRev ? 'closing' : 'prep';
+      state.sqchatMonth = Number(data.friendMonth || 0);
+      state.batches = Object.entries(data.shelf || {}).filter(([, qty]) => qty > 0)
+        .map(([product, qty], index) => ({ id: 'migrated-' + index, product, qty, quality: 'normal', decoration: null }));
+      state.service = null;
+      state.stock = undefined;
+      delete state.friendship;
+      delete state.friendMonth;
+      state.ngpDiscountUsed = false;
+      state.challenge = null;
+      state.challengeDayIndex = 0;
+    }
+    state.pantry = state.pantry || {};
+    state.legacyStock = Number(state.legacyStock || 0);
+    state.batches = state.batches || [];
+    state.staffAssignments = { ...newState().staffAssignments, ...(state.staffAssignments || {}) };
+    state.dayPhase = state.dayPhase || 'prep';
     state.regularCustomers = Object.fromEntries(
       CUSTOMERS.map((customer) => [
         customer.id,
@@ -237,7 +390,11 @@ export function load() {
     );
     state.career = { ...newState().career, ...(data.career || {}) };
     state.career.labReports = { ...newState().career.labReports, ...((data.career || {}).labReports || {}) };
+    state.challengeDayIndex = Number(state.challengeDayIndex || 0);
+    const needsChallenge = state.dayPhase === 'prep' && (!state.challenge || state.challengeDayIndex !== state.dayIndex);
+    if (needsChallenge) startChallengeForDay();
     recordCareer();
+    if (migrated || needsChallenge) save();
     return true;
   } catch (e) {
     return false;
@@ -290,9 +447,9 @@ function labResult(ok, message) {
 
 export function beginResearchTrial(attempt) {
   if (state.phase !== 'playing') return labResult(false, '当前不能进行实验。');
+  if (state.dayPhase !== 'prep') return labResult(false, '营业开始后不能进行研发。');
   if (state.labPending) return labResult(false, '请先处理上次试吃结果。');
   if (state.ap < 2) return labResult(false, '至少需要 2 点行动力：试吃消耗 1 点，合格后上架还需 1 点。');
-  if (state.stock < 1) return labResult(false, '原料不足，先采购原料。');
 
   const productId = attempt && attempt.productId;
   const product = PRODUCTS.find((item) => item.id === productId);
@@ -306,17 +463,18 @@ export function beginResearchTrial(attempt) {
     ? evaluateSignatureTrial(attempt)
     : evaluateResearchTrial(productId, attempt || {});
   if (!trial) return labResult(false, '实验参数不完整，请检查每一项选择。');
+  if (!consumeRecipe(productId, 0.25)) return labResult(false, '这款蛋糕的试做原料不足，请先到食材铺采购。');
 
   state.ap -= 1;
-  state.stock -= 1;
   state.labPending = trial;
-  log('试做「' + product.name + '」消耗 1 点行动力和 1 份原料', 'story');
+  log('试做「' + product.name + '」消耗 1 点行动力和四分之一配方材料', 'story');
   save();
   return labResult(true, '试吃完成。');
 }
 
 export function publishResearch() {
   const trial = state.labPending;
+  if (state.dayPhase !== 'prep') return labResult(false, '请在营业开始前完成上架。');
   if (state.phase !== 'playing' || !trial || !trial.passed) return labResult(false, '这份试吃结果还未达到上架要求。');
   if (state.ap < 1) return labResult(false, '行动力不足；试吃结果已保存，明天可以继续。');
   const product = PRODUCTS.find((item) => item.id === trial.productId);
@@ -347,6 +505,7 @@ export function discardResearchTrial() {
 
 export function improveProduct(productId, answer) {
   if (state.phase !== 'playing') return labResult(false, '当前不能进行改良。');
+  if (state.dayPhase !== 'prep') return labResult(false, '营业开始后不能进行改良。');
   const product = PRODUCTS.find((item) => item.id === productId);
   const diagnostic = improvementFor(productId);
   if (!product || !diagnostic || !state.unlocked.includes(productId)) return labResult(false, '这款产品目前不能改良。');
@@ -354,13 +513,12 @@ export function improveProduct(productId, answer) {
   if (level >= 5) return labResult(false, '这款产品已达到熟练度上限。');
   if (!Number.isInteger(answer) || answer < 0 || answer >= diagnostic.options.length) return labResult(false, '请选择一个改良方案。');
   if (state.ap < 2) return labResult(false, '至少需要 2 点行动力完成一次改良。');
-  if (state.stock < 1) return labResult(false, '原料不足，先采购原料。');
+  if (!consumeRecipe(productId, 0.25)) return labResult(false, '这款蛋糕的试做原料不足，请先到食材铺采购。');
 
   state.ap -= 1;
-  state.stock -= 1;
   if (answer !== diagnostic.correct) {
     const feedback = '这次试吃没有解决问题。' + diagnostic.feedback;
-    log('改良「' + product.name + '」未通过试吃，消耗了 1 份原料', 'story');
+    log('改良「' + product.name + '」未通过试吃，消耗了四分之一配方材料', 'story');
     save();
     return { ...labResult(false, feedback), retry: true, feedback };
   }
@@ -383,6 +541,7 @@ export function startNewGamePlus() {
   if (state.phase !== 'ended' || !state.ending) return false;
   reset();
   state.newGamePlus = true;
+  state.ngpDiscountUsed = false;
   state.career.newGamePlusRuns = (state.career.newGamePlusRuns || 0) + 1;
   save();
   return true;
@@ -391,7 +550,11 @@ export function startNewGamePlus() {
 export function skipToNextMonth() {
   if (state.phase !== 'playing') return false;
   const startingMonth = state.month;
-  while (state.month === startingMonth && state.phase === 'playing') closeDay('waste');
+  while (state.month === startingMonth && state.phase === 'playing') {
+    state.dayPhase = 'closing';
+    state.service = { tickets: [], current: 0 };
+    closeDay('waste');
+  }
   return state.month !== startingMonth;
 }
 
@@ -409,7 +572,7 @@ export function continueAfterShortEnding() {
 
 export function buyDecoration(id) {
   const decoration = DECORATIONS.find((item) => item.id === id);
-  if (!decoration || state.phase !== 'playing' || state.decorations.includes(id)) return false;
+  if (!decoration || state.phase !== 'playing' || state.dayPhase !== 'prep' || state.decorations.includes(id)) return false;
   if (state.shopLevel < decoration.shopLevel || state.cash < decoration.cost) return false;
   state.cash -= decoration.cost;
   state.monthCost += decoration.cost;
@@ -443,7 +606,7 @@ export function applyRewards(items) {
         case '资金': state.cash = Math.max(0, state.cash + v); break;
         case '口碑': state.reputation = clamp(state.reputation + v); break;
         case '知名度': state.popularity = clamp(state.popularity + v); break;
-        case '友情值': state.friendship = clamp(state.friendship + v); break;
+        case '友情值': break;
         case '门店': state.storeCount = Math.max(1, state.storeCount + v); break;
         case '员工': if (v > 0) joinNextPartner(); break;
         case '烘焙': levelUpLowest(v * 0.2); break;
@@ -501,13 +664,10 @@ export function applyGains(gains) {
       case 'loyalty':
         state.loyalty = clamp(state.loyalty + g.v);
         break;
-      case 'friend':
-        state.friendship = clamp(state.friendship + g.v);
-        break;
       default:
         break;
     }
-    if (g.label) got.push(g.label);
+    if (g.k !== 'friend' && g.label) got.push(g.label);
   }
   return got;
 }
@@ -554,11 +714,9 @@ function cdLeft(id) {
 export function actionInfo(id) {
   switch (id) {
     case 'restock': {
-      const cost = state.newGamePlus ? 300 : 600;
       return {
-        name: '原料采购', ap: 1, cost,
-        note: (state.newGamePlus ? '二周目优惠，' : '') + '原料 +' + (12 + deviceValue('warehouse')) + ' 份',
-        disabled: state.cash < cost,
+        name: '原料采购', ap: 1, cost: 0,
+        note: '请前往老街食材铺选择原料', disabled: true,
       };
     }
     case 'feedback': {
@@ -577,10 +735,10 @@ export function actionInfo(id) {
       };
     }
     case 'sqchat': {
-      const used = state.friendMonth === state.month;
+      const used = state.sqchatMonth === state.month;
       return {
         name: '与苏晴互动', ap: 1, cost: 0,
-        note: used ? '这个月已经聊过了' : '本月专属剧情，友情 +3',
+        note: used ? '这个月已经聊过了' : '本月专属相处剧情',
         disabled: used,
       };
     }
@@ -624,7 +782,7 @@ export function actionInfo(id) {
 }
 
 export function doAction(id, opt) {
-  if (state.phase !== 'playing') return false;
+  if (state.phase !== 'playing' || state.dayPhase !== 'prep') return false;
   const info = actionInfo(id);
   if (info.disabled) return false;
   if (state.ap < info.ap) return false;
@@ -634,11 +792,7 @@ export function doAction(id, opt) {
 
   switch (id) {
     case 'restock': {
-      const qty = 12 + deviceValue('warehouse');
-      state.cash -= info.cost;
-      state.stock += qty;
-      log('原料 +' + qty + ' 份');
-      break;
+      return false;
     }
       break;
     case 'feedback':
@@ -664,11 +818,10 @@ export function doAction(id, opt) {
     case 'sqchat': {
       const ev = STORY.friend[state.month];
       if (!ev) break;
-      state.friendMonth = state.month;
-      state.friendship = clamp(state.friendship + 3);
+      state.sqchatMonth = state.month;
       state.autoStory = true;
       pushEvent(ev);
-      log('和苏晴聊了一晚，友情 +3');
+      log('和苏晴度过了一段只属于两人的时间');
       break;
     }
     case 'market':
@@ -731,20 +884,22 @@ export function doAction(id, opt) {
 /* ---------------- 生产 ---------------- */
 
 export function setPlan(productId, qty) {
-  const n = Math.max(0, Math.min(99, Math.floor(qty || 0)));
+  if (state.dayPhase !== 'prep' || !state.unlocked.includes(productId)) return;
+  const n = Math.max(0, Math.min(12, Math.floor(qty || 0)));
   if (n === 0) delete state.plan[productId];
   else state.plan[productId] = n;
+  save();
 }
 
 export function makeCakes() {
-  if (state.phase !== 'playing') return { ok: false, msg: '游戏已经结束了' };
+  if (state.phase !== 'playing' || state.dayPhase !== 'prep') return { ok: false, msg: '当前不是制作阶段。' };
+  if (!state.productionResult) return { ok: false, msg: '先完成或跳过主打蛋糕小游戏。' };
   const ids = Object.keys(state.plan);
   if (!ids.length) return { ok: false, msg: '先去厨房排一下今天的产量' };
 
   const needStock = ids.reduce((a, id) => a + state.plan[id], 0);
-  if (needStock > state.stock) {
-    return { ok: false, msg: '原料不够，还差 ' + (needStock - state.stock) + ' 份' };
-  }
+  const missing = missingIngredients();
+  if (Object.keys(missing).length) return { ok: false, msg: '原料不足：' + Object.entries(missing).map(([id, qty]) => INGREDIENTS.find((item) => item.id === id).name + ' ×' + Math.ceil(qty)).join('、') };
 
   const pts = planPoints();
   if (pts > capacity.value) {
@@ -754,47 +909,94 @@ export function makeCakes() {
   const free = MOM_CAPACITY + state.staff.length * STAFF_CAPACITY + deviceValue('oven');
   const selfCost = Math.round(Math.max(0, pts - free) * (1 - deviceValue('mixer')));
 
-  state.stock -= needStock;
+  for (const id of ids) {
+    for (let n = 0; n < state.plan[id]; n++) consumeRecipe(id, 1);
+  }
   state.stamina = Math.max(0, state.stamina - selfCost);
   for (const id of ids) {
     state.shelf[id] = (state.shelf[id] || 0) + state.plan[id];
     state.dayMade += state.plan[id];
     state.levels[id] = Math.min(5, (state.levels[id] || 1) + state.plan[id] * 0.02);
+    state.batches.push({
+      id: 'b' + state.dayIndex + '-' + id + '-' + state.batches.length,
+      product: id,
+      qty: state.plan[id],
+      quality: id === state.productionResult.product ? state.productionResult.quality : 'normal',
+      decoration: id === state.productionResult.product ? state.productionResult.decoration : null,
+    });
   }
   log('做了 ' + needStock + ' 个蛋糕，自己出了 ' + selfCost + ' 点体力');
   state.plan = {};
+  state.productionMini = null;
+  state.productionResult = null;
+  state.dayPhase = 'service-ready';
   save();
   return { ok: true, msg: '做好了 ' + needStock + ' 个' };
+}
+
+const PRODUCTION_GAMES = ['mix', 'oven', 'piping', 'fruit'];
+
+export function beginProductionTest() {
+  if (state.dayPhase !== 'prep' || state.productionMini || !Object.keys(state.plan).length) return false;
+  const product = Object.keys(state.plan).sort((a, b) => state.plan[b] - state.plan[a])[0];
+  state.productionMini = {
+    type: PRODUCTION_GAMES[Math.floor(Math.random() * PRODUCTION_GAMES.length)],
+    product,
+    window: 58 + Math.floor(Math.random() * 20),
+    pattern: Math.floor(Math.random() * 3),
+  };
+  save();
+  return true;
+}
+
+export function finishProductionTest(score = 0, skipped = false, decoration = null) {
+  const mini = state.productionMini;
+  if (!mini || state.productionResult) return { ok: false, message: '制作小游戏已结算。' };
+  const points = skipped ? 0 : Math.max(0, Math.min(100, Math.round(score)));
+  state.productionResult = {
+    product: mini.product,
+    quality: points >= 90 ? 'perfect' : points >= 70 ? 'fine' : 'normal',
+    score: points,
+    priceBonus: points >= 90 ? 0.1 : points >= 70 ? 0.05 : 0,
+    decoration,
+  };
+  state.productionMini = null;
+  save();
+  return makeCakes();
 }
 
 /* ---------------- 订单 ---------------- */
 
 export function rollOrders() {
   state.orders = [];
-  const chance = 0.35 + state.popularity / 300;
-  const count = Math.random() < chance ? (Math.random() < 0.35 ? 2 : 1) : 0;
+  const chance = Math.min(0.9, 0.55 + state.popularity / 350);
+  const count = 1 + (Math.random() < chance ? 1 : 0);
   for (let i = 0; i < count; i++) {
     const pool = availableProducts.value;
     if (!pool.length) break;
     const p = pool[Math.floor(Math.random() * pool.length)];
     const roll = Math.random();
-    const isCustom = roll < 0.28;
-    const isOnline = !isCustom && roll < 0.66;
-    const isFestival = !isCustom && !isOnline && roll < 0.75;
+    const isCustom = roll < 0.35;
+    const isOnline = !isCustom && roll < 0.68;
+    const isFestival = !isCustom && !isOnline && roll < 0.8;
     const type = isCustom ? '定制' : isOnline ? '线上' : isFestival ? '节日' : '普通';
-    const qty = isCustom ? 1 : 1 + Math.floor(Math.random() * 2);
+    const qty = isCustom ? 1 : 1 + Math.floor(Math.random() * 3);
     state.orders.push({
       id: 'o' + state.month + '-' + state.day + '-' + i,
       type,
+      customer: isCustom ? '预约顾客' : isOnline ? '线上顾客' : isFestival ? '节日顾客' : '附近顾客',
       product: p.id,
       qty,
-      pay: Math.round(priceOf(p.id) * qty * (isCustom ? 1.6 * (1 + deviceValue('packing')) : 1.25)),
+      pay: Math.round(priceOf(p.id) * qty * (isCustom ? 1.6 * (1 + deviceValue('packing')) : isOnline ? 1.25 : 1)),
+      due: isCustom ? ['粉色小花', '清爽配色', '简洁裱花'][Math.floor(Math.random() * 3)] : '',
+      blessing: isCustom ? ['生日快乐', '愿你每天都有好心情', '把今天的甜分享给你'][Math.floor(Math.random() * 3)] : '',
       taken: false,
     });
   }
 }
 
 export function takeOrder(orderId) {
+  if (state.dayPhase !== 'prep') return false;
   const o = state.orders.find((x) => x.id === orderId);
   if (!o) return false;
   o.taken = !o.taken;
@@ -804,61 +1006,284 @@ export function takeOrder(orderId) {
 
 /* ---------------- 营业 ---------------- */
 
+function batchForProduct(productId, quantity = 1) {
+  const batches = state.batches.filter((batch) => batch.product === productId && batch.qty > 0);
+  return batches.reduce((sum, batch) => sum + batch.qty, 0) >= quantity ? batches[0] : null;
+}
+
+function consumeBatchProduct(productId, quantity) {
+  const batches = state.batches.filter((item) => item.product === productId && item.qty > 0);
+  if (batches.reduce((sum, batch) => sum + batch.qty, 0) < quantity) return [{ qty: quantity, quality: 'normal' }];
+  let remaining = quantity;
+  const used = [];
+  for (const batch of batches) {
+    const amount = Math.min(remaining, batch.qty);
+    if (!amount) continue;
+    batch.qty -= amount;
+    used.push({ qty: amount, quality: batch.quality || 'normal' });
+    remaining -= amount;
+    if (!remaining) break;
+  }
+  return remaining ? [{ qty: quantity, quality: 'normal' }] : used;
+}
+
 export function openShop() {
-  if (state.phase !== 'playing') return null;
-  if (state.daySold > 0 || state.dayRev > 0) return null;
-
-  let rev = 0;
-  let sold = 0;
-  const soldMap = {};
-  const naturalSoldMap = {};
-
-  // 先交付已接的订单
-  for (const o of state.orders) {
-    if (!o.taken) continue;
-    const have = state.shelf[o.product] || 0;
-    if (have < o.qty) continue;
-    state.shelf[o.product] = have - o.qty;
-    rev += o.pay;
-    sold += o.qty;
-    soldMap[o.product] = (soldMap[o.product] || 0) + o.qty;
-    state.doneOrders += 1;
-    if (o.type === '定制') state.customOrders += 1;
-    if (o.type === '线上') state.onlineOrders += 1;
-    if (o.type === '节日') state.festivalOrders += 1;
-    state.loyalty = clamp(state.loyalty + 2);
-  }
-
-  // 再走自然客流
-  for (const id of Object.keys(state.shelf)) {
-    const have = state.shelf[id] || 0;
-    if (have <= 0) continue;
-    const n = Math.min(have, demandOf(id));
-    state.shelf[id] = have - n;
-    rev += n * priceOf(id);
-    sold += n;
-    soldMap[id] = (soldMap[id] || 0) + n;
-    naturalSoldMap[id] = (naturalSoldMap[id] || 0) + n;
-  }
-
-  recordCustomerPurchases(naturalSoldMap);
-
-  state.dayRev = rev;
-  state.daySold = sold;
-  state.monthRev += rev;
-  Object.keys(soldMap).forEach((id) => {
-    state.monthSold[id] = (state.monthSold[id] || 0) + soldMap[id];
+  if (state.phase !== 'playing' || state.dayPhase !== 'service-ready' || state.service) return null;
+  const service = { tickets: [], current: 0, unhappy: 0, startedAt: Date.now(), automationUnlocked: canAutomateService() };
+  const reservations = state.orders.filter((order) => order.taken);
+  reservations.forEach((order) => {
+    const patience = 30 + 5 * (order.qty - 1);
+    service.tickets.push({ ...order, kind: 'appointment', status: 'waiting', patience, remaining: patience, customSatisfied: true });
   });
 
-  if (sold > 0) {
+  const lv = Math.max(1, Math.min(4, state.shopLevel));
+  const ranges = [[3, 5], [5, 7], [7, 9], [9, 12]];
+  const [minimum, maximum] = ranges[lv - 1];
+  const baseTraffic = minimum + Math.floor(Math.random() * (maximum - minimum + 1));
+  const influence = Math.max(0, state.reputation - 20) / 240 + Math.max(0, state.popularity - 10) / 350 + Math.max(0, state.loyalty - 20) / 400;
+  const count = Math.max(minimum, Math.min(maximum, Math.round(baseTraffic * (1 + influence + decorationComfort.value * 0.02 + deviceValue('display')))));
+  const walkins = Math.max(1, count - reservations.length);
+  for (let i = 0; i < walkins; i++) {
+    const regular = customersToday().find((customer) => i === 0);
+    const available = availableProducts.value;
+    const product = regular ? productById(regular.product) : available[Math.floor(Math.random() * available.length)];
+    const qty = 1 + Math.floor(Math.random() * 3);
+    const patience = 30 + 5 * (qty - 1);
+    service.tickets.push({
+      id: 'visit-' + state.dayIndex + '-' + i,
+      kind: 'walkin',
+      type: regular ? '熟客' : '到店',
+      customer: regular ? regular.name : ['附近居民', '学生顾客', '路过的客人', '带孩子的家长', '年轻客人'][Math.floor(Math.random() * 5)],
+      product: product.id,
+      qty,
+      pay: priceOf(product.id) * qty,
+      clue: regular ? '我还是想买那款熟悉的蛋糕。' : customerClue(product.id),
+      due: '',
+      blessing: '',
+      status: 'waiting',
+      patience,
+      remaining: patience,
+      customSatisfied: true,
+    });
+  }
+  state.orders = [];
+  state.service = service;
+  state.dayPhase = 'service';
+  service.activeTicketId = service.tickets[0]?.id || null;
+  if (service.automationUnlocked && state.staffAssignments.auto) autoDeliverTickets();
+  save();
+  return { customers: service.tickets.length };
+}
+
+const CUSTOMER_CLUES = {
+  plain: '想吃一款奶油薄一点、味道熟悉的经典蛋糕。',
+  strawberry: '今天想买草莓酸甜口的奶油蛋糕。',
+  chocolate: '有偏浓的可可味蛋糕吗？',
+  taro: '想尝尝芋泥和脆脆夹心的搭配。',
+  matcha: '有清香的茶味吗？希望甜度低一些。',
+  mango: '想要清爽一点的芒果甜点。',
+  tiramisu: '今天想吃咖啡味和奶酪味的蛋糕。',
+  fig: '有没有放新鲜水果、奶油又轻一点的蛋糕？',
+  seasonal: '想挑一款能尝到当季水果的蛋糕。',
+  custom: '想订一份适合庆祝的精致蛋糕。',
+  festival: '最近过节，想带一份有节日气氛的点心。',
+  signature: '听说有桂花和栗子的秋日招牌。',
+};
+
+function customerClue(productId) { return CUSTOMER_CLUES[productId] || '想挑一款店里受欢迎的蛋糕。'; }
+
+export function canAutomateService() {
+  return state.shopLevel >= 3 && state.staff.filter((id) => (state.partnerSkill[id] || 1) >= 3).length >= 3;
+}
+
+function serviceWindow(service = state.service) {
+  if (!service) return [];
+  const capacity = Math.max(1, Math.min(3, state.shopLevel));
+  return service.tickets.slice(service.current, service.current + capacity)
+    .filter((ticket) => !['delivered', 'unavailable'].includes(ticket.status));
+}
+
+function activeServiceTicket(service = state.service) {
+  const window = serviceWindow(service);
+  return window.find((ticket) => ticket.id === service?.activeTicketId) || window[0] || null;
+}
+
+export function selectServiceTicket(ticketId) {
+  if (state.dayPhase !== 'service' || !state.service || !serviceWindow().some((ticket) => ticket.id === ticketId)) return false;
+  state.service.activeTicketId = ticketId;
+  save();
+  return true;
+}
+
+function advanceServiceQueue(service) {
+  while (service.current < service.tickets.length && ['delivered', 'unavailable'].includes(service.tickets[service.current].status)) service.current += 1;
+  service.activeTicketId = serviceWindow(service)[0]?.id || null;
+}
+
+export function setServiceAssignments(assignments) {
+  if (state.phase !== 'playing' || state.dayPhase !== 'prep') return false;
+  const valid = new Set(state.staff);
+  const next = { picker: null, packer: null, auto: false, ...(assignments || {}) };
+  if (next.picker && !valid.has(next.picker)) next.picker = null;
+  if (next.packer && !valid.has(next.packer)) next.packer = null;
+  if (next.picker && next.picker === next.packer) next.packer = null;
+  if (!canAutomateService()) next.auto = false;
+  state.staffAssignments = next;
+  save();
+  return true;
+}
+
+export function findCake(ticketId, productId, qty) {
+  if (state.dayPhase !== 'service' || !state.service) return { ok: false, message: '現在不是营业接待阶段。' };
+  const ticket = activeServiceTicket();
+  if (!ticket || ticket.id !== ticketId || ticket.status !== 'waiting') return { ok: false, message: '这位顾客的订单已在处理。' };
+  if (productId !== ticket.product) return { ok: false, message: '口味不符合顾客需求，再找找看。' };
+  if (qty !== ticket.qty) return { ok: false, message: '请按顾客的数量要求找蛋糕。' };
+  if ((state.shelf[productId] || 0) < qty) return { ok: false, message: '展示柜里的数量不够。' };
+  if (serviceWindow().filter((row) => row.status === 'searching').length >= 1 + (state.staffAssignments.picker ? 1 : 0)) return { ok: false, message: '找货工位正忙，先支援或处理另一位顾客。' };
+  const batch = batchForProduct(productId, qty);
+  if (!batch) return { ok: false, message: '展示柜里找不到这批蛋糕。' };
+  ticket.selected = productId;
+  ticket.selectedQty = qty;
+  ticket.packBatchId = batch.id;
+  ticket.findRemaining = 2 / serviceSpeed('picker');
+  ticket.status = 'searching';
+  save();
+  return { ok: true, message: '在展示柜里找蛋糕。' };
+}
+
+export function packOrder(ticketId, decoration = null, blessing = null) {
+  if (state.dayPhase !== 'service' || !state.service) return { ok: false, message: '現在不是营业接待阶段。' };
+  const ticket = activeServiceTicket();
+  if (!ticket || ticket.id !== ticketId || ticket.status !== 'found') return { ok: false, message: '先从展示柜取出正确的蛋糕。' };
+  if (ticket.type === '定制' && decoration !== ticket.due) return { ok: false, message: '装饰还没有符合预订要求。' };
+  if (ticket.type === '定制' && blessing !== ticket.blessing) return { ok: false, message: '祝福语还没有符合预订要求。' };
+  if (serviceWindow().filter((row) => row.status === 'packing').length >= 1 + (state.staffAssignments.packer ? 1 : 0)) return { ok: false, message: '打包工位正忙，先支援或处理另一位顾客。' };
+  ticket.decoration = decoration;
+  ticket.packedBlessing = blessing;
+  ticket.packRemaining = (2 + ticket.qty) * Math.max(0.6, 1 - deviceValue('packing')) / serviceSpeed('packer');
+  ticket.status = 'packing';
+  save();
+  return { ok: true, message: '开始打包。' };
+}
+
+function serviceSpeed(role) {
+  const id = state.staffAssignments && state.staffAssignments[role];
+  return id && state.staff.includes(id) ? 1 + Math.max(0, (state.partnerSkill[id] || 1) - 1) * 0.15 : 1;
+}
+
+export function advanceServiceTime(seconds = 1) {
+  if (state.dayPhase !== 'service' || !state.service) return;
+  const elapsed = Math.max(0, seconds);
+  serviceWindow().forEach((ticket) => {
+    ticket.remaining = Math.max(0, ticket.remaining - elapsed);
+    if (ticket.status === 'searching') {
+      ticket.findRemaining = Math.max(0, ticket.findRemaining - elapsed);
+      if (ticket.findRemaining === 0) ticket.status = 'found';
+    }
+    if (ticket.status === 'packing') {
+      ticket.packRemaining = Math.max(0, ticket.packRemaining - elapsed);
+      if (ticket.packRemaining === 0) ticket.status = 'ready';
+    }
+    if (ticket.remaining === 0 && !ticket.unhappy) {
+      ticket.unhappy = true;
+      state.service.unhappy += 1;
+      const lost = Math.min(0.1, Math.max(0, 0.5 - (state.dayReputationLoss || 0)));
+      state.dayReputationLoss = (state.dayReputationLoss || 0) + lost;
+      state.reputation = clamp(state.reputation - lost);
+      log(ticket.customer + '等得有些久，耐心少了一点。', 'bad');
+    }
+  });
+  if (Math.floor(Date.now() / 1000) !== state.service.lastSavedSecond) {
+    state.service.lastSavedSecond = Math.floor(Date.now() / 1000);
+    save();
+  }
+}
+
+export function deliverTicket(ticketId) {
+  if (state.dayPhase !== 'service' || !state.service) return { ok: false, message: '营业已结束。' };
+  const service = state.service;
+  const ticket = activeServiceTicket(service);
+  if (!ticket || ticket.id !== ticketId || ticket.status !== 'ready') return { ok: false, message: '蛋糕还没包好。' };
+  if ((state.shelf[ticket.product] || 0) < ticket.qty) return { ok: false, message: '展示柜里的数量不够。' };
+  const allocations = consumeBatchProduct(ticket.product, ticket.qty);
+  state.shelf[ticket.product] -= ticket.qty;
+  const unitPrice = ticket.pay / ticket.qty;
+  const revenue = Math.round(allocations.reduce((sum, item) => sum + unitPrice * item.qty * (item.quality === 'perfect' ? 1.1 : item.quality === 'fine' ? 1.05 : 1), 0));
+  state.cash += revenue;
+  state.dayRev += revenue;
+  state.monthRev += revenue;
+  state.daySold += ticket.qty;
+  state.monthSold[ticket.product] = (state.monthSold[ticket.product] || 0) + ticket.qty;
+  state.doneOrders += 1;
+  if (ticket.type === '定制') state.customOrders += 1;
+  if (ticket.type === '线上') state.onlineOrders += 1;
+  if (ticket.type === '节日') state.festivalOrders += 1;
+  if (ticket.customer === '陈奶奶' || ticket.customer === '张叔') recordCustomerPurchases({ [ticket.product]: ticket.qty });
+  state.loyalty = clamp(state.loyalty + 0.15);
+  state.popularity = clamp(state.popularity + 0.02);
+  ticket.status = 'delivered';
+  log('交付「' + productById(ticket.product).name + '」×' + ticket.qty + '，收入 ¥' + revenue + ' 已到账', 'good');
+  if (ticket.type === '定制') service.customDone = (service.customDone || 0) + 1;
+  if (state.challenge && state.challenge.type === 'new' && state.challenge.target === ticket.product) service.challengeNewSold = (service.challengeNewSold || 0) + ticket.qty;
+  advanceServiceQueue(service);
+  finishServiceIfDone();
+  save();
+  return { ok: true, message: ticket.customer + '收下了蛋糕，¥' + revenue + ' 已到账。' };
+}
+
+export function declineTicket(ticketId) {
+  const service = state.service;
+  const ticket = activeServiceTicket(service);
+  if (!ticket || ticket.id !== ticketId || state.dayPhase !== 'service') return false;
+  ticket.status = 'unavailable';
+  advanceServiceQueue(service);
+  finishServiceIfDone();
+  save();
+  return true;
+}
+
+function autoDeliverTickets() {
+  const service = state.service;
+  if (!service) return;
+  while (service.current < service.tickets.length) {
+    const ticket = service.tickets[service.current];
+    service.activeTicketId = ticket.id;
+    if ((state.shelf[ticket.product] || 0) < ticket.qty) { ticket.status = 'unavailable'; service.current += 1; continue; }
+    ticket.status = 'ready';
+    ticket.packBatchId = (batchForProduct(ticket.product, ticket.qty) || {}).id;
+    deliverTicket(ticket.id);
+  }
+  finishServiceIfDone();
+}
+
+function finishServiceIfDone() {
+  const service = state.service;
+  if (!service || service.current < service.tickets.length) return;
+  state.dayPhase = 'closing';
+  const delivered = service.tickets.filter((ticket) => ticket.status === 'delivered').length;
+  if (delivered) {
     state.reputation = clamp(state.reputation + 0.06);
     state.loyalty = clamp(state.loyalty + 0.1);
-    state.popularity = clamp(state.popularity + 0.05);
   }
-
-  log('今天卖出 ' + sold + ' 个，收入 ' + rev, sold > 0 ? 'good' : 'bad');
+  if (!state.challengeDone && state.challenge) {
+    const sold = state.daySold;
+    const left = Object.values(state.shelf).reduce((sum, qty) => sum + qty, 0);
+    const success = state.challenge.type === 'stock' ? left / Math.max(1, sold + left) <= 0.1
+      : state.challenge.type === 'new' ? (service.challengeNewSold || 0) >= 3
+        : (service.customDone || 0) > 0;
+    if (success) {
+      const bonus = Math.round(state.dayRev * 0.05);
+      state.cash += bonus;
+      state.dayRev += bonus;
+      state.monthRev += bonus;
+      log('今日经营挑战完成，额外收入 ¥' + bonus, 'good');
+    }
+    state.challengeDone = true;
+    log('今日经营挑战：' + (success ? '完成' : '未完成'), success ? 'good' : 'normal');
+  }
+  log('营业结束，完成 ' + delivered + ' / ' + service.tickets.length + ' 位顾客', 'good');
   save();
-  return { rev, sold };
 }
 
 /* ---------------- 打烊 ---------------- */
@@ -871,6 +1296,7 @@ export const LEFTOVER_MODES = {
 };
 
 export function closeDay(mode) {
+  if (state.phase !== 'playing' || state.dayPhase !== 'closing') return null;
   const m = LEFTOVER_MODES[mode] || LEFTOVER_MODES.discount;
   let left = 0;
   let value = 0;
@@ -894,12 +1320,15 @@ export function closeDay(mode) {
 
   state.dayLeft = left;
   state.shelf = {};
+  state.batches = [];
 
   const report = { day: state.day, rev: state.dayRev, sold: state.daySold, left, gain };
 
   state.dayRev = 0;
   state.daySold = 0;
   state.dayMade = 0;
+  state.dayPhase = 'report';
+  state.service = null;
 
   advanceDay();
   save();
@@ -921,6 +1350,13 @@ function startDay() {
   state.ap = state.maxAp;
   state.stamina = Math.min(state.maxStamina, state.stamina + 70);
   state.plan = {};
+  state.dayPhase = 'prep';
+  state.service = null;
+  state.productionMini = null;
+  state.productionResult = null;
+  state.dayReputationLoss = 0;
+  state.challengeDone = false;
+  startChallengeForDay();
   if (!state.shelf) state.shelf = {};
   rollOrders();
   save();
@@ -931,7 +1367,7 @@ function startDay() {
 function endMonth() {
   const fixed = monthFixedCost.value;
   state.monthCost += fixed;
-  state.cash += state.monthRev - fixed;
+  state.cash -= fixed;
 
   let warn = null;
   if (state.cash < 0) {
