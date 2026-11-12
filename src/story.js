@@ -527,7 +527,7 @@ function parseStory(md) {
   const tree = buildTree(md);
   const events = [];
   const stages = {};
-  const daily = [];
+  const friend = {};
   const codex = {};
   const cityText = {};
   const partnerEndings = {};
@@ -705,22 +705,28 @@ function parseStory(md) {
       continue;
     }
 
-    /* 附篇二：苏晴日常互动 */
+    /* 附篇二：与苏晴的每月友情互动（每月一段，按月份索引） */
     if (/^附篇二/.test(chapTitle)) {
-      let cur = null;
-      for (const raw of chapter.lines) {
-        const line = raw.trim();
-        if (!line) continue;
-        const h = line.match(/^(\d+)\.\s*\*\*【(.+?)】\*\*/);
-        if (h) {
-          cur = { id: 'DAILY_' + h[1], ids: ['DAILY_' + h[1]], title: h[2], kind: 'daily', month: null, test: null, beats: [] };
-          daily.push(cur);
-          continue;
-        }
-        if (!cur) continue;
-        const b = [];
-        pushProse(line.replace(/^[*\-]\s*/, ''), b);
-        b.forEach((x) => cur.beats.push(x));
+      for (const node of chapter.children) {
+        const m = node.text.match(/^M(\d+)\s*[｜|]\s*(.+)$/);
+        if (!m) continue;
+        const month = Number(m[1]);
+        // 「第一章互动：…」这类分组标题只是排版用，不进台词
+        const lines = node.lines.filter((l) => !/^\*\*第.+章互动/.test(l.trim()));
+        const r = parseBlock(lines, { title: m[2] });
+        const id = r.meta.ids[0] || 'EVT_FRIEND_M' + month;
+        const ev = {
+          id,
+          ids: r.meta.ids.length ? r.meta.ids : [id],
+          title: m[2],
+          chapter: '与苏晴的每月互动',
+          month,
+          kind: 'friend',
+          test: null,
+          beats: r.beats,
+        };
+        friend[month] = ev;
+        add(ev);
       }
       continue;
     }
@@ -787,7 +793,7 @@ function parseStory(md) {
 
   if (!events.length) warnings.push('没有解析出任何事件，检查 v5_0.md 是否还在根目录');
 
-  const story = { events, stages, daily, codex, cityText, partnerEndings, warnings };
+  const story = { events, stages, friend, codex, cityText, partnerEndings, warnings };
   story.find = (id) => events.find((e) => e.id === id || (e.ids || []).includes(id)) || null;
   return story;
 }
@@ -848,7 +854,7 @@ if (typeof console !== 'undefined') {
   console.log(
     '[剧情] 已加载 ' + STORY.events.length + ' 个事件（' +
       Object.keys(kinds).map((k) => k + ' ' + kinds[k]).join('，') +
-      '），日常互动 ' + STORY.daily.length + ' 段，阶段结算 ' + Object.keys(STORY.stages).length +
+      '），友情互动 ' + Object.keys(STORY.friend).length + ' 段，阶段结算 ' + Object.keys(STORY.stages).length +
       ' 组，选择 ' + choices + ' 处 / ' + options + ' 项'
   );
   if (STORY.warnings.length) STORY.warnings.forEach((w) => console.warn('[剧情] ' + w));

@@ -66,7 +66,7 @@ export function newState() {
     phase: 'playing',
     ending: null,
     acquired: false,
-    dailyIdx: 0,
+    friendMonth: 0,
     autoStory: false,
     stage: 1,
     report: null,
@@ -349,8 +349,14 @@ export function actionInfo(id) {
         note: t ? '和 ' + t + ' 聊聊，信赖 +6' : '和妈妈聊聊，家庭默契 +4',
       };
     }
-    case 'sqchat':
-      return { name: '和苏晴聊聊', ap: 1, cost: 0, note: '友情 +3，她会说点什么' };
+    case 'sqchat': {
+      const used = state.friendMonth === state.month;
+      return {
+        name: '与苏晴互动', ap: 1, cost: 0,
+        note: used ? '这个月已经聊过了' : '本月专属剧情，友情 +3',
+        disabled: used,
+      };
+    }
     case 'research':
       return { name: '新品研发', ap: 2, cost: 0, note: '选一款产品，熟练度 +1' };
     case 'market':
@@ -427,14 +433,13 @@ export function doAction(id, opt) {
       }
       break;
     case 'sqchat': {
-      const list = STORY.daily;
-      if (!list.length) break;
-      const ev = list[state.dailyIdx % list.length];
-      state.dailyIdx += 1;
+      const ev = STORY.friend[state.month];
+      if (!ev) break;
+      state.friendMonth = state.month;
       state.friendship = clamp(state.friendship + 3);
       state.autoStory = true;
       pushEvent(ev);
-      log('和苏晴聊了几句，友情 +3');
+      log('和苏晴聊了一晚，友情 +3');
       break;
     }
     case 'research': {
@@ -864,12 +869,9 @@ export function startGame() {
 
 export function finishEvent(ev) {
   const ids = ev.ids && ev.ids.length ? ev.ids : [ev.id];
-  // 日常互动允许重复，不进已播列表
-  if (ev.kind !== 'daily') {
-    ids.forEach((id) => {
-      if (!state.played.includes(id)) state.played.push(id);
-    });
-  }
+  ids.forEach((id) => {
+    if (!state.played.includes(id)) state.played.push(id);
+  });
   const got = applyRewards(ev.rewards || []);
   if (got.length) log('剧情：' + ev.title, 'story');
   save();
