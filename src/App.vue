@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { monthLabel, PARTNERS } from './data';
+import { monthLabel, PARTNERS, STAGES } from './data';
 import {
   state, queue, load, reset, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
+  skipToNextMonth, continueAfterShortEnding, startNewGamePlus,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
@@ -32,6 +33,8 @@ const tab = ref('shop');
 const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
+const endingDismissed = ref(false);
+const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
 
 function tabFromHash() {
   const h = location.hash.replace('#', '');
@@ -41,7 +44,10 @@ tab.value = tabFromHash();
 window.addEventListener('hashchange', () => (tab.value = tabFromHash()));
 
 const ending = computed(() =>
-  state.phase === 'ended' && state.ending && !queue.events.length ? state.ending : null
+  state.phase === 'ended' && state.ending && !queue.events.length && !endingDismissed.value ? state.ending : null
+);
+const canContinueStory = computed(() =>
+  devEnabled && state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
 );
 const pending = computed(() => queue.events.length);
 
@@ -70,9 +76,32 @@ function nextDay() {
 }
 
 function restart() {
-  reset();
+  if (!startNewGamePlus()) return;
   tab.value = 'shop';
+  endingDismissed.value = false;
   startGame();
+  openNext();
+}
+
+function finishRun() {
+  endingDismissed.value = true;
+}
+
+function continueStory() {
+  if (!continueAfterShortEnding()) return;
+  endingDismissed.value = false;
+  dayReport.value = null;
+  monthReport.value = null;
+  startGame();
+  openNext();
+}
+
+function devSkipMonth() {
+  if (activeEvent.value || dayReport.value) return;
+  if (!skipToNextMonth()) return;
+  activeEvent.value = null;
+  monthReport.value = null;
+  dayReport.value = null;
   openNext();
 }
 
@@ -125,6 +154,17 @@ onMounted(() => {
         <span class="small muted">{{ stageInfo.name }}</span>
         <span class="chip" style="font-size: 10px">行动力 {{ state.ap }}</span>
       </div>
+
+      <button
+        v-if="devEnabled && state.phase === 'playing'"
+        class="btn"
+        type="button"
+        style="width: 100%; margin: 0 0 10px"
+        :disabled="!!activeEvent || !!dayReport"
+        @click="devSkipMonth"
+      >
+        开发者后门 · 跳过本月
+      </button>
 
       <ShopPage v-if="tab === 'shop'" @closed="onClosed" />
       <KitchenPage v-else-if="tab === 'kitchen'" />
@@ -289,7 +329,16 @@ onMounted(() => {
           </div>
         </div>
         <div class="sheet-foot">
-          <button class="btn primary block" type="button" @click="restart">再开一次</button>
+          <button class="btn block" type="button" @click="finishRun">结束本局</button>
+          <button
+            v-if="canContinueStory"
+            class="btn block"
+            type="button"
+            @click="continueStory"
+          >
+            继续剧情
+          </button>
+          <button class="btn primary block" type="button" @click="restart">开启二周目</button>
         </div>
       </div>
     </div>

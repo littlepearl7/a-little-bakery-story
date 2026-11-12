@@ -107,6 +107,52 @@ export function productById(id) {
   return PRODUCTS.find((p) => p.id === id) || PRODUCTS[0];
 }
 
+export const RECIPE_INGREDIENTS = {
+  taro: [['荔浦芋泥', '焦糖杏仁薄脆']],
+  matcha: [['春日抹茶粉', '蜜红豆']],
+  mango: [['台农芒果泥', '轻盈慕斯']],
+  tiramisu: [['马斯卡彭', '浓缩咖啡液']],
+  fig: [['波姬红无花果', '轻奶油']],
+  seasonal: [['四季时令鲜果', '定制夹心']],
+  custom: [['双层承重胚', '手工定制裱花']],
+  festival: [['传统红曲', '节庆装饰'], ['栗蓉', '节庆装饰']],
+  signature: [['高山秋栗', '金桂冻', '戚风胚']],
+};
+
+export const DECORATIONS = [
+  { id: 'greenery', name: '窗边绿植', category: '绿植', cost: 600, shopLevel: 1 },
+  { id: 'lamp', name: '暖黄吊灯', category: '灯具', cost: 1200, shopLevel: 1 },
+  { id: 'tables', name: '木桌与藤椅', category: '桌椅', cost: 1800, shopLevel: 2 },
+  { id: 'festival', name: '节日花环', category: '节日摆件', cost: 2500, shopLevel: 3 },
+];
+
+export const CUSTOMERS = [
+  {
+    id: 'chen',
+    name: '陈奶奶',
+    month: 2,
+    day: 2,
+    product: 'plain',
+    preference: '每次都买原味奶油蛋糕，给小孙子也带一份。',
+    stories: [
+      '“我家小孙子指定要吃你们家的味道。”陈奶奶说，家里三代人的生日蛋糕全是在林记订的。',
+      '她看着林念接过店，也和苏晴一起盼着林记的老味道走出栖云镇。',
+    ],
+  },
+  {
+    id: 'zhang',
+    name: '张叔',
+    month: 28,
+    day: 4,
+    product: 'signature',
+    preference: '桂花栗子蛋糕刚上架时，总会来买一块。',
+    stories: [
+      '外婆留下的配方写着：“栗子甜则少放糖，桂花香淡则后撒。”',
+      '老街坊们怀念的，是秋天打开蛋糕盒时那股桂花与板栗香；如今，林念把它做成了招牌。',
+    ],
+  },
+];
+
 /* ---------------- 定价档位 ---------------- */
 
 export const PRICE_TIERS = {

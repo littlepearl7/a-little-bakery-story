@@ -1,9 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { art, artStatus, shopLevelInfo, monthLabel, productById, DEVICES } from '../data';
+import { art, artStatus, shopLevelInfo, monthLabel, productById, DEVICES, DECORATIONS } from '../data';
 import {
   state, capacity, openShop, closeDay, takeOrder, DAYS_PER_MONTH,
   monthFixedCost, LEFTOVER_MODES, deviceTier, deviceNext, upgradeDevice,
+  customersToday, decorationComfort, buyDecoration,
 } from '../store';
 
 const emit = defineEmits(['closed']);
@@ -38,6 +39,16 @@ const devices = computed(() =>
     };
   })
 );
+const visitors = computed(() => customersToday().map((customer) => ({
+  ...customer,
+  productName: productById(customer.product).name,
+  visit: state.regularCustomers[customer.id],
+})));
+const decorations = computed(() => DECORATIONS.map((item) => ({
+  ...item,
+  owned: state.decorations.includes(item.id),
+  available: state.shopLevel >= item.shopLevel,
+})));
 
 function pick(mode) {
   const report = closeDay(mode);
@@ -80,6 +91,19 @@ function pick(mode) {
       </div>
     </div>
 
+    <div v-if="visitors.length" class="card card-pad" style="margin-top: 12px">
+      <div class="h2">今天的常客</div>
+      <div v-for="visitor in visitors" :key="visitor.id" class="dev">
+        <div class="dev-body">
+          <div class="dev-name">{{ visitor.name }} · 想买 {{ visitor.productName }}</div>
+          <div class="dev-desc">{{ visitor.preference }}</div>
+          <div class="dev-next">
+            已买 {{ visitor.visit.purchases }} 次 · 当天自然客流卖出后计入档案
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="state.orders.length" class="card" style="margin-top: 12px">
       <div class="card-pad" style="padding-bottom: 2px">
         <div class="h2" style="margin: 0">今日订单 <span class="sub">接单后营业时优先交付</span></div>
@@ -99,6 +123,28 @@ function pick(mode) {
           @click="takeOrder(o.id)"
         >
           {{ o.taken ? '已接' : '接单' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="card card-pad" style="margin-top: 12px">
+      <div class="between" style="margin-bottom: 6px">
+        <div class="h2" style="margin: 0">店铺装饰</div>
+        <span class="small muted">舒适度 {{ decorationComfort }} / 4 · 自然客流 +{{ decorationComfort * 2 }}%</span>
+      </div>
+      <div v-for="d in decorations" :key="d.id" class="dev">
+        <div class="dev-body">
+          <div class="dev-name">{{ d.name }} <span class="chip" style="font-size: 10px">{{ d.category }}</span></div>
+          <div class="dev-desc">舒适度 +1 · 店铺等级 {{ d.shopLevel }} 解锁</div>
+        </div>
+        <button
+          class="btn"
+          type="button"
+          style="height: 34px; padding: 0 12px; font-size: 12.5px; flex: 0 0 auto"
+          :disabled="d.owned || !d.available || state.cash < d.cost || state.phase !== 'playing'"
+          @click="buyDecoration(d.id)"
+        >
+          {{ d.owned ? '已购' : !d.available ? '等级不足' : '¥' + d.cost }}
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { PRODUCTS, PHOTOS, CITIES } from '../data';
+import { PRODUCTS, PHOTOS, CITIES, CUSTOMERS, DECORATIONS, STAGES, ENDINGS } from '../data';
 import { state, priceOf } from '../store';
 import { STORY } from '../story';
 import CakeArt from '../components/CakeArt.vue';
@@ -13,6 +13,8 @@ const products = computed(() =>
     flavor: (STORY.codex[p.id] || {}).flavor || p.desc,
     hint: (STORY.codex[p.id] || {}).hint || '',
     owned: state.unlocked.includes(p.id),
+    current: state.unlocked.includes(p.id),
+    collected: state.career.products.includes(p.id),
     lv: Math.round((state.levels[p.id] || 1) * 10) / 10,
     price: priceOf(p.id),
     sold: state.monthSold[p.id] || 0,
@@ -20,7 +22,13 @@ const products = computed(() =>
 );
 
 const photos = computed(() =>
-  Object.keys(PHOTOS).map((id) => ({ id, ...PHOTOS[id], owned: state.photos.includes(id) }))
+  Object.keys(PHOTOS).map((id) => ({
+    id,
+    ...PHOTOS[id],
+    owned: state.photos.includes(id),
+    current: state.photos.includes(id),
+    collected: state.career.photos.includes(id),
+  }))
 );
 
 const cities = computed(() =>
@@ -30,6 +38,52 @@ const cities = computed(() =>
     surveyed: state.surveyed.includes(c.id),
   }))
 );
+
+const customers = computed(() => CUSTOMERS.map((customer) => ({
+  ...customer,
+  productName: PRODUCTS.find((product) => product.id === customer.product).name,
+  visit: state.regularCustomers[customer.id],
+})));
+
+const collection = computed(() => ({
+  products: PRODUCTS.map((product) => ({
+    id: product.id,
+    name: product.name,
+    collected: state.career.products.includes(product.id),
+    current: state.unlocked.includes(product.id),
+  })),
+  photos: Object.keys(PHOTOS).map((id) => ({
+    id,
+    name: PHOTOS[id].title,
+    collected: state.career.photos.includes(id),
+    current: state.photos.includes(id),
+  })),
+  decorations: DECORATIONS.map((item) => ({
+    id: item.id,
+    name: item.name,
+    collected: state.career.decorations.includes(item.id),
+    current: state.decorations.includes(item.id),
+  })),
+  endings: [
+    ...STAGES.filter((stage) => !stage.final).map((stage) => ({
+      id: stage.short.key,
+      name: stage.short.name,
+      collected: state.career.endings.includes(stage.short.key),
+      current: state.runEndings.includes(stage.short.key),
+    })),
+    ...Object.entries(ENDINGS).map(([id, ending]) => ({
+      id,
+      name: ending.name,
+      collected: state.career.endings.includes(id),
+      current: state.runEndings.includes(id),
+    })),
+  ],
+}));
+
+function collectionStatus(item) {
+  if (item.current) return '本轮已解锁';
+  return item.collected ? '已收录 · 本轮未解锁' : '尚未收录';
+}
 </script>
 
 <template>
@@ -38,8 +92,10 @@ const cities = computed(() =>
       <button
         v-for="s in [
           { k: 'product', t: '产品' },
+          { k: 'customer', t: '顾客' },
           { k: 'photo', t: '相册' },
           { k: 'city', t: '门店' },
+          { k: 'collection', t: '收藏' },
         ]"
         :key="s.k"
         type="button"
@@ -56,6 +112,7 @@ const cities = computed(() =>
         <div class="body">
           <div class="name">
             <span>{{ p.name }}</span>
+            <span class="chip" style="font-size: 10px">{{ collectionStatus(p) }}</span>
             <span v-if="p.owned" class="chip" style="font-size: 10px">Lv{{ p.lv }}</span>
           </div>
           <div class="desc">{{ p.owned ? p.flavor : '第 ' + p.month + ' 个月解锁' }}</div>
@@ -73,19 +130,20 @@ const cities = computed(() =>
       <div class="photos">
         <div v-for="p in photos" :key="p.id" class="photo">
           <div class="im">
-            <img v-if="p.owned && p.img" :src="p.img" :alt="p.title" />
-            <span v-else-if="p.owned" class="small muted">未冲印</span>
+            <img v-if="p.collected && p.img" :src="p.img" :alt="p.title" />
+            <span v-else-if="p.collected" class="small muted">未冲印</span>
             <span v-else style="font-size: 20px; opacity: 0.3">?</span>
           </div>
           <div class="cp">
-            <div class="ti">{{ p.owned ? p.title : '还没发生' }}</div>
-            <div class="cc">{{ p.owned ? p.caption : '继续经营，它会出现' }}</div>
+            <div class="ti">{{ p.collected ? p.title : '还没发生' }}</div>
+            <div class="cc">{{ p.collected ? p.caption : '继续经营，它会出现' }}</div>
+            <div class="cc">{{ collectionStatus(p) }}</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="card">
+    <div v-else-if="seg === 'city'" class="card">
       <div
         v-for="c in cities"
         :key="c.id"
@@ -103,6 +161,36 @@ const cities = computed(() =>
           <div v-if="!c.owned" class="nt">
             第 {{ c.month }} 个月可考察 · 口碑 {{ c.rep }} · 开店 ¥{{ c.cost }}
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="seg === 'customer'" class="customer-list">
+      <div v-for="customer in customers" :key="customer.id" class="card card-pad customer">
+        <div class="between">
+          <div class="h2" style="margin: 0">{{ customer.name }}</div>
+          <span class="chip" style="font-size: 10px">{{ customer.visit.purchases }} 次购买</span>
+        </div>
+        <div class="cc">每月第 {{ customer.day }} 个经营日 · {{ customer.productName }}</div>
+        <div class="cc">{{ customer.preference }}</div>
+        <div v-for="(story, i) in customer.stories" :key="i" class="customer-story">
+          <div class="small muted">{{ i === 0 ? '第一次购买' : '第三次购买' }}</div>
+          <div>{{ customer.visit.stories.includes(i) ? story : '继续经营，解锁这段回忆' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="collection">
+      <div v-for="section in [
+        { key: 'products', title: '产品' },
+        { key: 'photos', title: '相册' },
+        { key: 'decorations', title: '装饰' },
+        { key: 'endings', title: '结局' },
+      ]" :key="section.key" class="card card-pad">
+        <div class="h2">{{ section.title }}</div>
+        <div v-for="item in collection[section.key]" :key="item.id" class="between collect-row">
+          <span>{{ item.name }}</span>
+          <span class="small muted">{{ collectionStatus(item) }}</span>
         </div>
       </div>
     </div>
@@ -133,6 +221,28 @@ const cities = computed(() =>
   color: var(--caramel);
   font-weight: 600;
   box-shadow: var(--shadow);
+}
+.customer-list,
+.collection {
+  display: grid;
+  gap: 10px;
+}
+.customer .cc {
+  margin-top: 4px;
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.customer-story {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.collect-row {
+  padding: 6px 0;
+  border-top: 1px dashed var(--line);
 }
 </style>
 

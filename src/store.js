@@ -3,6 +3,7 @@
 import { reactive, computed } from 'vue';
 import {
   PRODUCTS, productById, PRICE_TIERS, CITIES, SHOP_LEVELS, PARTNERS, partnerById,
+  RECIPE_INGREDIENTS, DECORATIONS, CUSTOMERS,
   STAGES, ENDINGS, stageByMonth, shopLevelInfo, DEVICES, deviceById,
 } from './data';
 import { STORY, evalTest, PARTNER_OF } from './story';
@@ -45,6 +46,20 @@ export function newState() {
     momBond: 10,
     style: { tradition: 0, innovation: 0, efficiency: 0, community: 0 },
     orders: [],
+    decorations: [],
+    regularCustomers: {
+      chen: { purchases: 0, lastPurchaseDay: 0, stories: [] },
+      zhang: { purchases: 0, lastPurchaseDay: 0, stories: [] },
+    },
+    runEndings: [],
+    career: {
+      products: ['plain', 'strawberry', 'chocolate'],
+      photos: [],
+      decorations: [],
+      endings: [],
+      newGamePlusRuns: 0,
+    },
+    newGamePlus: false,
     doneOrders: 0,
     customOrders: 0,
     onlineOrders: 0,
@@ -118,6 +133,38 @@ export const capacity = computed(
     state.stamina + MOM_CAPACITY + state.staff.length * STAFF_CAPACITY + deviceValue('oven')
 );
 
+export const decorationComfort = computed(() => Math.min(4, state.decorations.length));
+
+export function customersToday() {
+  return CUSTOMERS.filter((customer) => state.month >= customer.month && state.day === customer.day);
+}
+
+function recordCustomerPurchases(soldByProduct) {
+  customersToday().forEach((customer) => {
+    const visit = state.regularCustomers[customer.id];
+    if (!soldByProduct[customer.product] || visit.lastPurchaseDay === state.dayIndex) return;
+
+    visit.purchases += 1;
+    visit.lastPurchaseDay = state.dayIndex;
+    const storyIndex = visit.purchases === 1 ? 0 : visit.purchases === 3 ? 1 : -1;
+    if (storyIndex >= 0 && !visit.stories.includes(storyIndex)) {
+      visit.stories.push(storyIndex);
+      log(customer.name + '和你聊起了老街坊的故事', 'story');
+    } else {
+      log(customer.name + '买走了一份' + productById(customer.product).name);
+    }
+  });
+}
+
+function productCanBeResearched(productId) {
+  const product = PRODUCTS.find((item) => item.id === productId);
+  return !!product && product.month > 0 && product.month <= state.month && !state.unlocked.includes(productId);
+}
+
+function availableRecipes() {
+  return PRODUCTS.filter((product) => productCanBeResearched(product.id));
+}
+
 function priceTier(id) {
   return PRICE_TIERS[state.prices[id] || 'std'];
 }
@@ -141,6 +188,7 @@ export function demandOf(id) {
         priceTier(id).demandMul *
         (1 + (lv - 1) * 0.06) *
         (1 + (state.storeCount - 1) * 0.7) *
+        (1 + decorationComfort.value * 0.02) *
         (1 + deviceValue('display'))
     )
   );
@@ -171,6 +219,7 @@ export function planPoints() {
 
 export function save() {
   try {
+    recordCareer();
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   } catch (e) {
     /* 隐私模式下忽略 */
@@ -184,8 +233,16 @@ export function load() {
     const data = JSON.parse(raw);
     if (data.v !== 6) return false;
     Object.keys(newState()).forEach((k) => {
-      if (data[k] !== undefined) state[k] = data[k];
+      if (data[k] !== undefined && k !== 'regularCustomers' && k !== 'career') state[k] = data[k];
     });
+    state.regularCustomers = Object.fromEntries(
+      CUSTOMERS.map((customer) => [
+        customer.id,
+        { ...newState().regularCustomers[customer.id], ...(data.regularCustomers || {})[customer.id] },
+      ])
+    );
+    state.career = { ...newState().career, ...(data.career || {}) };
+    recordCareer();
     return true;
   } catch (e) {
     return false;
@@ -193,7 +250,9 @@ export function load() {
 }
 
 export function reset() {
+  const career = { ...recordCareer() };
   Object.assign(state, newState());
+  state.career = career;
   queue.events.length = 0;
   // 开局的基线：现有三款蛋糕不算「本月新品」
   state.monthSnap = {
@@ -203,6 +262,59 @@ export function reset() {
   };
   startDay();
   save();
+}
+
+function recordCareer() {
+  const career = state.career || newState().career;
+  career.products = [...new Set([...(career.products || []), ...(state.unlocked || [])])];
+  career.photos = [...new Set([...(career.photos || []), ...(state.photos || [])])];
+  career.decorations = [...new Set([...(career.decorations || []), ...(state.decorations || [])])];
+  if (state.phase === 'ended' && state.ending && state.ending.key) {
+    state.runEndings = [...new Set([...(state.runEndings || []), state.ending.key])];
+    career.endings = [...new Set([...(career.endings || []), state.ending.key])];
+  }
+  state.career = career;
+  return career;
+}
+
+export function startNewGamePlus() {
+  if (state.phase !== 'ended' || !state.ending) return false;
+  reset();
+  state.newGamePlus = true;
+  state.career.newGamePlusRuns = (state.career.newGamePlusRuns || 0) + 1;
+  save();
+  return true;
+}
+
+export function skipToNextMonth() {
+  if (state.phase !== 'playing') return false;
+  const startingMonth = state.month;
+  while (state.month === startingMonth && state.phase === 'playing') closeDay('waste');
+  return state.month !== startingMonth;
+}
+
+export function continueAfterShortEnding() {
+  const shortEnding = STAGES.find((stage) => !stage.final && stage.short.key === (state.ending && state.ending.key));
+  if (state.phase !== 'ended' || !shortEnding) return false;
+  state.phase = 'playing';
+  state.ending = null;
+  state.stamina = state.maxStamina;
+  startDay();
+  queueStory();
+  save();
+  return true;
+}
+
+export function buyDecoration(id) {
+  const decoration = DECORATIONS.find((item) => item.id === id);
+  if (!decoration || state.phase !== 'playing' || state.decorations.includes(id)) return false;
+  if (state.shopLevel < decoration.shopLevel || state.cash < decoration.cost) return false;
+  state.cash -= decoration.cost;
+  state.monthCost += decoration.cost;
+  state.decorations.push(id);
+  log('添置了' + decoration.name + '，店铺舒适度 +1', 'good');
+  save();
+  return true;
 }
 
 /* ---------------- 日志 ---------------- */
@@ -339,13 +451,19 @@ function cdLeft(id) {
 
 export function actionInfo(id) {
   switch (id) {
-    case 'restock':
-      return { name: '原料采购', ap: 1, cost: 600, note: '原料 +' + (12 + deviceValue('warehouse')) + ' 份', disabled: state.cash < 600 };
+    case 'restock': {
+      const cost = state.newGamePlus ? 300 : 600;
+      return {
+        name: '原料采购', ap: 1, cost,
+        note: (state.newGamePlus ? '二周目优惠，' : '') + '原料 +' + (12 + deviceValue('warehouse')) + ' 份',
+        disabled: state.cash < cost,
+      };
+    }
     case 'feedback': {
       const left = cdLeft('feedback');
       return {
         name: '顾客反馈', ap: 1, cost: 0,
-        note: left > 0 ? '还要等 ' + left + ' 天' : '口碑 +1.5，忠诚 +2',
+        note: left > 0 ? '还要等 ' + left + ' 天' : '口碑 +1，忠诚 +2',
         disabled: left > 0,
       };
     }
@@ -364,8 +482,22 @@ export function actionInfo(id) {
         disabled: used,
       };
     }
-    case 'research':
-      return { name: '新品研发', ap: 2, cost: 0, note: '选一款产品，熟练度 +1' };
+    case 'recipe': {
+      const available = availableRecipes();
+      return {
+        name: '新品研发', ap: 2, cost: 0,
+        note: available.length ? '搭配食材，解锁当月新品' : '当月没有待研发的配方',
+        disabled: available.length === 0,
+      };
+    }
+    case 'research': {
+      const available = state.unlocked.filter((productId) => (state.levels[productId] || 1) < 5);
+      return {
+        name: '熟练度练习', ap: 2, cost: 0,
+        note: available.length ? '选一款产品，熟练度 +1' : '已解锁产品均达到熟练度上限',
+        disabled: available.length === 0,
+      };
+    }
     case 'market':
       return { name: '市场宣传', ap: 2, cost: 800, note: '知名度 +3，品牌 +2', disabled: state.cash < 800 };
     case 'train':
@@ -417,7 +549,7 @@ export function doAction(id, opt) {
   switch (id) {
     case 'restock': {
       const qty = 12 + deviceValue('warehouse');
-      state.cash -= 600;
+      state.cash -= info.cost;
       state.stock += qty;
       log('原料 +' + qty + ' 份');
       break;
@@ -449,8 +581,24 @@ export function doAction(id, opt) {
       log('和苏晴聊了一晚，友情 +3');
       break;
     }
+    case 'recipe': {
+      const productId = opt && opt.product;
+      const product = PRODUCTS.find((item) => item.id === productId);
+      const combinations = RECIPE_INGREDIENTS[productId];
+      const ingredients = opt && Array.isArray(opt.ingredients) ? [...new Set(opt.ingredients)].sort() : [];
+      const correct = combinations && combinations.some((combination) => {
+        const answer = [...combination].sort();
+        return answer.length === ingredients.length && answer.every((item, index) => item === ingredients[index]);
+      });
+      if (!product || !productCanBeResearched(productId) || !correct) return false;
+      state.unlocked.push(productId);
+      state.levels[productId] = 1;
+      log('研发成功，解锁「' + product.name + '」', 'good');
+      break;
+    }
     case 'research': {
       const pid = opt && opt.product ? opt.product : state.unlocked[0];
+      if (!state.unlocked.includes(pid)) return false;
       const lv = state.levels[pid] || 1;
       if (lv >= 5) return false;
       state.levels[pid] = Math.min(5, lv + 1);
@@ -598,6 +746,7 @@ export function openShop() {
   let rev = 0;
   let sold = 0;
   const soldMap = {};
+  const naturalSoldMap = {};
 
   // 先交付已接的订单
   for (const o of state.orders) {
@@ -624,7 +773,10 @@ export function openShop() {
     rev += n * priceOf(id);
     sold += n;
     soldMap[id] = (soldMap[id] || 0) + n;
+    naturalSoldMap[id] = (naturalSoldMap[id] || 0) + n;
   }
+
+  recordCustomerPurchases(naturalSoldMap);
 
   state.dayRev = rev;
   state.daySold = sold;
@@ -785,12 +937,6 @@ function endMonth() {
   state.monthSold = {};
   state.shelf = {};
 
-  PRODUCTS.forEach((p) => {
-    if (p.month > 0 && p.month <= state.month && !state.unlocked.includes(p.id)) {
-      state.unlocked.push(p.id);
-      log('新配方入手：' + p.name, 'story');
-    }
-  });
   PARTNERS.forEach((p) => {
     if (p.joinMonth === state.month) joinPartner(p.id);
   });
