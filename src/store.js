@@ -49,6 +49,7 @@ export function newState() {
     customOrders: 0,
     onlineOrders: 0,
     festivalOrders: 0,
+    monthSnap: { rep: 20, unlocked: [], skill: {} },
     helpers: 0,
     usedMomHelp: false,
     dayIndex: 1,
@@ -194,6 +195,12 @@ export function load() {
 export function reset() {
   Object.assign(state, newState());
   queue.events.length = 0;
+  // 开局的基线：现有三款蛋糕不算「本月新品」
+  state.monthSnap = {
+    rep: state.reputation,
+    unlocked: state.unlocked.slice(),
+    skill: Object.assign({}, state.partnerSkill),
+  };
   startDay();
   save();
 }
@@ -417,7 +424,7 @@ export function doAction(id, opt) {
     }
       break;
     case 'feedback':
-      state.reputation = clamp(state.reputation + 1.5);
+      state.reputation = clamp(state.reputation + 1.0);
       state.loyalty = clamp(state.loyalty + 2);
       log('认真听了顾客的意见，口碑上升');
       break;
@@ -627,7 +634,7 @@ export function openShop() {
   });
 
   if (sold > 0) {
-    state.reputation = clamp(state.reputation + 0.12);
+    state.reputation = clamp(state.reputation + 0.06);
     state.loyalty = clamp(state.loyalty + 0.1);
     state.popularity = clamp(state.popularity + 0.05);
   }
@@ -661,9 +668,12 @@ export function closeDay(mode) {
     const rate = m.cashRate > 0 ? m.cashRate + deviceValue('fridge') : 0;
     gain = Math.round(value * rate);
     state.cash += gain;
-    if (m.community) state.style.community += m.community * 0.3;
+    if (m.community) {
+      state.style.community += m.community * 0.3;
+      // 分享/留伙伴按等级给一点口碑；原来 +1/天，36 个月能白送 100 多点
+      state.reputation = clamp(state.reputation + m.community * 0.05);
+    }
   }
-  if (m.community >= 2) state.reputation = clamp(state.reputation + 1);
 
   state.dayLeft = left;
   state.shelf = {};
@@ -729,6 +739,19 @@ function endMonth() {
     }
   });
 
+  // 和月初比，看看这个月到底长进了什么
+  const snap = state.monthSnap || { rep: state.reputation, unlocked: [], skill: {} };
+  const fresh = state.unlocked.filter((id) => snap.unlocked.indexOf(id) < 0);
+  const grown = [];
+  state.staff.forEach((pid) => {
+    const before = snap.skill[pid] || 0;
+    const now = state.partnerSkill[pid] || 0;
+    if (now - before >= 0.3) {
+      const info = partnerById(pid);
+      grown.push((info ? info.nick || info.name : pid) + ' 专业 +' + (now - before).toFixed(1));
+    }
+  });
+
   state.report = {
     month: state.month,
     rev: state.monthRev,
@@ -737,6 +760,22 @@ function endMonth() {
     best: bestId ? productById(bestId).name : '—',
     bestN,
     warn,
+    // 本月新增
+    fresh: fresh.map((id) => (productById(id) || {}).name).filter(Boolean),
+    repDelta: Math.round((state.reputation - snap.rep) * 10) / 10,
+    rep: Math.round(state.reputation),
+    grown,
+    trust: Object.keys(state.partnerTrust).map((pid) => {
+      const info = partnerById(pid);
+      return { name: info ? info.nick || info.name : pid, v: Math.round(state.partnerTrust[pid] || 0) };
+    }),
+  };
+
+  // 下个月重新记基线
+  state.monthSnap = {
+    rep: state.reputation,
+    unlocked: state.unlocked.slice(),
+    skill: Object.assign({}, state.partnerSkill),
   };
 
   const finishedMonth = state.month;

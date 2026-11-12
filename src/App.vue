@@ -210,6 +210,33 @@ onMounted(() => {
               <span class="muted">最受欢迎</span>
               <span>{{ monthReport.best }}（{{ monthReport.bestN }} 个）</span>
             </div>
+            <div class="between small" style="margin-top: 6px">
+              <span class="muted">口碑</span>
+              <span>
+                {{ monthReport.rep }}
+                <em v-if="monthReport.repDelta" class="delta">
+                  {{ monthReport.repDelta > 0 ? '+' : '' }}{{ monthReport.repDelta }}
+                </em>
+              </span>
+            </div>
+
+            <div v-if="monthReport.fresh && monthReport.fresh.length" class="mrep">
+              <div class="mrep-t">这个月新上了</div>
+              <div class="mrep-b">{{ monthReport.fresh.join('、') }}</div>
+            </div>
+            <div v-if="monthReport.grown && monthReport.grown.length" class="mrep">
+              <div class="mrep-t">伙伴长进了</div>
+              <div class="mrep-b">{{ monthReport.grown.join(' · ') }}</div>
+            </div>
+            <div v-if="monthReport.trust && monthReport.trust.length" class="mrep">
+              <div class="mrep-t">信赖</div>
+              <div class="mrep-b">
+                <span v-for="(t, i) in monthReport.trust" :key="t.name">
+                  {{ i ? ' · ' : '' }}{{ t.name }} {{ t.v }}
+                </span>
+              </div>
+            </div>
+
             <p v-if="monthReport.warn" class="small" style="color: var(--berry); margin: 10px 0 0">
               {{ monthReport.warn }}
             </p>
@@ -270,6 +297,27 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.delta {
+  margin-left: 4px;
+  font-size: 11px;
+  font-style: normal;
+  color: var(--sage);
+}
+.mrep {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line-soft);
+}
+.mrep-t {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  margin-bottom: 2px;
+}
+.mrep-b {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--caramel);
+}
 .pl {
   padding: 8px 0;
   border-top: 1px dashed var(--line);
