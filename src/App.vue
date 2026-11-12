@@ -33,7 +33,8 @@ const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
-const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
+const devEnabled = new URLSearchParams(location.search).get('dev') === '1'
+  || window.matchMedia('(max-width: 600px), (pointer: coarse)').matches;
 
 const ending = computed(() =>
   state.phase === 'ended' && state.ending && !queue.events.length && !endingDismissed.value ? state.ending : null

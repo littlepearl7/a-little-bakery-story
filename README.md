@@ -48,7 +48,7 @@ npm run build
 |---|---|---|
 | `bg-<key>.webp` | `public/art/` | 10 张场景背景（720×1280 竖构图） |
 | `cg-<key>.webp` | `public/art/` | 整屏 CG，key 由文案里的 `【CG：…】` 指定 |
-| `<id>-sprite-in.webp` | `public/art/` | 店内立绘（围裙），透明底，高 1100 |
+| `<id>-sprite-in.webp` | `public/art/` | 店内场景立绘（按角色标注穿着，非员工不强制围裙），透明底，高 1100 |
 | `<id>-sprite-out.webp` | `public/art/` | 店外立绘（便装），透明底，高 1100 |
 | `<id>-face.webp` | `public/art/` | 对话头像，从立绘头部裁的 160×160 |
 | `shop-lv1..4.webp` | `public/art/` | 店铺页插画，跟着装修等级换 |
