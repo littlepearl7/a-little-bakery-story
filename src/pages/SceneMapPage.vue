@@ -146,6 +146,7 @@ const chosenInfo = computed(() => {
     const exists = state.staff.includes(selected.value.value);
     return { ap: 1, cost: 0, disabled: !exists, note: exists ? '和伙伴交流，提升信赖' : '她还没有加入林记的合作团队' };
   }
+  if (selected.value.value === 'momchat') return { ap: 1, cost: 0, disabled: false, note: '家庭默契 +4' };
   return actionInfo(selected.value.value);
 });
 function confirm() {
@@ -158,7 +159,9 @@ function confirm() {
   }
   const success = h.kind === 'partner'
     ? doAction('talk', { partner: h.value })
-    : doAction(h.value, {});
+    : h.value === 'momchat'
+      ? doAction('talk', { partner: 'mom' })
+      : doAction(h.value, {});
   if (success) {
     toast(h.label + ' · 已完成');
     selected.value = null;
