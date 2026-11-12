@@ -37,6 +37,8 @@ npm run build
 - **CG**：`**【CG：festival】**` 起、`**【CG 结束】**` 止，换场景也会自动收起
 - **对话框**：底部固定，名字旁带小头像，正文有打字机效果；点屏幕推进，点一下先出完整句
 - **顶上两个按钮**：「自动」按 1.4 秒一句往下播；「跳过」快进到下一个选项或结尾
+- **背景音乐**：程序合成的八音盒小曲（`public/audio/bgm.mp3`，53 秒循环）。第一次点屏幕响起，
+  顶栏右侧 ♪ 按钮可以随时开关
 
 **场景怎么定**：文案里写 `**【场景：店内】**` 就按它；不写就用 `src/vn.js` 里的
 `MAIN_SCENE` / `FRIEND_SCENE` 两张表（按月份查，36 + 36 条），整段剧情背景保持不变，
@@ -161,6 +163,7 @@ picture/                   ← 原始设定集与蛋糕图
 tools/crop_art.py          ← 切图脚本
 tools/cutout.py            ← 立绘去底（抠透明）
 tools/art_v2.py            ← 新素材一键转档：立绘两套 + 头像 + 背景 + 店铺插画
+tools/make_bgm.py          ← 程序化合成背景音乐（改旋律后重跑即可）
 tools/cake_art.py          ← 蛋糕产品图转 webp（含文件名映射）
 tools/grid_preview.py      ← 给原图打网格，用来量切图坐标
 tools/make-standalone.mjs  ← 生成可双击的单文件 HTML
