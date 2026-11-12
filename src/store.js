@@ -561,8 +561,12 @@ export function doAction(id, opt) {
       log('认真听了顾客的意见，口碑上升');
       break;
     case 'talk':
-      if (state.staff.length) {
+      if (opt && opt.partner === 'mom') {
+        state.momBond = clamp(state.momBond + 4);
+        log('和妈妈聊了一会儿，家庭默契 +4');
+      } else if (state.staff.length) {
         const pid = opt && opt.partner ? opt.partner : state.staff[0];
+        if (!state.staff.includes(pid)) return false;
         state.partnerTrust[pid] = clamp((state.partnerTrust[pid] || 0) + 6);
         const p = partnerById(pid);
         log('和 ' + (p ? p.nick : '伙伴') + ' 聊了很久，信赖 +6');
