@@ -161,8 +161,8 @@ const SPRITE_DEF = {
   // 下面四位还没画，文件按这个名字丢进 public/art/ 就会自动出现
   周雨桐: { file: 'xy-sprite.webp', face: 'xy-face.webp' },
   许知遥: { file: 'zy-sprite.webp', face: 'zy-face.webp' },
-  唐可欣: { file: 'kx-sprite.webp', face: 'kx-face.webp' },
-  叶清禾: { file: 'qh-sprite.webp', face: 'qh-face.webp' },
+  唐鸢: { file: 'ty-sprite.webp', face: 'ty-face.webp' },
+  叶星河: { file: 'xh-sprite.webp', face: 'xh-face.webp' },
 };
 
 export const SPRITE = SPRITE_DEF;

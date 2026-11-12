@@ -124,9 +124,9 @@ export const PARTNERS = [
     color: '#C9A9C4', issue: '不敢相信自己的想法值得被认可', skillName: '烘焙' },
   { id: 'zhiyao', name: '许知遥', nick: '知遥', role: '门店运营', joinMonth: 14,
     color: '#A9C4C9', issue: '擅长沟通，但缺乏管理信心', skillName: '运营' },
-  { id: 'kexin', name: '唐可欣', nick: '可欣', role: '资深烘焙师', joinMonth: 18,
+  { id: 'kexin', name: '唐鸢', nick: '阿鸢', role: '资深烘焙师', joinMonth: 18,
     color: '#C9B58A', issue: '太追求标准化，差点丢掉研发的热情', skillName: '研发' },
-  { id: 'qinghe', name: '叶清禾', nick: '清禾', role: '品牌设计师', joinMonth: 21,
+  { id: 'qinghe', name: '叶星河', nick: '星河', role: '品牌设计师', joinMonth: 21,
     color: '#A8B99B', issue: '创意丰富，但不擅长商业设计', skillName: '设计' },
 ];
 

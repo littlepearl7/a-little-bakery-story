@@ -27,25 +27,25 @@ const NAMES = {
   小雨: '周雨桐',
   许知遥: '许知遥',
   知遥: '许知遥',
-  唐可欣: '唐可欣',
-  可欣: '唐可欣',
-  叶清禾: '叶清禾',
-  清禾: '叶清禾',
+  唐鸢: '唐鸢',
+  阿鸢: '唐鸢',
+  叶星河: '叶星河',
+  星河: '叶星河',
   陈奶奶: '陈奶奶',
   许佳宁: '许佳宁',
   沈妍: '沈妍',
   顾客: '顾客',
 };
 
-export const PARTNER_OF = { 周雨桐: 'xiaoyu', 许知遥: 'zhiyao', 唐可欣: 'kexin', 叶清禾: 'qinghe' };
-export const PARTNER_NICK = { xiaoyu: '小雨', zhiyao: '知遥', kexin: '可欣', qinghe: '清禾' };
+export const PARTNER_OF = { 周雨桐: 'xiaoyu', 许知遥: 'zhiyao', 唐鸢: 'kexin', 叶星河: 'qinghe' };
+export const PARTNER_NICK = { xiaoyu: '小雨', zhiyao: '知遥', kexin: '阿鸢', qinghe: '星河' };
 
 const STYLE_NAME = { tradition: '传统', innovation: '创新', efficiency: '效率', community: '社区' };
 const NUM = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
 
 /** 行首是已知角色名 + 可选表情 + 少量动作描写 + 冒号 → 台词 */
 const SPEAK_RE =
-  /^(林念|苏晴|林暖|周雨桐|许知遥|唐可欣|叶清禾|陈奶奶|许佳宁|沈妍|小雨|知遥|可欣|清禾|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
+  /^(林念|苏晴|林暖|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
 
 /* ---------------- 条件 ---------------- */
 
@@ -103,7 +103,7 @@ function parseGains(text, ctxPartner) {
     out.push({ k: 'style', id: m[1], v: Number(m[2]), label: STYLE_NAME[m[1]] + ' +' + m[2] });
   }
 
-  for (const m of text.matchAll(/(小雨|知遥|可欣|清禾|周雨桐|许知遥|唐可欣|叶清禾)信赖度\s*\+\s*(\d+)/g)) {
+  for (const m of text.matchAll(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*\+\s*(\d+)/g)) {
     const name = NAMES[m[1]];
     out.push({
       k: 'trust',
@@ -113,7 +113,7 @@ function parseGains(text, ctxPartner) {
     });
   }
 
-  for (const m of text.matchAll(/(小雨|知遥|可欣|清禾|周雨桐|许知遥|唐可欣|叶清禾)?专业能力\s*\+\s*(\d+)/g)) {
+  for (const m of text.matchAll(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)?专业能力\s*\+\s*(\d+)/g)) {
     const name = m[1] ? NAMES[m[1]] : ctxPartner;
     const pid = PARTNER_OF[name];
     if (!pid) continue;
@@ -140,7 +140,7 @@ function parseCondText(text) {
   const test = {};
   let hit = false;
 
-  const t = text.match(/(小雨|知遥|可欣|清禾|周雨桐|许知遥|唐可欣|叶清禾)信赖度\s*[≥>=]+\s*(\d+)/);
+  const t = text.match(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*[≥>=]+\s*(\d+)/);
   if (t) {
     test.trust = { [PARTNER_OF[NAMES[t[1]]]]: Number(t[2]) };
     hit = true;
@@ -453,7 +453,7 @@ function parseBlock(lines, opts = {}) {
 }
 
 function guessPartner(text) {
-  const m = text.match(/(小雨|知遥|可欣|清禾|周雨桐|许知遥|唐可欣|叶清禾)/);
+  const m = text.match(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)/);
   return m ? NAMES[m[1]] : '';
 }
 
@@ -780,8 +780,8 @@ function stageOf(text, month) {
 function partnerKeyFromTitle(text) {
   if (/周雨桐|小雨/.test(text)) return 'xiaoyu';
   if (/许知遥/.test(text)) return 'zhiyao';
-  if (/唐可欣/.test(text)) return 'kexin';
-  if (/叶清禾/.test(text)) return 'qinghe';
+  if (/唐鸢/.test(text)) return 'kexin';
+  if (/叶星河/.test(text)) return 'qinghe';
   if (/林暖/.test(text)) return 'mom';
   return '';
 }
