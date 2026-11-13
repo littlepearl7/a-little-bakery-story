@@ -180,7 +180,7 @@ onMounted(() => {
   <div class="app">
     <TitleScreen v-if="!started" @enter="enterGame" />
 
-    <div v-if="started" class="topbar">
+    <div v-if="started" class="topbar game-in">
       <div class="m serif">
         {{ monthLabel(state.month) }}
         <small>第 {{ state.month }} / 36 月 · 第 {{ state.day }} / {{ DAYS_PER_MONTH }} 日</small>
@@ -191,7 +191,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="started" class="scroll scene-scroll">
+    <div v-if="started" class="scroll scene-scroll game-in">
       <div class="between scene-meta">
         <span class="small muted">{{ stageInfo.name }}</span>
         <span class="chip">行动力 {{ state.ap }} · 体力 {{ state.stamina }}</span>
@@ -426,6 +426,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.game-in {
+  animation: gameIn 0.55s ease both;
+}
+@keyframes gameIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .tut-foot {
   display: flex;
   gap: 10px;

@@ -31,12 +31,24 @@ onMounted(() => {
   if (!props.inGame && !load()) loadManualSave(false);
 });
 
+const leaving = ref(false);
+
+/** 封面淡出后再进游戏，避免硬切 */
+function leaveTo(handler) {
+  if (leaving.value) return;
+  leaving.value = true;
+  setTimeout(handler, 420);
+}
+
 function startPlay() {
-  startGame();
-  emit('enter', {});
+  leaveTo(() => {
+    startGame();
+    emit('enter', {});
+  });
 }
 
 function continueGame() {
+  if (leaving.value) return;
   if (!load()) return say('没有可继续的本地自动存档。');
   startPlay();
 }
@@ -229,7 +241,7 @@ function leaveSettings() {
 </script>
 
 <template>
-  <div v-if="!inGame" class="title-screen">
+  <div v-if="!inGame" class="title-screen" :class="{ leaving }">
     <div v-if="screen === 'cover'" class="title-frame" role="button" tabindex="0" aria-label="点击任意位置开始游戏" @click="screen = 'menu'" @keydown.enter="screen = 'menu'" @keydown.space.prevent="screen = 'menu'">
       <img :src="art('cover.webp')" alt="林记烘焙游戏封面" />
       <div class="title-prompt">点击任意位置开始游戏</div>
@@ -382,7 +394,8 @@ function leaveSettings() {
 </template>
 
 <style scoped>
-.title-screen,.save-center-mask{position:fixed;inset:0;z-index:600;background:#211810;display:grid;place-items:center;color:#593a24;font-family:inherit}
+.title-screen,.save-center-mask{position:fixed;inset:0;z-index:600;background:#211810;display:grid;place-items:center;color:#593a24;font-family:inherit;transition:opacity .42s ease}
+.title-screen.leaving{opacity:0;pointer-events:none}
 .title-frame{position:relative;width:100vw;height:100vh;max-width:56.28vh;max-height:177.68vw;overflow:hidden;background:#f7ead7;outline:none}
 @supports (height:100dvh){.title-frame{height:100dvh;max-width:56.28dvh}}
 .title-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
