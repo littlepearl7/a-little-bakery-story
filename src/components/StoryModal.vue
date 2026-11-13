@@ -61,7 +61,8 @@ const bgSrc = computed(() => bgSrcOf(bg.value));
 /** 店里穿围裙、出门换便装 */
 const wear = computed(() => wearOf(bgKey.value));
 function wearFor(who) {
-  return who === '林念' ? (state.outfit === 'bakery' ? 'in' : 'out') : wear.value;
+  if (who !== '林念' || state.outfit === 'auto') return wear.value;
+  return state.outfit === 'bakery' ? 'in' : 'out';
 }
 const flashback = computed(
   () => !!scene.value && /回忆|闪回|高中|高三|晚自习|那年|那一年/.test(scene.value.text)

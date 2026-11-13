@@ -68,7 +68,7 @@ function saveDesign() {
     <template v-else-if="section === 'wardrobe'">
       <p class="feature-help">从已解锁的服装里挑一套。换装不消耗行动力，选择会保存到本局档案。</p>
       <div class="outfit-grid">
-        <button v-for="outfit in [{ id: 'daily', title: '小镇日常', img: 'ln-sprite-out.webp' }, { id: 'bakery', title: '烘焙工作服', img: 'ln-sprite-in.webp' }]" :key="outfit.id" class="outfit" :class="{ active: state.outfit === outfit.id }" @click="run(() => ({ ok: changeOutfit(outfit.id), message: '已换上「' + outfit.title + '」。' }))">
+        <button v-for="outfit in [{ id: 'auto', title: '按场合换装', img: 'ln-sprite-in.webp' }, { id: 'daily', title: '小镇日常', img: 'ln-sprite-out.webp' }, { id: 'bakery', title: '烘焙工作服', img: 'ln-sprite-in.webp' }]" :key="outfit.id" class="outfit" :class="{ active: state.outfit === outfit.id }" @click="run(() => ({ ok: changeOutfit(outfit.id), message: '已换上「' + outfit.title + '」。' }))">
           <img :src="art(outfit.img)" :alt="outfit.title" /><span>{{ outfit.title }}</span>
         </button>
       </div>
