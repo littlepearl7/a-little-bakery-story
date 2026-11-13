@@ -19,6 +19,9 @@ import RenovationPage from './pages/RenovationPage.vue';
 import DeliveryGame from './pages/minigames/DeliveryGame.vue';
 import MarketGame from './pages/minigames/MarketGame.vue';
 import CafeGame from './pages/minigames/CafeGame.vue';
+import BakingGame from './pages/minigames/BakingGame.vue';
+import ResearchGame from './pages/minigames/ResearchGame.vue';
+import './pages/minigames/game-ui.css';
 const scene = ref('shop');
 const started = ref(false);
 const saveCenterOpen = ref(false);
@@ -27,10 +30,6 @@ const minigame = ref('');
 const activeManageSection = ref('overview');
 const activeShopSection = ref('counter');
 function openPanel(name, section = 'overview') {
-  if (typeof name === 'string' && name.indexOf('game:') === 0) {
-    minigame.value = name.slice(5);
-    return;
-  }
   if (typeof name === 'string' && name.indexOf('game:') === 0) {
     minigame.value = name.slice(5);
     return;
@@ -218,10 +217,10 @@ onMounted(() => {
             <button type="button" class="scene-panel-close" @click="closePanel">✕</button>
           </header>
           <div class="scene-panel-content">
-            <ShopPage v-if="activePanel === 'shop'" :paused="!!activeEvent" @closed="onClosed" @open-panel="openPanel" />
+            <ShopPage v-if="activePanel === 'shop'" :paused="!!activeEvent || !!minigame" @closed="onClosed" @open-panel="openPanel" />
             <RenovationPage v-else-if="activePanel === 'renovation'" />
             <SupplierPage v-else-if="activePanel === 'supplier'" />
-            <KitchenPage v-else-if="activePanel === 'kitchen'" :paused="!!activeEvent" />
+            <KitchenPage v-else-if="activePanel === 'kitchen'" :paused="!!activeEvent" @open-panel="openPanel" />
             <PartnersPage v-else-if="activePanel === 'partners'" />
             <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" @open-panel="openPanel" />
             <CodexPage v-else-if="activePanel === 'codex'" :initial-segment="activeManageSection === 'collection' ? 'collection' : 'product'" />
@@ -240,7 +239,9 @@ onMounted(() => {
       有 {{ pending }} 段剧情
     </button>
 
-    <DeliveryGame v-if="minigame === 'delivery'" @exit="minigame = ''" @done="minigame = ''" />
+    <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
+    <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />
+    <DeliveryGame v-if="minigame === 'delivery'" @exit="minigame = ''" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 

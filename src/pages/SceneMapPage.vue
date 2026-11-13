@@ -51,8 +51,9 @@ const hotspots = computed(() => {
       { id: 'door', x: shopLayout.door[0], y: shopLayout.door[1], text: '出门 →', kind: 'scene', value: 'street' },
     ],
     kitchen: [
-      { id: 'workbench', x: 49, y: 69, text: '操作台 · 排产与制作', kind: 'panel', value: 'kitchen' },
-      { id: 'lab', x: 76, y: 44, text: '实验台 · 新品研发', kind: 'panel', value: 'manage', section: 'lab' },
+      { id: 'workbench', x: 48, y: 63, text: '操作台 · 今日排产', kind: 'panel', value: 'kitchen' },
+      { id: 'baking', x: 52, y: 81, text: '开始制作 · 小游戏', kind: 'panel', value: 'game:baking' },
+      { id: 'lab', x: 76, y: 44, text: '实验台 · 配方研发', kind: 'panel', value: 'game:research' },
       { id: 'staff', x: 20, y: 39, text: '排班板 · 员工与培训', kind: 'panel', value: 'partners' },
       { id: 'back', x: 7, y: 53, text: '← 回店内', kind: 'scene', value: 'shop' },
     ],

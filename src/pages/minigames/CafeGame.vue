@@ -1,452 +1,75 @@
 <script setup>
-/**
- * 咖啡店联名：先配一份「蛋糕 + 咖啡 + 价格」的套餐，再接待三位客人。
- * 蛋糕与咖啡的风味要对得上（浓郁配浓郁、清爽配清爽），价格也不能太离谱。
- */
 import { computed, ref } from 'vue';
-import { art, artStatus, productById } from '../../data';
-import {
-  state, availableProducts, priceOf, cafeDemand, serveCafeCustomer, startCafeGame,
-} from '../../store';
+import { art, artStatus } from '../../data';
+import { state, availableProducts, priceOf, cafeDemand, serveCafeCustomer, leaveCafeCustomer, startCafeGame, displayProductName, save } from '../../store';
 import MiniShell from './MiniShell.vue';
 
-const emit = defineEmits(['exit']);
-
-const COFFEES = [
-  { id: 'americano', name: '美式', flavor: '浓郁', note: '黑巧、深烘，压得住重口味' },
-  { id: 'latte', name: '拿铁', flavor: '柔和', note: '奶香厚，和奶油系最搭' },
-  { id: 'cappuccino', name: '卡布奇诺', flavor: '柔和', note: '奶泡轻，甜度更圆润' },
-  { id: 'mocha', name: '摩卡', flavor: '浓郁', note: '巧克力底，甜感重' },
-  { id: 'iced', name: '冰咖啡', flavor: '清爽', note: '酸度明亮，适合鲜果' },
-];
-
-const CAKE_FLAVOR = {
-  plain: '柔和', strawberry: '柔和', chocolate: '浓郁', taro: '浓郁', matcha: '清爽',
-  mango: '清爽', tiramisu: '浓郁', fig: '清爽', seasonal: '清爽', custom: '柔和',
-  festival: '浓郁', signature: '浓郁',
-};
-
-const PROFIT = { 浓郁: 'bold', 柔和: 'mellow', 清爽: 'fresh' };
-
-const phase = ref('setup'); // setup | play | result
-const pickedCake = ref('');
-const pickedCoffee = ref('latte');
-const price = ref(0);
-const msg = ref('');
-const tick = ref(0);
-
-const cakes = computed(() =>
-  availableProducts.value
-    .filter((p) => (state.shelf[p.id] || 0) > 0)
-    .map((p) => ({ ...p, n: state.shelf[p.id], flavor: CAKE_FLAVOR[p.id] || '柔和' }))
-);
-
-const coffee = computed(() => COFFEES.find((c) => c.id === pickedCoffee.value) || COFFEES[1]);
-
-const pairing = computed(() => {
-  const c = cakes.value.find((x) => x.id === pickedCake.value);
-  if (!c) return null;
-  return c.flavor === coffee.value.flavor;
-});
-
-const fairMax = computed(() => {
-  if (!pickedCake.value) return 0;
-  return Math.round(priceOf(pickedCake.value) * 1.25 + 65);
-});
-
-const run = computed(() => {
-  void tick.value;
-  return state.cafeRun;
-});
-const demand = computed(() => {
-  void tick.value;
-  return cafeDemand();
-});
-const current = computed(() => {
-  const d = demand.value;
-  if (!d) return null;
-  const map = { bold: '浓郁', mellow: '柔和', fresh: '清爽' };
-  return { name: d.customer, want: map[d.profile] || '柔和' };
-});
-
-const cakeArt = (id) => (artStatus('cake-' + id + '.webp') === 'ok' ? art('cake-' + id + '.webp') : '');
-
-function pickCake(id) {
-  pickedCake.value = id;
-  if (!price.value) price.value = Math.round(priceOf(id) * 1.2 + 18);
+const emit=defineEmits(['exit']);
+const COFFEES=[{id:'americano',name:'美式咖啡',profile:'bold',note:'深烘浓香'},{id:'latte',name:'拿铁',profile:'mellow',note:'温柔奶香'},{id:'cappuccino',name:'卡布奇诺',profile:'mellow',note:'绵密奶泡'},{id:'mocha',name:'摩卡',profile:'bold',note:'巧克力香'},{id:'iced',name:'冰咖啡',profile:'fresh',note:'清爽明亮'}];
+const PROFILE={plain:'mellow',strawberry:'mellow',chocolate:'bold',taro:'bold',matcha:'fresh',mango:'fresh',tiramisu:'bold',fig:'fresh',seasonal:'fresh',custom:'mellow',festival:'bold',signature:'bold'};
+const WORDS={bold:'浓郁醇厚',mellow:'温柔奶香',fresh:'轻盈清爽'};
+const phase=ref('intro');
+const selectedCake=ref('');
+const selectedCoffee=ref('latte');
+const price=ref(0);
+const title=ref('');
+const pack=ref('奶油白礼盒');
+const message=ref('');
+const run=computed(()=>state.cafeRun);
+const demand=computed(()=>cafeDemand());
+const cakes=computed(()=>availableProducts.value.map(p=>({...p,stock:state.shelf[p.id]||0})).filter(p=>p.stock>0));
+const coffee=computed(()=>COFFEES.find(x=>x.id===selectedCoffee.value));
+const theme=computed(()=>['春日花园下午茶','夏日水果特调','秋日暖心咖啡','冬日巧克力时光'][Math.floor((state.month-1)%12/3)]);
+const paired=computed(()=>selectedCake.value && PROFILE[selectedCake.value]===coffee.value.profile);
+const fair=computed(()=>selectedCake.value?Math.round(priceOf(selectedCake.value)*1.25+65):0);
+const cakeArt=id=>artStatus(`cake-${id}.webp`)==='ok'?art(`cake-${id}.webp`):'';
+function setup(){
+  if(run.value&&!run.value.completed){phase.value='play';selectedCake.value=run.value.menu.product;selectedCoffee.value=run.value.menu.coffee;return;}
+  phase.value='setup';message.value='选择真实库存里的蛋糕，再设计咖啡、售价和包装。';
 }
-
-function start() {
-  if (!pickedCake.value) {
-    msg.value = '先选一款蛋糕。';
-    return;
-  }
-  if (!pairing.value) {
-    msg.value = '这款蛋糕和' + coffee.value.name + '的风味不搭，换一个试试。';
-    return;
-  }
-  const r = startCafeGame({ product: pickedCake.value, coffee: pickedCoffee.value, price: price.value, theme: '栖云午后' });
-  if (!r.ok) {
-    msg.value = r.message;
-    return;
-  }
-  msg.value = '';
-  phase.value = 'play';
-  tick.value += 1;
+function cake(id){selectedCake.value=id;if(!price.value)price.value=Math.round(priceOf(id)*1.2+18);}
+function begin(){
+  if(!selectedCake.value)return message.value='请先选择一款有库存的蛋糕。';
+  if(!paired.value)return message.value='口味冲突：尝试把清爽蛋糕搭配冰咖啡、浓郁蛋糕搭配美式或摩卡。';
+  if(price.value<1 || !Number.isFinite(Number(price.value)))return message.value='请输入有效套餐价格。';
+  const r=startCafeGame({product:selectedCake.value,coffee:selectedCoffee.value,price:price.value,theme:theme.value});
+  if(!r.ok)return message.value=r.message;
+  state.cafeRun.menu.name=String(title.value||`${displayProductName(selectedCake.value)}下午茶`).slice(0,20);
+  state.cafeRun.menu.packing=pack.value;
+  save();
+  phase.value='play';message.value='套餐开始营业。根据顾客口味要求，随时调整组合。';
 }
-
-function serve() {
-  const r = serveCafeCustomer();
-  msg.value = r.message || '';
-  tick.value += 1;
-  if (state.cafeRun && state.cafeRun.completed) phase.value = 'result';
+function serve(){
+  if(!selectedCake.value)return message.value='先为顾客选择蛋糕。';
+  const r=serveCafeCustomer({product:selectedCake.value,coffee:selectedCoffee.value});
+  message.value=r.message;
+  if(run.value.completed){phase.value='result';return;}
+  if(r.ok){selectedCake.value='';selectedCoffee.value='latte';}
 }
-
-const rating = computed(() => {
-  const r = run.value;
-  if (!r) return '';
-  if (r.misses === 0) return '三桌客人都吃得满意，栖木那边已经开始问下次联名了';
-  if (r.misses === 1) return '大部分客人买账，有一桌口味没对上';
-  return '风味组合还得再琢磨琢磨';
-});
+function skip(){leaveCafeCustomer();message.value='这位客人暂时没能买到喜欢的组合。';if(run.value.completed)phase.value='result';}
+function discount(){if(run.value?.menu){run.value.menu.price=Math.max(1,run.value.menu.price-10);save();message.value='本次套餐售价已下调 ¥10。';}}
 </script>
 
 <template>
-  <MiniShell
-    bg="minigame-cafe"
-    title="咖啡店联名"
-    :sub="phase === 'setup' ? '配一份套餐，再招待客人' : phase === 'play' ? '第 ' + ((run && run.customerIndex) + 1) + ' / 3 位客人' : '联名小结'"
-  >
-    <!-- 配置套餐 -->
-    <div class="panel setup" v-if="phase === 'setup'">
-      <div class="block">
-        <div class="lh">选蛋糕</div>
-        <div class="cakes">
-          <button
-            v-for="c in cakes"
-            :key="c.id"
-            type="button"
-            class="ck"
-            :class="{ on: pickedCake === c.id }"
-            @click="pickCake(c.id)"
-          >
-            <img v-if="cakeArt(c.id)" :src="cakeArt(c.id)" :alt="c.name" />
-            <span class="cn">{{ c.name }}</span>
-            <span class="cf">{{ c.flavor }} · 剩{{ c.n }}</span>
-          </button>
-          <div v-if="!cakes.length" class="empty">柜子里没有蛋糕，先去厨房做一点</div>
-        </div>
+  <MiniShell bg="minigame-cafe" title="咖啡店联名" :sub="phase==='play'?'已接待 '+(run?.customerIndex||0)+' / 3 位客人':theme" @exit="emit('exit')">
+    <div v-if="phase==='play'&&demand" class="game-banner"><b>{{demand.customer}}</b>：想要一份<b>{{WORDS[demand.profile]}}</b>的蛋糕和咖啡搭配。<br><small>今日联名收益 ¥{{run?.revenue||0}} · 客人偏好明确，请仔细搭配</small></div>
+    <div class="game-scroll">
+      <div v-if="phase==='intro'" class="game-card"><h3 class="game-title">{{theme}}</h3><p class="game-lead">和咖啡店联合设计套餐，先选蛋糕、咖啡与价格，营业时根据三位顾客的喜好重新搭配。每笔成交都会扣除店内蛋糕，并计算咖啡制作成本。</p><div class="game-stats"><span>合作经验 {{state.cafeCollab}}</span><span>可用蛋糕 {{cakes.reduce((a,b)=>a+b.stock,0)}} 份</span></div><p v-if="message" class="game-message">{{message}}</p><button class="game-btn primary" style="width:100%;margin-top:8px" type="button" @click="setup">{{run&&!run.completed?'继续联名活动':'设计联名套餐'}}</button></div>
+
+      <div v-if="phase==='setup'||phase==='play'" class="game-card"><h3 class="game-title">{{phase==='setup'?'① 设计联名组合':'挑选这位客人的套餐'}}</h3>
+        <div class="game-section">左侧蛋糕 · 来自店铺实际库存</div><div class="game-grid four"><button v-for="p in cakes" :key="p.id" type="button" class="game-btn game-tile" :class="{selected:selectedCake===p.id}" @click="cake(p.id)"><img v-if="cakeArt(p.id)" :src="cakeArt(p.id)" alt=""><span>{{displayProductName(p.id)}}</span><small>库存 {{p.stock}}</small></button></div>
+        <div class="game-section">右侧咖啡</div><div class="game-grid"><button v-for="c in COFFEES" :key="c.id" type="button" class="game-btn" :class="{selected:selectedCoffee===c.id}" @click="selectedCoffee=c.id">{{c.name}}<br><small>{{c.note}}</small></button></div>
+        <div class="game-row"><strong>中央组合区域</strong><span>{{paired?'✓ 风味协调':'尚需调整搭配'}}</span></div><div class="game-stats"><span>{{selectedCake?displayProductName(selectedCake):'尚未选蛋糕'}}</span><span>＋ {{coffee.name}}</span></div>
+        <template v-if="phase==='setup'"><div class="game-section">② 套餐命名、价格与包装</div><input class="name-input" v-model="title" maxlength="20" placeholder="套餐名称（可选）"><div class="game-row"><span>定价（建议不高于 ¥{{fair}}）</span><input class="game-number" type="number" min="1" inputmode="numeric" v-model.number="price"></div><div class="game-grid two"><button v-for="v in ['奶油白礼盒','樱花粉丝带','鼠尾草绿礼盒','焦糖色纸袋']" :key="v" type="button" class="game-btn" :class="{selected:pack===v}" @click="pack=v">{{v}}</button></div><button class="game-btn primary" style="width:100%" type="button" @click="begin">确认套餐 · 开始联名</button></template>
+        <template v-else><p class="game-lead">套餐统一售价 ¥{{run?.menu?.price}} · {{run?.menu?.packing}}。顾客口味不同，可以重新挑选蛋糕与饮品。</p><div class="game-grid"><button class="game-btn" type="button" @click="discount">售价 −¥10</button><button class="game-btn" type="button" @click="skip">本单暂不成交</button><button class="game-btn primary" type="button" @click="serve">确认组合交付</button></div></template>
       </div>
 
-      <div class="block">
-        <div class="lh">配咖啡</div>
-        <div class="coffees">
-          <button
-            v-for="c in COFFEES"
-            :key="c.id"
-            type="button"
-            class="cf-btn"
-            :class="{ on: pickedCoffee === c.id }"
-            @click="pickedCoffee = c.id"
-          >
-            <span class="t">{{ c.name }}</span>
-            <span class="f">{{ c.flavor }}</span>
-          </button>
-        </div>
-        <p class="tip">{{ coffee.note }}。蛋糕和咖啡的风味要一致才好卖。</p>
-      </div>
-
-      <div class="block">
-        <div class="lh">定价 <span class="fair">顾客能接受到 ¥{{ fairMax }}</span></div>
-        <div class="price-row">
-          <button type="button" @click="price = Math.max(1, price - 5)">−5</button>
-          <input v-model.number="price" type="number" inputmode="numeric" min="1" />
-          <button type="button" @click="price = price + 5">+5</button>
-        </div>
-      </div>
-
-      <p v-if="msg" class="msg">{{ msg }}</p>
-      <button class="op primary" type="button" @click="start">开始联名</button>
-    </div>
-
-    <!-- 接待 -->
-    <div class="panel play" v-if="phase === 'play' && current">
-      <div class="cust">
-        <div class="tag">{{ current.name }}</div>
-        <div class="bubble">来一份你们那个套餐吧，我想要{{ current.want }}一点的。</div>
-      </div>
-      <div class="menu-card">
-        <div class="m1">{{ productById(run.menu.product).name }}</div>
-        <div class="m2">+ {{ COFFEES.find((c) => c.id === run.menu.coffee).name }}</div>
-        <div class="m3">¥{{ run.menu.price }} · 已入账 ¥{{ run.revenue }}</div>
-      </div>
-      <p v-if="msg" class="msg">{{ msg }}</p>
-      <button class="op primary" type="button" @click="serve">上这份套餐</button>
-    </div>
-
-    <!-- 结算 -->
-    <div v-if="phase === 'result'" class="panel result">
-      <h3>联名结束</h3>
-      <div class="row"><span>成交</span><span>{{ (run && run.sold) || 0 }} 份</span></div>
-      <div class="row"><span>入账</span><span>¥{{ (run && run.revenue) || 0 }}</span></div>
-      <div class="row"><span>没对上</span><span>{{ (run && run.misses) || 0 }} 桌</span></div>
-      <p class="say">{{ rating }}</p>
-      <button class="op primary" type="button" @click="emit('exit')">回店里</button>
+      <div v-if="phase==='result'" class="game-card"><h3 class="game-title">联名活动结算</h3><div class="game-stats"><span>售出 {{run?.sold||0}} 套</span><span>活动收入 ¥{{run?.revenue||0}}</span><span>顾客满意 {{run?.score||0}} / 3</span><span>搭配失误 {{run?.misses||0}} 次</span><span>累计合作经验 {{state.cafeCollab}}</span><span>本月主题 {{theme}}</span></div><p class="game-lead">套餐、交易记录和营业收益已归入主游戏经营数据与收藏记录。</p><button class="game-btn primary" type="button" style="width:100%" @click="emit('exit')">返回咖啡店</button></div>
+      <div v-if="message&&phase!=='intro'" class="game-message">{{message}}</div>
     </div>
   </MiniShell>
 </template>
 
 <style scoped>
-.panel {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  width: auto;
-  max-width: calc(100% - 24px);
-  box-sizing: border-box;
-  overflow-x: hidden;
-  box-sizing: border-box;
-  bottom: 12px;
-  max-height: 84%;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.block {
-  min-width: 0;
-  overflow: hidden;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 251, 244, 0.95);
-  box-shadow: 0 6px 18px rgba(52, 32, 18, 0.16);
-}
-.lh {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-  gap: 8px;
-  min-width: 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--caramel);
-  margin-bottom: 7px;
-}
-.fair {
-  flex: 0 1 auto;
-  min-width: 0;
-  font-weight: 400;
-  font-size: 10px;
-  color: var(--ink-2);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cakes {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
-}
-.ck {
-  min-width: 0;
-  padding: 5px 3px;
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
-  background: #fffdf8;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.ck img {
-  width: 100%;
-  object-fit: contain;
-}
-.ck .cn {
-  font-size: 9px;
-  color: var(--caramel);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ck .cf {
-  font-size: 8.5px;
-  color: var(--ink-2);
-}
-.ck.on {
-  border-color: var(--caramel);
-  background: #fff2dd;
-  box-shadow: 0 0 0 2px rgba(107, 74, 52, 0.28);
-}
-.coffees {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 5px;
-}
-.cf-btn {
-  min-width: 0;
-  padding: 6px 2px;
-  border: 1px solid var(--line-soft);
-  border-radius: 9px;
-  background: #fffdf8;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-}
-.cf-btn .t {
-  font-size: 10.5px;
-  color: var(--caramel);
-}
-.cf-btn .f {
-  font-size: 8.5px;
-  color: var(--ink-2);
-}
-.cf-btn.on {
-  border-color: var(--caramel);
-  background: #fff2dd;
-}
-.tip {
-  margin: 7px 0 0;
-  font-size: 10.5px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.price-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.price-row button {
-  width: 44px;
-  height: 34px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fffdf8;
-  color: var(--caramel);
-  font-size: 13px;
-  cursor: pointer;
-}
-.price-row input {
-  flex: 1 1 0;
-  min-width: 0;
-  height: 34px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--caramel);
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fffdf8;
-}
-.op {
-  width: 100%;
-  height: 46px;
-  border: 1px solid rgba(255, 250, 242, 0.7);
-  border-radius: 13px;
-  background: rgba(255, 250, 242, 0.94);
-  color: var(--caramel);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.op.primary {
-  background: linear-gradient(180deg, #8a6244, #6b4a34);
-  color: #fff8ee;
-}
-.msg {
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(255, 246, 232, 0.96);
-  color: var(--berry);
-  font-size: 12px;
-  line-height: 1.6;
-}
-.empty {
-  grid-column: 1 / -1;
-  font-size: 12px;
-  color: var(--ink-2);
-  text-align: center;
-  padding: 10px 0;
-}
-
-.play {
-  bottom: 16px;
-  gap: 12px;
-}
-.cust {
-  align-self: flex-start;
-  width: 74%;
-  max-width: 280px;
-}
-.tag {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(107, 74, 52, 0.74);
-  color: #fffaf2;
-  font-size: 11px;
-}
-.bubble {
-  margin-top: 6px;
-  padding: 11px 13px;
-  border-radius: 14px 14px 14px 4px;
-  background: rgba(255, 252, 247, 0.96);
-  box-shadow: 0 8px 20px rgba(52, 32, 18, 0.22);
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--caramel);
-}
-.menu-card {
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255, 251, 244, 0.95);
-  text-align: center;
-  box-shadow: 0 6px 18px rgba(52, 32, 18, 0.16);
-}
-.m1 {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--caramel);
-}
-.m2 {
-  font-size: 12.5px;
-  color: var(--ink-2);
-  margin-top: 2px;
-}
-.m3 {
-  font-size: 11.5px;
-  color: var(--berry);
-  margin-top: 5px;
-}
-.result {
-  bottom: 18px;
-  padding: 16px;
-  border-radius: 16px;
-  background: #fffaf2;
-}
-.result h3 {
-  margin: 0 0 10px;
-  font-size: 16px;
-  color: var(--caramel);
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
-  color: var(--ink-2);
-}
-.say {
-  margin: 10px 0 12px;
-  font-size: 12.5px;
-  line-height: 1.7;
-  color: var(--caramel);
-}
+.name-input{box-sizing:border-box;width:100%;min-height:44px;padding:8px 10px;border:1px solid #d5b99e;border-radius:10px;background:white;color:#6b4a34}
 </style>

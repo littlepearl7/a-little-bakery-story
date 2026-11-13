@@ -56,6 +56,9 @@ export function newState() {
     service: null,
     productionMini: null,
     productionResult: null,
+    bakingRecords: [],
+    recipeNames: {},
+    marketPoints: 0,
     tutorialSeen: false,
     tutorialProgress: 0,
     marketRun: null,
@@ -154,6 +157,19 @@ export function upgradeDevice(id) {
 export const availableProducts = computed(() =>
   PRODUCTS.filter((p) => state.unlocked.includes(p.id))
 );
+
+export function displayProductName(id) {
+  return state.recipeNames?.[id] || productById(id).name;
+}
+
+export function nameResearchedRecipe(id, nickname) {
+  if (!state.unlocked.includes(id)) return false;
+  const name = String(nickname || '').trim().slice(0, 20);
+  if (!name) return false;
+  state.recipeNames = { ...(state.recipeNames || {}), [id]: name };
+  save();
+  return true;
+}
 
 export const capacity = computed(
   () =>
@@ -612,6 +628,27 @@ export function beginResearchTrial(attempt) {
   log('试做「' + product.name + '」消耗 1 点行动力和四分之一配方材料', 'story');
   save();
   return labResult(true, '试吃完成。');
+}
+
+/** 把工作台的蛋糕胚/夹心选择也纳入真实试吃分数。 */
+export function beginRecipeWorkshopTrial(attempt) {
+  const result = beginResearchTrial(attempt);
+  if (!result.ok || !state.labPending) return result;
+  const bases = { taro: '戚风', matcha: '抹茶', mango: '原味', tiramisu: '原味', fig: '戚风', seasonal: '戚风', custom: '戚风', festival: '原味', signature: '戚风' };
+  const creams = { taro: '栗子泥', matcha: '鲜奶油', mango: '鲜奶油', tiramisu: '芝士', fig: '鲜奶油', seasonal: '鲜奶油', custom: '鲜奶油', festival: '巧克力奶油', signature: '栗子泥' };
+  const okBase = attempt.base === (bases[attempt.productId] || '戚风');
+  const okCream = attempt.cream === (creams[attempt.productId] || '鲜奶油');
+  const penalty = (okBase ? 0 : 15) + (okCream ? 0 : 15);
+  const trial = state.labPending;
+  trial.score = Math.max(0, trial.score - penalty);
+  trial.passed = trial.passed && trial.score >= 75;
+  trial.refined = trial.refined && trial.score >= 90;
+  trial.base = attempt.base;
+  trial.cream = attempt.cream;
+  if (!okBase) trial.feedback.push('蛋糕胚与目标风味不够契合，试着换一种胚体。');
+  if (!okCream) trial.feedback.push('夹心与主题不够协调，试着调整奶油或夹层。');
+  save();
+  return result;
 }
 
 export function publishResearch() {
@@ -1125,8 +1162,18 @@ export function finishProductionTest(score = 0, skipped = false, decoration = nu
     decoration,
   };
   state.productionMini = null;
-  save();
-  return makeCakes();
+  const result = makeCakes();
+  if (result.ok && !skipped) {
+    const bonus = points >= 90 ? 30 : points >= 70 ? 12 : 0;
+    state.cash += bonus;
+    state.dayRev += bonus;
+    state.monthRev += bonus;
+    state.bakingRecords = [...(state.bakingRecords || []), { day: state.dayIndex, product: mini.product, score: points, bonus }].slice(-50);
+    state.levels[mini.product] = Math.min(5, (state.levels[mini.product] || 1) + points / 1000);
+    save();
+    return { ...result, bonus, score: points };
+  }
+  return result;
 }
 
 function stockedProductIds() {
@@ -1182,15 +1229,15 @@ function recordActivity(kind, run, success) {
   save();
 }
 
-export function startMarketGame() {
+export function startMarketGame(config = {}) {
   if (state.marketRun && !state.marketRun.completed) return { ok: true, resumed: true };
   if (state.dayPhase !== 'service-ready') return { ok: false, message: '先完成今天的制作，再带蛋糕去市集。' };
   if ((state.activityRecords.market || []).some((row) => row.month === state.month)) return { ok: false, message: '本月的市集活动已经结算。' };
-  const inventory = Object.fromEntries(stockedProductIds().map((id) => [id, state.shelf[id]]));
+  const inventory = Object.fromEntries(stockedProductIds().map((id) => [id, Math.min(state.shelf[id], Math.max(0, Math.floor(config.inventory?.[id] ?? state.shelf[id])))]).filter(([, qty]) => qty > 0));
   if (!Object.keys(inventory).length) return { ok: false, message: '展示柜里还没有可以带去市集的蛋糕。' };
   const demands = makeActivityDemands(5, inventory);
   state.marketRun = {
-    month: state.month, day: state.day, inventory, demands, customerIndex: 0,
+    month: state.month, day: state.day, inventory, theme: String(config.theme || '小镇甜品市集'), target: Math.ceil(demands.length * 0.6), demands, customerIndex: 0,
     sold: 0, revenue: 0, score: 0, misses: 0, completed: false, recorded: false,
   };
   save();
@@ -1214,8 +1261,9 @@ export function serveMarketCustomer(productId) {
     else save();
     return { ok: false, message: '这位顾客想要' + productById(demand.product).name + '，只好先去别的摊位看看。' };
   }
-  if ((state.shelf[productId] || 0) < demand.qty) return { ok: false, message: '这款蛋糕剩余数量不够，选择其他商品吧。' };
+  if ((state.shelf[productId] || 0) < demand.qty || (run.inventory[productId] || 0) < demand.qty) return { ok: false, message: '摊位配货不足，无法交付这么多份。' };
   const revenue = addGameRevenue(productId, demand.qty, priceOf(productId));
+  run.inventory[productId] -= demand.qty;
   run.sold += demand.qty;
   run.revenue += revenue;
   run.score += 1;
@@ -1247,7 +1295,24 @@ function finishMarketGame() {
     state.monthRev += bonus;
     run.revenue += bonus;
   }
+  if (success) state.marketPoints = (state.marketPoints || 0) + run.score * 10;
   recordActivity('market', run, success);
+}
+
+export function restockMarket(productId, qty = 1) {
+  const run = state.marketRun;
+  if (!run || run.completed || !state.unlocked.includes(productId)) return { ok: false, message: '当前无法补货。' };
+  const available = (state.shelf[productId] || 0) - (run.inventory[productId] || 0);
+  const amount = Math.max(1, Math.floor(qty));
+  if (available < amount) return { ok: false, message: '店铺没有多余的现货可调拨。' };
+  const fee = amount * 5;
+  if (state.cash < fee) return { ok: false, message: '运货费用不足。' };
+  state.cash -= fee;
+  state.monthCost += fee;
+  run.inventory[productId] = (run.inventory[productId] || 0) + amount;
+  run.misses += 0.2;
+  save();
+  return { ok: true, message: `调拨了 ${amount} 份，运费 ¥${fee}。` };
 }
 
 const COFFEE_PROFILES = { americano: 'bold', latte: 'mellow', cappuccino: 'mellow', mocha: 'bold', iced: 'fresh' };
@@ -1282,25 +1347,29 @@ export function cafeDemand() {
   return run && !run.completed ? run.customers[run.customerIndex] || null : null;
 }
 
-export function serveCafeCustomer() {
+export function serveCafeCustomer(selection = null) {
   const run = state.cafeRun;
   const demand = cafeDemand();
   if (!run || !demand || run.completed) return { ok: false, message: '本次联名已经结束。' };
-  const { product, coffee, price } = run.menu;
+  const { price } = run.menu;
+  const product = selection?.product || run.menu.product;
+  const coffee = selection?.coffee || run.menu.coffee;
+  if (!state.unlocked.includes(product) || !COFFEE_PROFILES[coffee]) return { ok: false, message: '请选择已解锁的蛋糕和咖啡。' };
   const pairing = CAKE_PROFILES[product] === COFFEE_PROFILES[coffee];
   const fairPrice = price <= Math.round(priceOf(product) * 1.25 + 65);
   const fits = pairing && fairPrice && (demand.profile === COFFEE_PROFILES[coffee] || run.menu.theme === '四季果香');
   if (!fits) {
     run.misses += 1;
-    run.customerIndex += 1;
-    if (run.customerIndex >= run.customers.length) finishCafeGame();
-    else save();
-    return { ok: false, message: !pairing ? '蛋糕与咖啡的风味没有搭好。' : !fairPrice ? '套餐价格超出这位顾客的接受范围。' : '这位顾客想要另一种风味。' };
+    save();
+    return { ok: false, message: !pairing ? '蛋糕与咖啡的风味没有搭好，再试一份。' : !fairPrice ? '套餐价格超过了顾客预算，请在下一轮调整。' : '这位顾客想要另一种风味，请换搭配。' };
   }
   if ((state.shelf[product] || 0) < 1) return { ok: false, message: '这款蛋糕售罄，无法完成联名订单。' };
   const revenue = addGameRevenue(product, 1, price);
+  state.cash -= 8;
+  state.monthCost += 8;
   run.sold += 1;
   run.revenue += revenue;
+  run.menu.lastServed = { product, coffee };
   run.score += 1;
   run.customerIndex += 1;
   if (run.customerIndex >= run.customers.length) finishCafeGame();

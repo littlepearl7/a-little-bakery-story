@@ -5,6 +5,7 @@ import { state, availableProducts, capacity, planPoints, priceOf, setPlan, begin
 import CakeArt from '../components/CakeArt.vue';
 
 const props = defineProps({ paused: { type: Boolean, default: false } });
+const emit = defineEmits(['open-panel']);
 const notice = ref('');
 const pulse = ref(0);
 const step = ref(0);
@@ -125,27 +126,11 @@ onBeforeUnmount(() => { if (animation) clearInterval(animation); });
       <div v-for="item in materials" :key="item.id" class="between small" style="margin-top:5px"><span>{{ item.name }}</span><span :class="{ missing: missing[item.id] }">{{ item.qty }} 份 · 库存 {{ state.pantry[item.id] || 0 }}{{ missing[item.id] ? ' · 缺 ' + Math.ceil(missing[item.id]) : '' }}</span></div>
     </div>
 
-    <div v-if="mini" class="card card-pad minigame">
-      <div class="between"><div class="h2" style="margin:0">主打工序 · {{ gameName(mini.type) }}</div><span class="chip">{{ productById(mini.product).name }}</span></div>
-      <template v-if="mini.type === 'mix' || mini.type === 'oven'">
-        <p class="small muted">{{ mini.type === 'mix' ? '指针进入绿色区间时停下搅拌。' : '在最佳火候区间及时出炉。' }}</p>
-        <div class="gauge"><span class="target" :style="{ left: (mini.window - 8) + '%' }"></span><i :style="{ left: pulse + '%' }"></i></div>
-        <button class="btn primary block" type="button" @click="stopTiming">停下</button>
-      </template>
-      <template v-else-if="mini.type === 'piping'">
-        <p class="small muted">按提示顺序点亮三处裱花位置。</p><div class="pattern">{{ pattern.map((value) => ['花心','左侧','右侧'][value]).join(' → ') }}</div>
-        <div class="target-buttons"><button v-for="(name,index) in ['花心','左侧','右侧']" :key="name" class="btn" type="button" @click="clickPattern(index)">{{ name }}</button></div>
-      </template>
-      <template v-else>
-        <p class="small muted">按提示顺序摆放三种鲜果。</p><div class="pattern">{{ pattern.map((value) => ['草莓','蓝莓','薄荷'][value]).join(' → ') }}</div>
-        <div class="target-buttons"><button v-for="(name,index) in ['草莓','蓝莓','薄荷']" :key="name" class="btn" type="button" @click="pickFruit(index)">{{ name }}</button></div>
-      </template>
-      <button class="btn block" style="margin-top:8px" type="button" @click="skip">跳过 · 普通品质保底</button>
-    </div>
+    <div v-if="mini" class="card card-pad compact-card"><strong>今日主打工序已准备</strong><p class="small muted">请进入独立制作页面继续完成完整的食材、搅拌、烘烤和装饰流程。</p></div>
 
     <div v-else-if="state.productionResult" class="card card-pad compact-card"><strong>本批品质：{{ qualityName }}</strong><div class="small muted">{{ state.productionResult.quality === 'normal' ? '基础品质，不影响批量成品。' : '效果已记在主打蛋糕批次中。' }}</div></div>
 
-    <button v-if="state.dayPhase === 'prep' && !mini && !state.productionResult" class="btn primary block" style="margin-top:10px" type="button" :disabled="!Object.keys(state.plan).length" @click="start">开始制作 · 随机关键工序</button>
+    <button v-if="state.dayPhase === 'prep' && !state.productionResult" class="btn primary block" style="margin-top:10px" type="button" @click="emit('open-panel', 'game:baking')">进入独立蛋糕制作小游戏 →</button>
     <button v-if="state.dayPhase === 'prep' && state.productionResult" class="btn primary block" style="margin-top:10px" type="button" :disabled="points > capacity || Object.keys(missing).length > 0" @click="makeCakes">完成今日批量制作</button>
     <button v-if="state.dayPhase === 'prep' && Object.keys(state.plan).length" class="btn block" style="margin-top:8px" type="button" @click="clearPlan">清空计划</button>
     <div v-if="state.dayPhase === 'service-ready' || state.dayPhase === 'service' || state.dayPhase === 'closing'" class="card card-pad compact-card"><div class="h2">今日成品</div><div v-for="id in Object.keys(state.shelf).filter((key) => state.shelf[key] > 0)" :key="id" class="between small"><span>{{ productById(id).name }}</span><span>{{ state.shelf[id] }} 个</span></div><div v-if="state.dayPhase === 'service-ready'" class="small muted">前往柜台开门营业。</div></div>

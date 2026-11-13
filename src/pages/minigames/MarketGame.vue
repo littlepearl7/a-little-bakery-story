@@ -1,272 +1,91 @@
 <script setup>
-/**
- * 小镇市集：把今天做好的蛋糕带到摊位上卖。
- * 顾客一位位来，点对商品就成交；点错或跳过会算一次失误。
- */
-import { computed, onMounted, ref } from 'vue';
-import { art, artStatus, productById } from '../../data';
-import {
-  state, priceOf, marketDemand, serveMarketCustomer, leaveMarketCustomer, startMarketGame,
-} from '../../store';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { art, artStatus } from '../../data';
+import { state, availableProducts, priceOf, marketDemand, serveMarketCustomer, leaveMarketCustomer, startMarketGame, restockMarket, displayProductName, save } from '../../store';
 import MiniShell from './MiniShell.vue';
 
-const emit = defineEmits(['exit']);
+const emit=defineEmits(['exit']);
+const phase=ref('intro');
+const message=ref('');
+const alloc=ref({});
+const stand=ref(['','','']);
+const chosen=ref('');
+const remaining=ref(90);
+let clock;
+const run=computed(()=>state.marketRun);
+const demand=computed(()=>marketDemand());
+const goods=computed(()=>Object.entries(run.value?.inventory||{}).map(([id,qty])=>({id,qty,price:priceOf(id)})));
+const restockable=computed(()=>goods.value.filter(g=>(state.shelf[g.id]||0)>g.qty));
+const cakes=computed(()=>availableProducts.value.filter(p=>(state.shelf[p.id]||0)>0));
+const theme=computed(()=>['春日甜品市集','夏日水果节','秋日丰收集市','冬日暖心甜品节'][Math.floor((state.month-1)%12/3)]);
+const cakeArt=id=>artStatus(`cake-${id}.webp`)==='ok'?art(`cake-${id}.webp`):'';
+const sold=computed(()=>run.value?.sold||0);
+const revenue=computed(()=>run.value?.revenue||0);
+const satisfied=computed(()=>run.value?Math.round(run.value.score/Math.max(1,run.value.customerIndex)*100):100);
 
-const msg = ref('');
-const tick = ref(0); // 用来触发重算
-const phase = ref('loading'); // loading | play | result
-
-const run = computed(() => {
-  void tick.value;
-  return state.marketRun;
-});
-const demand = computed(() => {
-  void tick.value;
-  return marketDemand();
-});
-const total = computed(() => (run.value ? run.value.demands.length : 0));
-const done = computed(() => (run.value ? run.value.customerIndex : 0));
-
-/** 带去市集的商品，按剩余库存显示 */
-const goods = computed(() => {
-  void tick.value;
-  const inv = (run.value && run.value.inventory) || {};
-  return Object.keys(inv)
-    .filter((id) => (state.shelf[id] || 0) > 0)
-    .map((id) => ({
-      id,
-      name: productById(id).name,
-      price: priceOf(id),
-      left: state.shelf[id] || 0,
-    }));
-});
-
-const cakeArt = (id) => (artStatus('cake-' + id + '.webp') === 'ok' ? art('cake-' + id + '.webp') : '');
-
-function begin() {
-  const r = startMarketGame();
-  if (!r.ok) {
-    msg.value = r.message;
-    phase.value = 'result';
-    return;
-  }
-  phase.value = 'play';
-  tick.value += 1;
+function ready(){
+  if(state.marketRun&&!state.marketRun.completed){phase.value='play';startClock(true);return;}
+  phase.value='prep';
+  alloc.value=Object.fromEntries(cakes.value.map(p=>[p.id,Math.min(2,state.shelf[p.id]||0)]));
+  stand.value=['','',''];chosen.value='';
 }
-
-function sell(id) {
-  const r = serveMarketCustomer(id);
-  msg.value = r.message || '';
-  tick.value += 1;
-  if (state.marketRun && state.marketRun.completed) phase.value = 'result';
+function adjust(id,delta){alloc.value={...alloc.value,[id]:Math.max(0,Math.min(state.shelf[id]||0,(alloc.value[id]||0)+delta))};}
+function slot(i){if(!chosen.value)return message.value='先点选上方商品，再点击希望摆放的摊位位置。';stand.value[i]=chosen.value;message.value='展示位置已安排，可继续调整。';}
+function begin(){
+  const inventory=Object.fromEntries(Object.entries(alloc.value).filter(([,n])=>n>0));
+  if(!Object.keys(inventory).length)return message.value='至少带一款蛋糕去市集。';
+  if(!stand.value.some(id=>id&&inventory[id]))return message.value='先将商品布置到至少一个摊位展示位置。';
+  if(Object.keys(inventory).some(id=>!stand.value.includes(id)))return message.value='调拨的每种蛋糕都必须放到展示位置（最多三款），请调整备货。';
+  const r=startMarketGame({inventory,theme:theme.value});
+  if(!r.ok)return message.value=r.message;
+  const active=state.marketRun;
+  active.stand=stand.value.filter(id=>inventory[id]);
+  active.endsAt=Date.now()+90000;
+  save();
+  phase.value='play';message.value='市集开张！看清客人需要的口味与数量。';startClock();
 }
-
-function skip() {
-  leaveMarketCustomer();
-  msg.value = '这位客人去了别家摊位。';
-  tick.value += 1;
-  if (state.marketRun && state.marketRun.completed) phase.value = 'result';
+function startClock(resume=false){
+  clearInterval(clock);
+  if(!run.value?.endsAt){run.value.endsAt=Date.now()+90000;save();}
+  clock=setInterval(()=>{
+    remaining.value=Math.max(0,Math.ceil((run.value?.endsAt-Date.now())/1000));
+    if(remaining.value<=0){clearInterval(clock);while(state.marketRun&&!state.marketRun.completed)leaveMarketCustomer();phase.value='result';message.value='活动时间结束，收摊结算。';}
+  },250);
+  remaining.value=Math.max(0,Math.ceil((run.value.endsAt-Date.now())/1000));
+  if(resume&&remaining.value<=0){while(state.marketRun&&!state.marketRun.completed)leaveMarketCustomer();phase.value='result';}
 }
-
-const rating = computed(() => {
-  const r = run.value;
-  if (!r) return '';
-  const rate = total.value ? r.score / total.value : 0;
-  if (rate >= 0.9) return '摊位前排起了小队，今天算是打了个漂亮仗';
-  if (rate >= 0.6) return '卖得还行，几款招牌都被问到了';
-  return '有点乱，下次记得先把货摆清楚';
-});
-
-onMounted(begin);
+function sell(id){
+  if(phase.value!=='play'||!demand.value)return;
+  const r=serveMarketCustomer(id);message.value=r.message;
+  if(run.value.completed){clearInterval(clock);phase.value='result';}
+}
+function replenish(id){const r=restockMarket(id);message.value=r.message;}
+function skip(){leaveMarketCustomer();message.value='客人没有买到想要的蛋糕，满意度降低。';if(run.value.completed){clearInterval(clock);phase.value='result';}}
+onMounted(()=>{if(state.marketRun&&!state.marketRun.completed){phase.value='intro';message.value='发现上次未结束的市集，可继续营业。';}});
+onUnmounted(()=>clearInterval(clock));
 </script>
 
 <template>
-  <MiniShell
-    bg="minigame-market"
-    title="小镇市集"
-    :sub="phase === 'play' ? '第 ' + (done + 1) + ' / ' + total + ' 位客人 · 已卖 ¥' + ((run && run.revenue) || 0) : '林记摊位'"
-  >
-    <!-- 顾客 -->
-    <div class="cust" v-if="phase === 'play' && demand">
-      <div class="tag">{{ demand.customer }}</div>
-      <div class="bubble">
-        我要 <b>{{ productById(demand.product).name }}</b> × {{ demand.qty }}，还有吗？
+  <MiniShell bg="minigame-market" title="小镇市集" :sub="phase==='play'?theme+' · 剩余 '+remaining+' 秒':theme" @exit="emit('exit')">
+    <div v-if="phase==='play' && demand" class="game-banner"><b>{{demand.customer}}</b>：想买 <b>{{displayProductName(demand.product)}}</b> × {{demand.qty}} 份！<br><small>营业额 ¥{{revenue}} · 销量 {{sold}} · 满意度 {{satisfied}}%</small></div>
+    <div class="game-scroll">
+      <div v-if="phase==='intro'" class="game-card"><h3 class="game-title">{{theme}}</h3><p class="game-lead">先从店内库存调拨蛋糕，再安排摊位展示位置。开张后需要在 90 秒内接待顾客，错卖会影响满意度。</p><div class="game-stats"><span>今日货架 {{Object.values(state.shelf).reduce((a,b)=>a+b,0)}} 份</span><span>本月活动积分 {{state.marketPoints||0}}</span></div><p v-if="message" class="game-message">{{message}}</p><button class="game-btn primary" type="button" style="width:100%;margin-top:8px" @click="ready">{{run&&!run.completed?'继续市集':'准备市集商品'}}</button></div>
+
+      <div v-if="phase==='prep'" class="game-card"><h3 class="game-title">备货与布置摊位</h3><p class="game-lead">调拨数量不能超过主店真实库存。展示位置会影响实际可售商品，点击商品再点位置进行陈列。</p>
+        <div class="game-section">① 选择调拨数量</div><div v-for="p in cakes" :key="p.id" class="game-row"><span>{{displayProductName(p.id)}} · 现货 {{state.shelf[p.id]}}</span><div class="game-row"><button class="game-btn" type="button" @click="adjust(p.id,-1)">−</button><b>{{alloc[p.id]||0}}</b><button class="game-btn" type="button" @click="adjust(p.id,1)">＋</button></div></div>
+        <div class="game-section">② 选择陈列商品</div><div class="game-grid"><button v-for="p in cakes.filter(x=>alloc[x.id]>0)" :key="p.id" type="button" class="game-btn game-tile" :class="{selected:chosen===p.id}" @click="chosen=p.id"><img v-if="cakeArt(p.id)" :src="cakeArt(p.id)" alt=""><small>{{displayProductName(p.id)}}</small></button></div>
+        <div class="game-section">③ 放入三个展示位置</div><div class="game-grid"><button v-for="(id,i) in stand" :key="i" class="game-btn" type="button" @click="slot(i)">位置 {{i+1}}<br>{{id?displayProductName(id):'点击放置'}}</button></div>
+        <button class="game-btn primary" type="button" style="width:100%" @click="begin">布置完成 · 开始营业</button>
       </div>
-    </div>
 
-    <!-- 摊位商品 -->
-    <div class="stand" v-if="phase === 'play'">
-      <button v-for="g in goods" :key="g.id" type="button" class="item" @click="sell(g.id)">
-        <img v-if="cakeArt(g.id)" :src="cakeArt(g.id)" :alt="g.name" />
-        <div class="n">{{ g.name }}</div>
-        <div class="p">¥{{ g.price }} · 剩 {{ g.left }}</div>
-      </button>
-      <div v-if="!goods.length" class="empty">摊位上没货了</div>
-    </div>
+      <div v-if="phase==='play'" class="game-card"><h3 class="game-title">摊位销售 · {{run?.customerIndex+1}} / {{run?.demands.length}}</h3><p class="game-lead">按需求点击展示台上的蛋糕，系统会自动检查数量、收款并从现货扣除。</p>
+        <div class="game-grid"><button v-for="id in [...new Set(run?.stand || Object.keys(run?.inventory||{}))]" :key="id" type="button" class="game-btn game-tile" :disabled="!(run?.inventory?.[id]>0)" @click="sell(id)"><img v-if="cakeArt(id)" :src="cakeArt(id)" alt=""><span>{{displayProductName(id)}}</span><small>摊位 {{run?.inventory?.[id]||0}} 份</small></button></div>
+        <div class="game-section">补货 · 从主店调拨（运费 ¥5/份）</div><div class="game-grid"><button v-for="g in restockable" :key="g.id" class="game-btn" type="button" @click="replenish(g.id)">＋ {{displayProductName(g.id)}}</button><span v-if="!restockable.length" class="game-lead">店里没有剩余现货可调拨。</span></div>
+        <button class="game-btn" style="width:100%" type="button" @click="skip">无法满足 · 放弃这笔订单</button>
+      </div>
 
-    <div class="bar" v-if="phase === 'play'">
-      <button class="op" type="button" @click="skip">这位客人先看看别家</button>
-    </div>
-
-    <p v-if="msg && phase === 'play'" class="msg">{{ msg }}</p>
-
-    <!-- 结算 -->
-    <div v-if="phase === 'result'" class="result">
-      <h3>{{ run && run.completed ? '今天收摊了' : '还没法出摊' }}</h3>
-      <template v-if="run">
-        <div class="row"><span>卖出</span><span>{{ run.sold }} 份</span></div>
-        <div class="row"><span>收入</span><span>¥{{ run.revenue }}</span></div>
-        <div class="row"><span>错过</span><span>{{ run.misses }} 位</span></div>
-        <p class="say">{{ rating }}</p>
-      </template>
-      <p v-else class="say">{{ msg }}</p>
-      <button class="op primary" type="button" @click="emit('exit')">回店里</button>
+      <div v-if="phase==='result'" class="game-card"><h3 class="game-title">市集收摊 · {{run?.score >= (run?.target||99)?'达成目标':'继续努力'}}</h3><div class="game-stats"><span>卖出 {{sold}} 份</span><span>活动收入 ¥{{revenue}}</span><span>成交顾客 {{run?.score||0}} 位</span><span>失误 {{run?.misses||0}} 次</span><span>目标 {{run?.target||0}} 单</span><span>活动积分 {{state.marketPoints||0}}</span></div><p class="game-lead">销售与库存已同步到主店，活动记录已存入收藏系统。</p><button class="game-btn primary" style="width:100%" type="button" @click="emit('exit')">回到小镇</button></div>
+      <div v-if="message && phase!=='intro'" class="game-message">{{message}}</div>
     </div>
   </MiniShell>
 </template>
-
-<style scoped>
-.cust {
-  position: absolute;
-  left: 14px;
-  top: 13%;
-  width: 62%;
-  max-width: 260px;
-}
-.tag {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(107, 74, 52, 0.74);
-  color: #fffaf2;
-  font-size: 11px;
-}
-.bubble {
-  margin-top: 7px;
-  padding: 12px 14px;
-  border-radius: 14px 14px 14px 4px;
-  background: rgba(255, 252, 247, 0.95);
-  box-shadow: 0 8px 20px rgba(52, 32, 18, 0.24);
-  font-size: 13px;
-  line-height: 1.75;
-  color: var(--caramel);
-}
-.bubble b {
-  color: var(--berry);
-}
-
-/* 摊位桌：铺在画面中部的桌面区域 */
-.stand {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 78px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 7px;
-  max-height: 42%;
-  overflow-y: auto;
-}
-.item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  padding: 5px 3px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 11px;
-  background: rgba(255, 252, 246, 0.9);
-  box-shadow: 0 4px 12px rgba(52, 32, 18, 0.16);
-  cursor: pointer;
-}
-.item:active {
-  transform: scale(0.96);
-}
-.item img {
-  width: 100%;
-  object-fit: contain;
-}
-.item .n {
-  font-size: 9.5px;
-  color: var(--caramel);
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-.item .p {
-  font-size: 9px;
-  color: var(--ink-2);
-}
-.empty {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: #fff6e6;
-  font-size: 12px;
-  padding: 12px 0;
-}
-
-.bar {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 14px;
-}
-.op {
-  width: 100%;
-  height: 46px;
-  border: 1px solid rgba(255, 250, 242, 0.7);
-  border-radius: 13px;
-  background: rgba(255, 250, 242, 0.92);
-  color: var(--caramel);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.op.primary {
-  background: linear-gradient(180deg, #8a6244, #6b4a34);
-  color: #fff8ee;
-}
-.msg {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 70px;
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: rgba(255, 246, 232, 0.94);
-  color: var(--caramel);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.result {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 18px;
-  padding: 16px;
-  border-radius: 16px;
-  background: #fffaf2;
-}
-.result h3 {
-  margin: 0 0 10px;
-  font-size: 16px;
-  color: var(--caramel);
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
-  color: var(--ink-2);
-}
-.say {
-  margin: 10px 0 12px;
-  font-size: 12.5px;
-  line-height: 1.7;
-  color: var(--caramel);
-}
-</style>

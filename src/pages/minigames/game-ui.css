@@ -1,0 +1,27 @@
+/* 所有小游戏复用的触屏 UI；背景图仍然由 MiniShell 独立铺设。 */
+.mg .game-card{background:rgba(255,250,242,.95);border:1px solid #edd9c3;border-radius:18px;padding:14px;color:#6b4a34;box-shadow:0 8px 25px #3c281a30;box-sizing:border-box}
+.mg .game-scroll{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));max-height:min(77%,690px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:grid;gap:10px;box-sizing:border-box}
+.mg .game-title{font-weight:750;font-size:19px;line-height:1.35;margin:0 0 8px}
+.mg .game-lead{font-size:12px;line-height:1.7;color:#866b54;margin:4px 0 10px}
+.mg .game-row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:6px 0}
+.mg .game-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}
+.mg .game-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mg .game-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mg .game-btn{min-height:46px;border:1px solid #d5b99e;border-radius:12px;background:#fffaf2;color:#6b4a34;padding:8px;font:600 12px/1.45 inherit;cursor:pointer;touch-action:manipulation;overflow-wrap:anywhere}
+.mg .game-btn:active{transform:scale(.975)}
+.mg .game-btn.selected{border:2px solid #6b4a34;background:#f7e6d0;box-shadow:0 0 0 2px #b19e8055}
+.mg .game-btn.primary{background:#6b4a34;color:#fffaf2;border-color:#6b4a34;font-size:14px}
+.mg .game-btn:disabled{opacity:.42;cursor:not-allowed}
+.mg .game-banner{position:absolute;top:7%;left:12px;right:12px;background:#fffaf2f0;border-radius:15px;padding:10px 13px;box-shadow:0 6px 25px #3c281a30;color:#6b4a34;font-size:13px;line-height:1.6;max-height:20%;overflow-y:auto}
+.mg .game-message{padding:8px 10px;border-radius:10px;background:#fff0d9;color:#a14c46;font-size:12px;line-height:1.55}
+.mg .game-progress{height:12px;border-radius:99px;background:#e8d6c2;overflow:hidden;margin:9px 0}
+.mg .game-progress>i{display:block;height:100%;background:#a9b99b;transition:width .1s linear}
+.mg .game-tile{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.mg .game-tile img{width:100%;height:61px;object-fit:contain;mix-blend-mode:multiply}
+.mg .game-tile small{color:#866b54;font-size:10px}
+.mg .game-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:12px}
+.mg .game-stats span{padding:7px;background:#f9efdf;border-radius:9px}
+.mg .game-number{width:66px;min-height:42px;border:1px solid #d5b99e;border-radius:9px;background:white;color:#6b4a34;text-align:center;font-size:15px}
+.mg .game-section{font-size:13px;font-weight:750;margin:10px 0 5px;color:#6b4a34}
+.mg .game-center{text-align:center}
+@media(max-height:700px){.mg .game-scroll{max-height:73%}.mg .game-card{padding:10px}.mg .game-tile img{height:44px}}

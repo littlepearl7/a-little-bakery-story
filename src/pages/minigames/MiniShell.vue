@@ -17,7 +17,7 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
 </script>
 
 <template>
-  <div class="mg">
+  <div class="mg" role="region" :aria-label="title + '独立游戏界面'">
     <img class="mg-bg" :src="src" alt="" />
     <div class="mg-shade" />
 
@@ -47,6 +47,11 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100dvh;
+  width: 100vw;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  background: #f7e6d0;
   font-family: inherit;
 }
 .mg-bg {
@@ -80,7 +85,7 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 12px 6px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 6px;
 }
 .mg-back {
   flex: 0 0 auto;
