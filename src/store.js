@@ -923,6 +923,13 @@ export function actionInfo(id) {
         note: '门店 +1', disabled: state.cash < city.cost,
       };
     }
+    case 'coffee':
+      return {
+        name: '喝一杯手冲', ap: 0, cost: 18,
+        note: '体力 +12', disabled: state.cash < 18,
+      };
+    case 'walk':
+      return { name: '沿河散步', ap: 0, cost: 0, note: '口碑 +0.5，忠诚 +2' };
     default:
       return { name: id, ap: 1, cost: 0, note: '' };
   }
@@ -946,6 +953,16 @@ export function doAction(id, opt) {
       state.reputation = clamp(state.reputation + 1.0);
       state.loyalty = clamp(state.loyalty + 2);
       log('认真听了顾客的意见，口碑上升');
+      break;
+    case 'coffee':
+      state.cash -= 18;
+      state.stamina = Math.min(state.maxStamina, state.stamina + 12);
+      log('在栖木咖啡喝了杯手冲，体力回来了些');
+      break;
+    case 'walk':
+      state.reputation = clamp(state.reputation + 0.5);
+      state.loyalty = clamp(state.loyalty + 2);
+      log('沿河走了一圈，脑子清醒多了');
       break;
     case 'talk':
       if (opt && opt.partner === 'mom') {

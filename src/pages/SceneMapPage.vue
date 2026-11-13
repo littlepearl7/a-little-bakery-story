@@ -67,6 +67,27 @@ const hotspots = computed(() => {
       { id: 'expansion', x: 54, y: 67, text: '新店规划桌 · 城市与分店', kind: 'panel', value: 'manage', section: 'branch' },
       { id: 'exit', x: 8, y: 91, text: '← 回栖云镇', kind: 'scene', value: 'street' },
     ],
+    market: [
+      { id: 'stall', x: 48, y: 58, text: '林记摊位 · 参加市集', kind: 'panel', value: 'game:market' },
+      { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
+    ],
+    cafe: [
+      { id: 'collab', x: 52, y: 56, text: '联名活动 · 咖啡与蛋糕', kind: 'panel', value: 'game:cafe' },
+      { id: 'coffee', x: 22, y: 74, text: '喝一杯（体力 +12）', kind: 'action', value: 'coffee' },
+      { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
+    ],
+    park: [
+      { id: 'walk', x: 50, y: 66, text: '在河边走走（心情 +8）', kind: 'action', value: 'walk' },
+      { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
+    ],
+    studio: [
+      { id: 'album', x: 52, y: 60, text: '看看设计稿与相册', kind: 'panel', value: 'codex' },
+      { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
+    ],
+    school: [
+      { id: 'memories', x: 50, y: 62, text: '翻翻旧相册', kind: 'panel', value: 'codex' },
+      { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
+    ],
   };
   if (layouts[props.scene]) return layouts[props.scene];
   if (props.scene === 'home') return [{ id: 'exit', x: 10, y: 90, text: '← 出门', kind: 'scene', value: 'street' }];
