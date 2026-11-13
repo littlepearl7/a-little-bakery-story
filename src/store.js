@@ -19,7 +19,7 @@ const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
-    v: 8,
+    v: 9,
     month: 1,
     day: 1,
     cash: 12000,
@@ -56,6 +56,12 @@ export function newState() {
     service: null,
     productionMini: null,
     productionResult: null,
+    tutorialSeen: false,
+    tutorialProgress: 0,
+    marketRun: null,
+    cafeRun: null,
+    cafeCollab: 0,
+    activityRecords: { market: [], cafe: [] },
     staffAssignments: { picker: null, packer: null, auto: false },
     challenge: null,
     challengeDayIndex: 0,
@@ -73,6 +79,7 @@ export function newState() {
       decorations: [],
       endings: [],
       labReports: {},
+      activityRecords: { market: [], cafe: [] },
       newGamePlusRuns: 0,
     },
     labPending: null,
@@ -350,7 +357,7 @@ export function save() {
 }
 
 function validSaveData(data) {
-  return !!data && typeof data === 'object' && [6, 7, 8].includes(data.v) &&
+  return !!data && typeof data === 'object' && [6, 7, 8, 9].includes(data.v) &&
     Number.isInteger(Number(data.month)) && Number(data.month) >= 1 && Number(data.month) <= 36 &&
     Number.isInteger(Number(data.day)) && Number(data.day) >= 1 && Number(data.day) <= DAYS_PER_MONTH &&
     Number.isFinite(Number(data.cash)) &&
@@ -385,7 +392,7 @@ function applySaveData(data) {
   if (!validSaveData(data)) return false;
   try {
     Object.assign(state, newState());
-    const migrated = data.v !== 8;
+    const migrated = data.v !== 9;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined && k !== 'regularCustomers' && k !== 'career') state[k] = data[k];
     });
@@ -417,7 +424,7 @@ function applySaveData(data) {
       state.challenge = null;
       state.challengeDayIndex = 0;
     }
-    state.v = 8;
+    state.v = 9;
     state.pantry = state.pantry || {};
     state.legacyStock = Number(state.legacyStock || 0);
     state.batches = state.batches || [];
@@ -431,6 +438,15 @@ function applySaveData(data) {
     );
     state.career = { ...newState().career, ...(data.career || {}) };
     state.career.labReports = { ...newState().career.labReports, ...((data.career || {}).labReports || {}) };
+    state.activityRecords = { ...newState().activityRecords, ...(data.activityRecords || {}) };
+    state.activityRecords.market = state.activityRecords.market || [];
+    state.activityRecords.cafe = state.activityRecords.cafe || [];
+    state.career.activityRecords = {
+      ...newState().career.activityRecords,
+      ...((data.career || {}).activityRecords || {}),
+      market: [...new Set([...(data.career?.activityRecords?.market || []), ...state.activityRecords.market.map((row) => row.id)])],
+      cafe: [...new Set([...(data.career?.activityRecords?.cafe || []), ...state.activityRecords.cafe.map((row) => row.id)])],
+    };
     state.career.cgs = state.career.cgs || [];
     state.storyChoices = state.storyChoices || {};
     state.savedAt = Number(data.savedAt) || 0;
@@ -1095,6 +1111,209 @@ export function finishProductionTest(score = 0, skipped = false, decoration = nu
   return makeCakes();
 }
 
+function stockedProductIds() {
+  return availableProducts.value
+    .filter((product) => (state.shelf[product.id] || 0) > 0)
+    .map((product) => product.id);
+}
+
+function makeActivityDemands(count, inventory) {
+  const remaining = { ...inventory };
+  const demands = [];
+  for (let i = 0; i < count; i++) {
+    const ids = Object.keys(remaining).filter((id) => remaining[id] > 0);
+    if (!ids.length) break;
+    const product = ids[Math.floor(Math.random() * ids.length)];
+    const qty = 1 + Math.floor(Math.random() * Math.min(2, remaining[product]));
+    remaining[product] -= qty;
+    demands.push({ product, qty, customer: ['帶孩子的家長', '放學的學生', '散步的街坊', '外地遊客'][Math.floor(Math.random() * 4)] });
+  }
+  return demands;
+}
+
+function addGameRevenue(productId, quantity, unitPrice) {
+  const batches = consumeBatchProduct(productId, quantity);
+  const revenue = Math.round(batches.reduce((sum, batch) =>
+    sum + unitPrice * batch.qty * (batch.quality === 'perfect' ? 1.1 : batch.quality === 'fine' ? 1.05 : 1), 0));
+  state.shelf[productId] = Math.max(0, (state.shelf[productId] || 0) - quantity);
+  state.cash += revenue;
+  state.dayRev += revenue;
+  state.monthRev += revenue;
+  state.daySold += quantity;
+  state.monthSold[productId] = (state.monthSold[productId] || 0) + quantity;
+  if (state.challenge?.type === 'new' && state.challenge.target === productId) {
+    state.marketRun && (state.marketRun.challengeNewSold = (state.marketRun.challengeNewSold || 0) + quantity);
+    state.cafeRun && (state.cafeRun.challengeNewSold = (state.cafeRun.challengeNewSold || 0) + quantity);
+  }
+  return revenue;
+}
+
+function recordActivity(kind, run, success) {
+  if (run.recorded) return;
+  const id = kind + '-m' + run.month;
+  const record = {
+    id, month: run.month, day: run.day, sold: run.sold || 0,
+    revenue: run.revenue || 0, success, score: run.score || 0,
+    menu: run.menu || null,
+  };
+  state.activityRecords[kind] = [...(state.activityRecords[kind] || []).filter((row) => row.id !== id), record];
+  state.career.activityRecords[kind] = [...new Set([...(state.career.activityRecords[kind] || []), id])];
+  run.recorded = true;
+  run.completed = true;
+  if (kind === 'cafe') state.cafeCollab += record.sold;
+  save();
+}
+
+export function startMarketGame() {
+  if (state.marketRun && !state.marketRun.completed) return { ok: true, resumed: true };
+  if (state.dayPhase !== 'service-ready') return { ok: false, message: '先完成今天的制作，再带蛋糕去市集。' };
+  if ((state.activityRecords.market || []).some((row) => row.month === state.month)) return { ok: false, message: '本月的市集活动已经结算。' };
+  const inventory = Object.fromEntries(stockedProductIds().map((id) => [id, state.shelf[id]]));
+  if (!Object.keys(inventory).length) return { ok: false, message: '展示柜里还没有可以带去市集的蛋糕。' };
+  const demands = makeActivityDemands(5, inventory);
+  state.marketRun = {
+    month: state.month, day: state.day, inventory, demands, customerIndex: 0,
+    sold: 0, revenue: 0, score: 0, misses: 0, completed: false, recorded: false,
+  };
+  save();
+  return { ok: true, resumed: false };
+}
+
+export function marketDemand() {
+  const run = state.marketRun;
+  return run && !run.completed ? run.demands[run.customerIndex] || null : null;
+}
+
+export function serveMarketCustomer(productId) {
+  const run = state.marketRun;
+  const demand = marketDemand();
+  if (!run || !demand || run.completed) return { ok: false, message: '今天的市集已经结束。' };
+  if (productId !== demand.product) {
+    run.misses += 1;
+    run.customerIndex += 1;
+    const finished = run.customerIndex >= run.demands.length;
+    if (finished) finishMarketGame();
+    else save();
+    return { ok: false, message: '这位顾客想要' + productById(demand.product).name + '，只好先去别的摊位看看。' };
+  }
+  if ((state.shelf[productId] || 0) < demand.qty) return { ok: false, message: '这款蛋糕剩余数量不够，选择其他商品吧。' };
+  const revenue = addGameRevenue(productId, demand.qty, priceOf(productId));
+  run.sold += demand.qty;
+  run.revenue += revenue;
+  run.score += 1;
+  run.customerIndex += 1;
+  const finished = run.customerIndex >= run.demands.length;
+  if (finished) finishMarketGame();
+  else save();
+  return { ok: true, message: '市集成交：' + productById(productId).name + ' ×' + demand.qty + '，收入 ¥' + revenue + '。' };
+}
+
+export function leaveMarketCustomer() {
+  const run = state.marketRun;
+  if (!run || run.completed) return false;
+  run.misses += 1;
+  run.customerIndex += 1;
+  if (run.customerIndex >= run.demands.length) finishMarketGame();
+  else save();
+  return true;
+}
+
+function finishMarketGame() {
+  const run = state.marketRun;
+  if (!run || run.recorded) return;
+  const success = run.score >= Math.ceil(run.demands.length * 0.6);
+  const bonus = success ? Math.round(run.revenue * 0.05) : 0;
+  if (bonus) {
+    state.cash += bonus;
+    state.dayRev += bonus;
+    state.monthRev += bonus;
+    run.revenue += bonus;
+  }
+  recordActivity('market', run, success);
+}
+
+const COFFEE_PROFILES = { americano: 'bold', latte: 'mellow', cappuccino: 'mellow', mocha: 'bold', iced: 'fresh' };
+const CAKE_PROFILES = {
+  plain: 'mellow', strawberry: 'mellow', chocolate: 'bold', taro: 'bold', matcha: 'fresh',
+  mango: 'fresh', tiramisu: 'bold', fig: 'fresh', seasonal: 'fresh', custom: 'mellow', festival: 'bold', signature: 'bold',
+};
+const COFFEE_NAMES = { americano: '美式', latte: '拿铁', cappuccino: '卡布奇诺', mocha: '摩卡', iced: '冰咖啡' };
+
+export function startCafeGame({ product, coffee, price, theme } = {}) {
+  if (state.cafeRun && !state.cafeRun.completed) return { ok: true, resumed: true };
+  if (state.dayPhase !== 'service-ready') return { ok: false, message: '先完成今天的制作，再开始咖啡联名。' };
+  if ((state.activityRecords.cafe || []).some((row) => row.month === state.month)) return { ok: false, message: '本月的咖啡联名已经结算。' };
+  if (!state.unlocked.includes(product) || !COFFEE_PROFILES[coffee]) return { ok: false, message: '请选择已上架的蛋糕和咖啡。' };
+  if ((state.shelf[product] || 0) < 1) return { ok: false, message: '展示柜里没有这款蛋糕。' };
+  const menuPrice = Math.max(1, Math.round(Number(price) || 0));
+  const coffeeProfile = COFFEE_PROFILES[coffee];
+  const alternateProfile = { mellow: 'fresh', fresh: 'bold', bold: 'mellow' }[coffeeProfile];
+  const customers = [coffeeProfile, coffeeProfile, alternateProfile].map((profile, index) => ({
+    customer: ['附近居民', '年轻客人', '咖啡爱好者'][index], profile,
+  }));
+  state.cafeRun = {
+    month: state.month, day: state.day, menu: { product, coffee, price: menuPrice, theme: String(theme || '栖云午后') },
+    customers, customerIndex: 0, sold: 0, revenue: 0, score: 0, misses: 0, completed: false, recorded: false,
+  };
+  save();
+  return { ok: true, resumed: false };
+}
+
+export function cafeDemand() {
+  const run = state.cafeRun;
+  return run && !run.completed ? run.customers[run.customerIndex] || null : null;
+}
+
+export function serveCafeCustomer() {
+  const run = state.cafeRun;
+  const demand = cafeDemand();
+  if (!run || !demand || run.completed) return { ok: false, message: '本次联名已经结束。' };
+  const { product, coffee, price } = run.menu;
+  const pairing = CAKE_PROFILES[product] === COFFEE_PROFILES[coffee];
+  const fairPrice = price <= Math.round(priceOf(product) * 1.25 + 65);
+  const fits = pairing && fairPrice && (demand.profile === COFFEE_PROFILES[coffee] || run.menu.theme === '四季果香');
+  if (!fits) {
+    run.misses += 1;
+    run.customerIndex += 1;
+    if (run.customerIndex >= run.customers.length) finishCafeGame();
+    else save();
+    return { ok: false, message: !pairing ? '蛋糕与咖啡的风味没有搭好。' : !fairPrice ? '套餐价格超出这位顾客的接受范围。' : '这位顾客想要另一种风味。' };
+  }
+  if ((state.shelf[product] || 0) < 1) return { ok: false, message: '这款蛋糕售罄，无法完成联名订单。' };
+  const revenue = addGameRevenue(product, 1, price);
+  run.sold += 1;
+  run.revenue += revenue;
+  run.score += 1;
+  run.customerIndex += 1;
+  if (run.customerIndex >= run.customers.length) finishCafeGame();
+  else save();
+  return { ok: true, message: '联名套餐交付：' + productById(product).name + ' + ' + COFFEE_NAMES[coffee] + '，收入 ¥' + revenue + '。' };
+}
+
+export function leaveCafeCustomer() {
+  const run = state.cafeRun;
+  if (!run || run.completed) return false;
+  run.misses += 1;
+  run.customerIndex += 1;
+  if (run.customerIndex >= run.customers.length) finishCafeGame();
+  else save();
+  return true;
+}
+
+function finishCafeGame() {
+  const run = state.cafeRun;
+  if (!run || run.recorded) return;
+  const success = run.score >= 2;
+  const bonus = success ? Math.round(run.revenue * 0.05) : 0;
+  if (bonus) {
+    state.cash += bonus;
+    state.dayRev += bonus;
+    state.monthRev += bonus;
+    run.revenue += bonus;
+  }
+  recordActivity('cafe', run, success);
+}
+
 /* ---------------- 订单 ---------------- */
 
 export function rollOrders() {
@@ -1113,6 +1332,7 @@ export function rollOrders() {
     const qty = isCustom ? 1 : 1 + Math.floor(Math.random() * 3);
     state.orders.push({
       id: 'o' + state.month + '-' + state.day + '-' + i,
+      orderNo: 'LJ-' + String(state.month).padStart(2, '0') + String(state.day).padStart(2, '0') + '-' + String(i + 1).padStart(2, '0'),
       type,
       customer: isCustom ? '预约顾客' : isOnline ? '线上顾客' : isFestival ? '节日顾客' : '附近顾客',
       product: p.id,
@@ -1291,7 +1511,8 @@ export function packOrder(ticketId, decoration = null, blessing = null) {
   if (serviceWindow().filter((row) => row.status === 'packing').length >= 1 + (state.staffAssignments.packer ? 1 : 0)) return { ok: false, message: '打包工位正忙，先支援或处理另一位顾客。' };
   ticket.decoration = decoration;
   ticket.packedBlessing = blessing;
-  ticket.packRemaining = (2 + ticket.qty) * Math.max(0.6, 1 - deviceValue('packing')) / serviceSpeed('packer');
+  ticket.packRemaining = 3.6;
+  ticket.packElapsed = 0;
   ticket.status = 'packing';
   save();
   return { ok: true, message: '开始打包。' };
@@ -1313,6 +1534,7 @@ export function advanceServiceTime(seconds = 1) {
     }
     if (ticket.status === 'packing') {
       ticket.packRemaining = Math.max(0, ticket.packRemaining - elapsed);
+      ticket.packElapsed = Math.min(3.6, (ticket.packElapsed || 0) + elapsed);
       if (ticket.packRemaining === 0) ticket.status = 'ready';
     }
     if (ticket.remaining === 0 && !ticket.unhappy) {
@@ -1675,6 +1897,24 @@ export function queueStory() {
   STORY.events
     .filter((ev) => ev.kind === 'style' && !state.played.includes(ev.id) && evalTest(ev.test, state))
     .forEach(pushEvent);
+}
+
+/**
+ * 新手教程：查看（T1—T6）或跳过（T7）。
+ * 无论选哪个都把 tutorialSeen 置真，不再重复询问。
+ */
+export function startTutorial(show) {
+  const list = STORY.events
+    .filter((e) => e.kind === 'tutorial')
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const pick = show
+    ? list.filter((e) => e.id !== 'EVT_TUTORIAL_SKIP')
+    : list.filter((e) => e.id === 'EVT_TUTORIAL_SKIP');
+  pick.forEach(pushEvent);
+  state.tutorialSeen = true;
+  state.tutorialProgress = show ? 1 : 0;
+  save();
+  return pick.length;
 }
 
 export function startGame() {

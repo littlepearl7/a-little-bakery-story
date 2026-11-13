@@ -81,10 +81,7 @@ const cgKey = computed(() => {
 });
 const cg = computed(() => (cgKey.value ? cgOf(cgKey.value) : null));
 
-/**
- * 台上只站一个人：谁在说话就站谁。
- * 旁白时保留上一位开口的角色，不至于画面突然空掉。
- */
+/** 台上只显示当前发言者；旁白只有明确点名的角色才显示。 */
 /** 旁白里的常见称呼 → 角色名 */
 const NICKNAME = {
   念念: '林念',
@@ -99,27 +96,16 @@ const NICKNAME = {
 const cast = computed(() => {
   const can = (who) => who && SPRITE[who] && spriteReady(who, wear.value);
 
-  // 有人说话就站他
-  if (isSay.value && can(cur.value.who)) return [cur.value.who];
+  if (isSay.value) return can(cur.value.who) ? [cur.value.who] : [];
 
-  // 旁白里点了谁的名字，就让谁上台 —— 这样「林暖皱起眉」不会还站着苏晴
   const t = (cur.value && cur.value.text) || '';
-  for (const name of Object.keys(SPRITE)) {
-    if (can(name) && t.indexOf(name) >= 0) return [name];
-  }
-  for (const nick of Object.keys(NICKNAME)) {
-    if (t.indexOf(nick) >= 0 && can(NICKNAME[nick])) return [NICKNAME[nick]];
-  }
-
-  // 谁都没提到：保留上一位开口的角色，别让画面空掉
-  for (let i = idx.value; i >= 0; i--) {
-    const b = list.value[i];
-    if (b.t === 'say' && can(b.who)) return [b.who];
-  }
-  for (const b of list.value) {
-    if (b.t === 'say' && can(b.who)) return [b.who];
-  }
-  return [];
+  const names = [...Object.keys(SPRITE), '陈奶奶', '张叔', '李婶', '赵叔', '沈知夏'];
+  const mentions = names.map((name) => ({ name, at: t.indexOf(name) }))
+    .concat(Object.entries(NICKNAME).map(([nick, name]) => ({ name, at: t.indexOf(nick) })))
+    .filter((row) => row.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  const first = mentions[0];
+  return first && can(first.name) ? [first.name] : [];
 });
 
 const speaker = computed(() => (isSay.value ? cur.value.who : ''));
@@ -303,10 +289,6 @@ onUnmounted(() => {
           @click.stop="choose(o, i)"
         >
           <span class="t">{{ o.label }}</span>
-          <span class="r" v-if="o.gains && o.gains.length">
-            {{ o.gains.map((g) => g.label).join(' · ') }}
-          </span>
-          <span class="r" v-else-if="o.hint">{{ o.hint }}</span>
         </button>
         <p v-if="cur.note" class="vn-note">{{ cur.note }}</p>
       </div>

@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { monthLabel, PARTNERS, STAGES } from './data';
 import {
   state, queue, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
-  skipToNextMonth, continueAfterShortEnding, startNewGamePlus,
+  skipToNextMonth, continueAfterShortEnding, startNewGamePlus, startTutorial,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
@@ -33,6 +33,7 @@ function closePanel() {
   activeShopSection.value = 'counter';
 }
 const activeEvent = ref(null);
+const askTutorial = ref(false);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
@@ -77,7 +78,18 @@ function doneEvent() {
   save();
   // 本月还有剧情就接着演；跨月/旧月的留给「有 N 段剧情」角标，不打断经营
   const next = queue.events[0];
-  if (next && next.month === state.month) setTimeout(openNext, 200);
+  if (next && (next.month === state.month || next.kind === 'tutorial')) setTimeout(openNext, 200);
+
+  // 序幕之后问一次要不要看教程
+  if (!next && !state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01')) {
+    askTutorial.value = true;
+  }
+}
+
+function chooseTutorial(show) {
+  askTutorial.value = false;
+  startTutorial(show);
+  openNext();
 }
 
 function onClosed(report) {
@@ -218,6 +230,48 @@ onMounted(() => {
 
     <StoryModal v-if="started && activeEvent" :ev="activeEvent" @done="doneEvent" />
 
+    <div v-if="started && askTutorial" class="mask">
+      <div class="sheet">
+        <div class="sheet-head">
+          <div class="t serif">要不要先看看这家店？</div>
+          <div class="small muted">林暖 · 林记烘焙前厅</div>
+        </div>
+        <div class="sheet-body">
+          <div class="card card-pad">
+            <p class="small" style="line-height: 1.9; margin: 0">
+              林暖把串着钥匙的钥匙扣放进你手心，问要不要带你从前厅、后厨一直走到街上。
+              看一遍会认得每个角落的用处；跳过也能随时自己摸索。
+            </p>
+          </div>
+        </div>
+        <div class="sheet-foot tut-foot">
+          <button class="btn" type="button" @click="chooseTutorial(false)">暂不查看</button>
+          <button class="btn primary" type="button" @click="chooseTutorial(true)">带我走一圈</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="started && askTutorial" class="mask">
+      <div class="sheet">
+        <div class="sheet-head">
+          <div class="t serif">要不要先看看这家店？</div>
+          <div class="small muted">林暖 · 林记烘焙前厅</div>
+        </div>
+        <div class="sheet-body">
+          <div class="card card-pad">
+            <p class="small" style="line-height: 1.9; margin: 0">
+              林暖把串着钥匙的钥匙扣放进你手心，问要不要带你从前厅、后厨一直走到街上。
+              看一遍会认得每个角落的用处；跳过也能随时自己摸索。
+            </p>
+          </div>
+        </div>
+        <div class="sheet-foot tut-foot">
+          <button class="btn" type="button" @click="chooseTutorial(false)">暂不查看</button>
+          <button class="btn primary" type="button" @click="chooseTutorial(true)">带我走一圈</button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="started && dayReport" class="mask" @click.self="nextDay">
       <div class="sheet">
         <div class="sheet-head">
@@ -356,6 +410,22 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.tut-foot {
+  display: flex;
+  gap: 10px;
+}
+.tut-foot .btn {
+  flex: 1 1 0;
+}
+
+.tut-foot {
+  display: flex;
+  gap: 10px;
+}
+.tut-foot .btn {
+  flex: 1 1 0;
+}
+
 .delta {
   margin-left: 4px;
   font-size: 11px;

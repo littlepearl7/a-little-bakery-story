@@ -32,6 +32,10 @@ const NAMES = {
   叶星河: '叶星河',
   星河: '叶星河',
   陈奶奶: '陈奶奶',
+  张叔: '张叔',
+  李婶: '李婶',
+  赵叔: '赵叔',
+  沈知夏: '沈知夏',
   许佳宁: '许佳宁',
   沈妍: '沈妍',
   顾客: '顾客',
@@ -45,7 +49,7 @@ const NUM = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
 
 /** 行首是已知角色名 + 可选表情 + 少量动作描写 + 冒号 → 台词 */
 const SPEAK_RE =
-  /^(林念|苏晴|林暖|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
+  /^(林念|苏晴|林暖|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
 
 /* ---------------- 条件 ---------------- */
 
@@ -725,6 +729,52 @@ function parseStory(md) {
         };
         friend[month] = ev;
         add(ev);
+      }
+      continue;
+    }
+
+    /* 附篇三：新手教程（按 T1—T7 顺序，不参与月份推进） */
+    if (/^附篇三/.test(chapTitle)) {
+      let order = 0;
+      for (const node of chapter.children) {
+        const m = node.text.match(/^(T\d+)\s*[｜|]\s*(.+)$/);
+        if (!m) continue;
+        const r = parseBlock(node.lines, { title: m[2] });
+        const id = r.meta.ids[0] || 'EVT_TUTORIAL_' + m[1];
+        add({
+          id,
+          ids: r.meta.ids.length ? r.meta.ids : [id],
+          title: m[2],
+          chapter: '新手教程',
+          month: null,
+          kind: 'tutorial',
+          order: order++,
+          test: null,
+          beats: r.beats,
+        });
+      }
+      continue;
+    }
+
+    /* 附篇三：新手教程（按 T1—T7 顺序，不参与月份推进） */
+    if (/^附篇三/.test(chapTitle)) {
+      let order = 0;
+      for (const node of chapter.children) {
+        const m = node.text.match(/^(T\d+)\s*[｜|]\s*(.+)$/);
+        if (!m) continue;
+        const r = parseBlock(node.lines, { title: m[2] });
+        const id = r.meta.ids[0] || 'EVT_TUTORIAL_' + m[1];
+        add({
+          id,
+          ids: r.meta.ids.length ? r.meta.ids : [id],
+          title: m[2],
+          chapter: '新手教程',
+          month: null,
+          kind: 'tutorial',
+          order: order++,
+          test: null,
+          beats: r.beats,
+        });
       }
       continue;
     }
