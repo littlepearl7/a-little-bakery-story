@@ -51,9 +51,12 @@ body {
   flex-direction: column;
   max-width: 480px;
   height: 100%;
+  height: 100dvh;
+  min-height: 0;
   margin: 0 auto;
   background: var(--cream);
   position: relative;
+  overflow: hidden;
 }
 
 .topbar {
