@@ -499,7 +499,7 @@ onMounted(() => {
   overflow-wrap: anywhere;
 }
 
-.scene-scroll { padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
+.scene-scroll { min-height:0; padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
 .scene-meta { padding: 0 14px 7px; flex:0 0 auto; }
 .scene-panel-mask { position:absolute; inset:0; z-index:35; background:rgba(36,25,17,.45); display:flex; align-items:flex-end; }
 .scene-panel { width:100%; max-height:88%; display:flex; flex-direction:column; overflow:hidden; border-radius:22px 22px 0 0; background:var(--cream); box-shadow:0 -10px 40px rgba(40,25,15,.24); }
