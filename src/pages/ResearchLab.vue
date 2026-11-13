@@ -28,9 +28,22 @@ const products = computed(() => PRODUCTS.filter((product) => product.month > 0))
 const improvable = computed(() => PRODUCTS.filter((product) =>
   state.unlocked.includes(product.id) && (state.levels[product.id] || 1) < 5
 ));
+const reportRows = computed(() => PRODUCTS.map((product) => ({
+  product,
+  reports: state.career.labReports[product.id] || {},
+})).filter((row) => row.reports.development || row.reports.improvement));
 const task = computed(() => RESEARCH_TASKS[selectedProduct.value]);
 const pendingImage = computed(() =>
   state.labPending?.type === 'signature' ? cgOf('osmanthus').src : ''
+);
+const trialSelectionsReady = computed(() =>
+  ingredients.value.length > 0 && direction.value >= 0 && ratio.value >= 0 && process.value >= 0
+);
+const signatureSelectionsReady = computed(() =>
+  ingredients.value.length > 0 && direction.value >= 0 && ratio.value >= 0 && process.value >= 0
+);
+const improveActionCost = computed(() =>
+  improvementAnswer.value === IMPROVEMENTS[improvementProduct.value]?.correct ? 2 : 1
 );
 function say(message) {
   notice.value = message;
@@ -202,6 +215,15 @@ function stageLabel(report) {
         <div class="small muted">选配方、做试验、看试吃反馈。合格品可以生产，精制品以更高熟练度起步。</div>
       </div>
 
+      <div class="section-title">配方改良</div>
+      <div v-if="improvable.length" class="product-list">
+        <button v-for="product in improvable" :key="product.id" class="card product-row" type="button" @click="selectImprovement(product)">
+          <span class="product-info"><strong>{{ product.name }}</strong><span class="small muted">当前 Lv{{ state.levels[product.id] || 1 }}</span></span>
+          <span class="chip">诊断问题</span>
+        </button>
+      </div>
+      <div v-else class="card card-pad small muted">目前没有可改良的产品。</div>
+
       <div class="section-title">新品研发</div>
       <button
         v-for="product in products"
@@ -217,15 +239,6 @@ function stageLabel(report) {
         </span>
         <span class="chip">{{ state.unlocked.includes(product.id) ? '已上架' : product.month > state.month ? `M${product.month}开放` : product.id === 'signature' ? '复原' : '开始实验' }}</span>
       </button>
-
-      <div class="section-title">配方改良</div>
-      <div v-if="improvable.length" class="product-list">
-        <button v-for="product in improvable" :key="product.id" class="card product-row" type="button" @click="selectImprovement(product)">
-          <span class="product-info"><strong>{{ product.name }}</strong><span class="small muted">当前 Lv{{ state.levels[product.id] || 1 }}</span></span>
-          <span class="chip">诊断问题</span>
-        </button>
-      </div>
-      <div v-else class="card card-pad small muted">目前没有可改良的产品。</div>
 
       <div class="section-title">实验档案</div>
       <div v-if="reportRows.length" class="report-list">
@@ -269,8 +282,8 @@ function stageLabel(report) {
         <div class="field-title">装饰取舍 <span class="small muted">越丰富，外观越高，成本分越低</span></div>
         <button v-for="(option, index) in DECORATION_LEVELS" :key="option" type="button" class="choice" :class="{ chosen: decoration === index }" @click="decoration = index">{{ option }} · 外观 {{ [72, 90, 100][index] }} / 成本 {{ COST_SCORES[index] }}</button>
       </div>
-      <button class="btn primary block" type="button" :disabled="state.ap < 2 || !canConsumeRecipe(selectedProduct, 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startTaste">开始试吃 · 1 点行动力</button>
-      <div class="small muted">失败也会消耗这次投入的材料；合格后上架再消耗 1 点行动力。{{ !canConsumeRecipe(selectedProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < 2 ? '当前行动力不足以完成一次试做。' : '' }}</div>
+      <button class="btn primary block" type="button" :disabled="!trialSelectionsReady || state.ap < 1 || !canConsumeRecipe(selectedProduct, 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startTaste">开始试吃 · 1 点行动力</button>
+      <div class="small muted">{{ !trialSelectionsReady ? '请先选择风味、食材、主料比例和制作工艺。' : !canConsumeRecipe(selectedProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < 1 ? '当前行动力不足。' : state.dayPhase !== 'prep' ? '营业阶段不能试做，请先结束营业日。' : '' }}失败消耗 1 点行动力和四分之一份配方材料；合格后上架再消耗 1 点行动力。</div>
     </div>
 
     <div v-else-if="page === 'signature'" class="card card-pad form">
@@ -292,8 +305,8 @@ function stageLabel(report) {
         <div class="field-title">金桂的加入时间</div>
         <button v-for="(option, index) in ['烘烤前加入', '蛋糕冷却后撒', '装盒前现撒']" :key="option" type="button" class="choice" :class="{ chosen: process === index }" @click="process = index">{{ option }}</button>
       </div>
-      <button class="btn primary block" type="button" :disabled="state.ap < 2 || !canConsumeRecipe('signature', 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startSignatureTaste">试吃复原配方 · 1 点行动力</button>
-      <div class="small muted">失败也会消耗已投入材料，合格后完成复原再消耗 1 点行动力。</div>
+      <button class="btn primary block" type="button" :disabled="!signatureSelectionsReady || state.ap < 1 || !canConsumeRecipe('signature', 0.25) || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="startSignatureTaste">试吃复原配方 · 1 点行动力</button>
+      <div class="small muted">{{ !signatureSelectionsReady ? '请选齐复原食材和三项判断。' : !canConsumeRecipe('signature', 0.25) ? '配方材料不足，请先采购。' : state.ap < 1 ? '当前行动力不足。' : state.dayPhase !== 'prep' ? '营业阶段不能试做，请先结束营业日。' : '' }}失败消耗 1 点行动力和四分之一份配方材料，复原成功再消耗 1 点行动力。</div>
     </div>
 
     <div v-else-if="page === 'improve'" class="card card-pad form">
@@ -304,8 +317,8 @@ function stageLabel(report) {
         <span>{{ option }}</span>
       </label>
       <p v-if="improvementFeedback" class="small feedback-line">{{ improvementFeedback }}</p>
-      <button class="btn primary block" type="button" :disabled="improvementAnswer < 0 || state.ap < 2 || !canConsumeRecipe(improvementProduct, 0.25) || submitting || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="submitImprovement">提交改良试验 · 1 点行动力</button>
-      <div class="small muted">试做消耗配方材料的四分之一；答对后再消耗 1 点行动力，熟练度提升 1 级。{{ !canConsumeRecipe(improvementProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < 2 ? '当前行动力不足以完成一次改良。' : '' }}</div>
+      <button class="btn primary block" type="button" :disabled="improvementAnswer < 0 || state.ap < improveActionCost || !canConsumeRecipe(improvementProduct, 0.25) || submitting || state.dayPhase !== 'prep' || state.phase !== 'playing'" @click="submitImprovement">提交改良试验 · 失败 1 / 成功 2 点行动力</button>
+      <div class="small muted">{{ improvementAnswer < 0 ? '请选择一个改良方案。' : !canConsumeRecipe(improvementProduct, 0.25) ? '配方材料不足，请先采购。' : state.ap < improveActionCost ? `当前行动力不足：本次至少需要 ${improveActionCost} 点。` : state.dayPhase !== 'prep' ? '营业阶段不能进行改良。' : '' }}试验消耗四分之一份配方材料；选错消耗 1 点行动力，可免费重选；选对消耗 2 点行动力并提升 1 级。</div>
     </div>
 
     <p v-if="notice" class="small notice">{{ notice }}</p>

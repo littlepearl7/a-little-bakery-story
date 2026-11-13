@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS saves (
+  code_hash TEXT PRIMARY KEY,
+  save_json TEXT NOT NULL,
+  revision INTEGER NOT NULL,
+  month INTEGER NOT NULL,
+  day INTEGER NOT NULL,
+  cash INTEGER NOT NULL,
+  saved_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key_hash TEXT PRIMARY KEY,
+  window_start INTEGER NOT NULL,
+  hits INTEGER NOT NULL
+);

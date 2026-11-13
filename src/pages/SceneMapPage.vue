@@ -34,21 +34,27 @@ const current = computed(() => LOCATIONS[props.scene] || LOCATIONS.shop);
 const currentImage = computed(() => props.scene === 'shop' ? 'bg-shop-lv' + state.shopLevel + '.webp' : current.value.img);
 const displayImage = computed(() => artStatus(currentImage.value) === 'ok' ? currentImage.value : current.value.img);
 const hotspots = computed(() => {
+  const shopLayout = {
+    1: { counter: [56, 55], mom: [22, 68], phone: [29, 51], book: [82, 80], diary: [13, 82], kitchen: [88, 38], door: [92, 92] },
+    2: { counter: [57, 57], mom: [30, 75], phone: [8, 64], book: [13, 83], diary: [84, 77], kitchen: [82, 40], door: [92, 93] },
+    3: { counter: [64, 58], mom: [20, 67], phone: [32, 55], book: [85, 84], diary: [14, 84], kitchen: [82, 40], door: [92, 93] },
+    4: { counter: [78, 59], mom: [20, 67], phone: [31, 56], book: [26, 47], diary: [15, 84], kitchen: [79, 40], door: [92, 94] },
+  }[state.shopLevel] || { counter: [56, 55], mom: [22, 68], phone: [29, 51], book: [82, 80], diary: [13, 82], kitchen: [88, 38], door: [92, 92] };
   const layouts = {
     shop: [
-      { id: 'counter', x: 61, y: 55, text: '柜台 · 预约与营业', kind: 'panel', value: 'shop', section: 'counter' },
-      { id: 'mom', x: 87, y: 47, text: '和妈妈聊聊', kind: 'action', value: 'momchat' },
-      { id: 'phone', x: 14, y: 71, text: '手机 · 宣传', kind: 'action', value: 'market' },
-      { id: 'book', x: 20, y: 84, text: '装修册 · 店铺升级', kind: 'panel', value: 'renovation' },
-      { id: 'diary', x: 79, y: 84, text: '手账 · 目标与图鉴', kind: 'panel', value: 'manage' },
-      { id: 'kitchen', x: 94, y: 73, text: '去后厨 →', kind: 'scene', value: 'kitchen' },
-      { id: 'door', x: 94, y: 91, text: '出门 →', kind: 'scene', value: 'street' },
+      { id: 'counter', x: shopLayout.counter[0], y: shopLayout.counter[1], text: '柜台 · 预约与营业', kind: 'panel', value: 'shop', section: 'counter' },
+      { id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' },
+      { id: 'phone', x: shopLayout.phone[0], y: shopLayout.phone[1], text: '手机 · 宣传', kind: 'action', value: 'market' },
+      { id: 'book', x: shopLayout.book[0], y: shopLayout.book[1], text: '装修册 · 店铺升级', kind: 'panel', value: 'renovation' },
+      { id: 'diary', x: shopLayout.diary[0], y: shopLayout.diary[1], text: '手账 · 目标与图鉴', kind: 'panel', value: 'manage' },
+      { id: 'kitchen', x: shopLayout.kitchen[0], y: shopLayout.kitchen[1], text: '去后厨 →', kind: 'scene', value: 'kitchen' },
+      { id: 'door', x: shopLayout.door[0], y: shopLayout.door[1], text: '出门 →', kind: 'scene', value: 'street' },
     ],
     kitchen: [
       { id: 'workbench', x: 49, y: 69, text: '操作台 · 排产与制作', kind: 'panel', value: 'kitchen' },
       { id: 'lab', x: 76, y: 44, text: '实验台 · 新品研发', kind: 'panel', value: 'manage', section: 'lab' },
       { id: 'staff', x: 20, y: 39, text: '排班板 · 员工与培训', kind: 'panel', value: 'partners' },
-      { id: 'back', x: 7, y: 91, text: '← 回店内', kind: 'scene', value: 'shop' },
+      { id: 'back', x: 7, y: 53, text: '← 回店内', kind: 'scene', value: 'shop' },
     ],
     street: [
       { id: 'supplier', x: 83, y: 56, text: '食材铺 · 采购', kind: 'panel', value: 'supplier' },

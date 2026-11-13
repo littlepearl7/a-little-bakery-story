@@ -129,6 +129,16 @@ watch(
   () => {
     // 条件段落（伙伴信赖、家庭默契）在这里按当前存档展开
     list.value = resolveBeats(props.ev.beats || [], state);
+    const saved = state.storyChoices[props.ev.id] || {};
+    for (let i = 0; i < list.value.length; i++) {
+      const beat = list.value[i];
+      if (beat.t !== 'choice' || !Number.isInteger(saved[beat.node])) continue;
+      const option = beat.options[saved[beat.node]];
+      if (!option) continue;
+      applyChoice(beat, option, saved[beat.node], props.ev.id);
+      list.value.splice(i, 1, ...option.branch, ...(beat.after || []));
+      i--;
+    }
     idx.value = firstContent(list.value);
     typed.value = 0;
     auto.value = false;
@@ -187,7 +197,7 @@ function advance() {
 }
 
 function choose(opt, i) {
-  applyChoice(cur.value, opt, i);
+  applyChoice(cur.value, opt, i, props.ev.id);
   const tail = (opt.branch || []).concat(cur.value.after || []);
   list.value.splice(idx.value, 1, ...tail);
   // 分支接在原位，落到第一段正文
@@ -257,7 +267,7 @@ onUnmounted(() => {
       </transition>
 
       <!-- 立绘 -->
-      <div class="vn-cast">
+      <div v-if="!cgKey" class="vn-cast">
         <div
           v-for="(c, i) in cast"
           :key="c"

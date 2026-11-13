@@ -262,7 +262,24 @@ export const CG = {
   friends: { img: 'sq-friends.webp', name: '合影' },
   mom: { img: 'nu-duo.webp', name: '母亲' },
   shop: { img: 'shop-exterior.webp', name: '林记烘焙' },
+  'graduation-rejection': { img: 'cg-graduation-rejection.webp', name: '毕业季的拒信' },
+  osmanthus: { img: 'cg-osmanthus.webp', name: '桂花栗子蛋糕' },
+  festival: { img: 'cg-festival.webp', name: '秋日文化节' },
+  memory: { img: 'cg-memory.webp', name: '高三晚自习' },
+  flagship: { img: 'cg-flagship.webp', name: '旗舰店方案' },
+  album: { img: 'cg-album.webp', name: '三年相册' },
+  finale: { img: 'cg-finale.webp', name: '三周年合影' },
 };
+
+export const CG_COLLECTION = [
+  { id: 'graduation-rejection', event: 'EVT_PROLOGUE_01' },
+  { id: 'osmanthus', event: 'EVT_M26_MAIN' },
+  { id: 'festival', event: 'EVT_M29_MAIN' },
+  { id: 'memory', event: 'EVT_M29_MAIN' },
+  { id: 'flagship', event: 'EVT_M33_MAIN' },
+  { id: 'album', event: 'EVT_M35_MAIN' },
+  { id: 'finale', event: 'EVT_FINAL_END_NATIONAL' },
+];
 
 export function cgOf(key) {
   const c = CG[key];

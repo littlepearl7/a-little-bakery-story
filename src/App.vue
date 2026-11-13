@@ -2,11 +2,12 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { monthLabel, PARTNERS, STAGES } from './data';
 import {
-  state, queue, load, reset, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
+  state, queue, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
   skipToNextMonth, continueAfterShortEnding, startNewGamePlus,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
+import TitleScreen from './components/TitleScreen.vue';
 import ShopPage from './pages/ShopPage.vue';
 import KitchenPage from './pages/KitchenPage.vue';
 import PartnersPage from './pages/PartnersPage.vue';
@@ -16,6 +17,8 @@ import SceneMapPage from './pages/SceneMapPage.vue';
 import SupplierPage from './pages/SupplierPage.vue';
 import RenovationPage from './pages/RenovationPage.vue';
 const scene = ref('shop');
+const started = ref(false);
+const saveCenterOpen = ref(false);
 const activePanel = ref('');
 const activeManageSection = ref('overview');
 const activeShopSection = ref('counter');
@@ -43,6 +46,26 @@ const canContinueStory = computed(() =>
   devEnabled && state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
 );
 const pending = computed(() => queue.events.length);
+
+function enterGame(target = {}) {
+  started.value = true;
+  saveCenterOpen.value = false;
+  scene.value = 'shop';
+  activePanel.value = target.panel || '';
+  activeManageSection.value = target.section || 'overview';
+  if (queue.events.length) activeEvent.value = queue.events[0];
+}
+
+function returnToTitle() {
+  save();
+  started.value = false;
+  saveCenterOpen.value = false;
+  activePanel.value = '';
+  activeEvent.value = null;
+  dayReport.value = null;
+  monthReport.value = null;
+  endingDismissed.value = false;
+}
 
 function openNext() {
   if (queue.events.length) activeEvent.value = queue.events[0];
@@ -126,24 +149,25 @@ const partnerLines = computed(() => {
 
 onMounted(() => {
   preloadSprites();
-  const had = load();
-  if (!had) reset();
-  startGame();
-  openNext();
 });
 </script>
 
 <template>
   <div class="app">
-    <div class="topbar">
+    <TitleScreen v-if="!started" @enter="enterGame" />
+
+    <div v-if="started" class="topbar">
       <div class="m serif">
         {{ monthLabel(state.month) }}
         <small>第 {{ state.month }} / 36 月 · 第 {{ state.day }} / {{ DAYS_PER_MONTH }} 日</small>
       </div>
-      <div class="purse"><span class="y">¥</span>{{ state.cash.toLocaleString() }}</div>
+      <div class="topbar-actions">
+        <div class="purse"><span class="y">¥</span>{{ state.cash.toLocaleString() }}</div>
+        <button class="topbar-save" type="button" @click="saveCenterOpen = true">设置</button>
+      </div>
     </div>
 
-    <div class="scroll scene-scroll">
+    <div v-if="started" class="scroll scene-scroll">
       <div class="between scene-meta">
         <span class="small muted">{{ stageInfo.name }}</span>
         <span class="chip">行动力 {{ state.ap }} · 体力 {{ state.stamina }}</span>
@@ -176,14 +200,14 @@ onMounted(() => {
             <KitchenPage v-else-if="activePanel === 'kitchen'" :paused="!!activeEvent" />
             <PartnersPage v-else-if="activePanel === 'partners'" />
             <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" @open-panel="openPanel" />
-            <CodexPage v-else-if="activePanel === 'codex'" />
+            <CodexPage v-else-if="activePanel === 'codex'" :initial-segment="activeManageSection === 'collection' ? 'collection' : 'product'" />
           </div>
         </section>
       </div>
     </div>
 
     <button
-      v-if="pending"
+      v-if="started && pending"
       class="btn primary"
       type="button"
       style="position: absolute; right: 14px; bottom: 16px; z-index: 20; box-shadow: var(--shadow)"
@@ -192,9 +216,9 @@ onMounted(() => {
       有 {{ pending }} 段剧情
     </button>
 
-    <StoryModal v-if="activeEvent" :ev="activeEvent" @done="doneEvent" />
+    <StoryModal v-if="started && activeEvent" :ev="activeEvent" @done="doneEvent" />
 
-    <div v-if="dayReport" class="mask" @click.self="nextDay">
+    <div v-if="started && dayReport" class="mask" @click.self="nextDay">
       <div class="sheet">
         <div class="sheet-head">
           <div class="t serif">{{ monthReport ? '月末结算' : '打烊了' }}</div>
@@ -274,7 +298,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="ending" class="mask">
+    <div v-if="started && ending" class="mask">
       <div class="sheet">
         <div class="sheet-body" style="padding-top: 22px">
           <div class="small muted serif">{{ ending.name }}</div>
@@ -326,6 +350,8 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <TitleScreen v-if="started && saveCenterOpen" in-game @close="saveCenterOpen = false" @title="returnToTitle" @enter="enterGame" />
   </div>
 </template>
 
@@ -368,6 +394,9 @@ onMounted(() => {
   font-size: 12px;
   line-height: 1.75;
   color: var(--ink-2);
+  /* 档案正文是多段（场景 + 对白 + 档案结语），保留换行 */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 .scene-scroll { padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
@@ -378,4 +407,5 @@ onMounted(() => {
 .scene-panel-head strong { display:block; font-size:18px; }
 .scene-panel-close { width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:var(--cream); color:var(--caramel); font-size:16px; cursor:pointer; }
 .scene-panel-content { overflow:auto; -webkit-overflow-scrolling:touch; padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 20px); }
+.topbar-actions{display:flex;align-items:center;gap:9px}.topbar-save{min-width:48px;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--caramel);font:inherit;font-size:12px}
 </style>

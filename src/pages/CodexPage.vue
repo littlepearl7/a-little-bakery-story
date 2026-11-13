@@ -4,9 +4,11 @@ import { PRODUCTS, PHOTOS, CITIES, CUSTOMERS, DECORATIONS, STAGES, ENDINGS } fro
 import { state, priceOf } from '../store';
 import { STORY } from '../story';
 import CakeArt from '../components/CakeArt.vue';
-import { cgOf } from '../vn';
+import { CG_COLLECTION, cgOf } from '../vn';
 
-const seg = ref('product');
+const props = defineProps({ initialSegment: { type: String, default: 'product' } });
+const seg = ref(props.initialSegment);
+const selectedCg = ref(null);
 
 const products = computed(() =>
   PRODUCTS.map((p) => ({
@@ -36,6 +38,11 @@ const labReports = computed(() => PRODUCTS.map((product) => ({
   reports: state.career.labReports[product.id] || {},
 })).filter((product) => product.reports.development || product.reports.improvement));
 const osmanthusCG = computed(() => cgOf('osmanthus').src);
+const cgs = computed(() => CG_COLLECTION.map((item) => ({
+  id: item.id,
+  ...cgOf(item.id),
+  collected: state.career.cgs.includes(item.id),
+})));
 
 const cities = computed(() =>
   CITIES.map((c) => ({
@@ -63,6 +70,12 @@ const collection = computed(() => ({
     name: PHOTOS[id].title,
     collected: state.career.photos.includes(id),
     current: state.photos.includes(id),
+  })),
+  cgs: cgs.value.map((cg) => ({
+    id: cg.id,
+    name: cg.name,
+    collected: cg.collected,
+    current: cg.collected,
   })),
   decorations: DECORATIONS.map((item) => ({
     id: item.id,
@@ -100,6 +113,7 @@ function collectionStatus(item) {
           { k: 'product', t: '产品' },
           { k: 'customer', t: '顾客' },
           { k: 'photo', t: '相册' },
+          { k: 'cg', t: 'CG' },
           { k: 'city', t: '门店' },
           { k: 'collection', t: '收藏' },
           { k: 'lab', t: '实验档案' },
@@ -148,6 +162,19 @@ function collectionStatus(item) {
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-else-if="seg === 'cg'" class="cg-gallery">
+      <button v-for="cg in cgs" :key="cg.id" class="photo cg-card" type="button" :disabled="!cg.collected || !cg.src" @click="selectedCg = cg">
+        <span class="im">
+          <img v-if="cg.collected && cg.src" :src="cg.src" :alt="cg.name" />
+          <span v-else>?</span>
+        </span>
+        <span class="cp">
+          <span class="ti">{{ cg.collected ? cg.name : '还没发生' }}</span>
+          <span class="cc">{{ collectionStatus(cg) }}</span>
+        </span>
+      </button>
     </div>
 
     <div v-else-if="seg === 'lab'" class="lab-list">
@@ -221,6 +248,7 @@ function collectionStatus(item) {
       <div v-for="section in [
         { key: 'products', title: '产品' },
         { key: 'photos', title: '相册' },
+        { key: 'cgs', title: 'CG' },
         { key: 'decorations', title: '装饰' },
         { key: 'endings', title: '结局' },
       ]" :key="section.key" class="card card-pad">
@@ -230,6 +258,12 @@ function collectionStatus(item) {
           <span class="small muted">{{ collectionStatus(item) }}</span>
         </div>
       </div>
+    </div>
+
+    <div v-if="selectedCg" class="cg-lightbox" role="dialog" aria-modal="true" :aria-label="selectedCg.name" @click.self="selectedCg = null">
+      <button class="cg-lightbox-close" type="button" aria-label="关闭 CG" @click="selectedCg = null">✕</button>
+      <img :src="selectedCg.src" :alt="selectedCg.name" />
+      <div>{{ selectedCg.name }}</div>
     </div>
   </div>
 </template>
@@ -287,6 +321,7 @@ function collectionStatus(item) {
   padding: 6px 0;
   border-top: 1px dashed var(--line);
 }
+.cg-gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cg-card{display:block;width:100%;padding:0;text-align:left;color:var(--caramel);font:inherit;cursor:pointer}.cg-card:disabled{cursor:default}.cg-card .im{height:175px}.cg-card .im img{object-fit:cover}.cg-card .cp{display:grid;gap:3px;padding:7px 9px 9px}.cg-lightbox{position:fixed;inset:0;z-index:700;display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;align-items:center;padding:24px 14px max(22px,env(safe-area-inset-bottom));background:#150f0ceF;color:#fffaf1;font-size:13px}.cg-lightbox img{width:100%;height:100%;object-fit:contain;min-height:0}.cg-lightbox-close{position:absolute;top:max(12px,env(safe-area-inset-top));right:14px;z-index:1;width:44px;height:44px;border:0;border-radius:50%;background:#fff2;color:white;font-size:19px}
 </style>
 
 <style scoped>

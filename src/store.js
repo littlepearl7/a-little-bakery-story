@@ -8,8 +8,10 @@ import {
 } from './data';
 import { STORY, evalTest, PARTNER_OF } from './story';
 import { evaluateResearchTrial, evaluateSignatureTrial, improvementFor } from './lab';
+import { CG_COLLECTION } from './vn';
 
 const SAVE_KEY = 'alb-save-v6';
+const MANUAL_SAVE_KEY = 'alb-manual-save-v1';
 export const DAYS_PER_MONTH = 5;
 
 const MOM_CAPACITY = 60; // 林暖每天的免费产能
@@ -17,7 +19,7 @@ const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
-    v: 7,
+    v: 8,
     month: 1,
     day: 1,
     cash: 12000,
@@ -67,6 +69,7 @@ export function newState() {
     career: {
       products: ['plain', 'strawberry', 'chocolate'],
       photos: [],
+      cgs: [],
       decorations: [],
       endings: [],
       labReports: {},
@@ -91,6 +94,7 @@ export function newState() {
     monthCost: 0,
     monthSold: {},
     played: [],
+    storyChoices: {},
     photos: [],
     log: [],
     phase: 'playing',
@@ -329,22 +333,59 @@ export function planPoints() {
 
 /* ---------------- 存档 ---------------- */
 
+function saveSnapshot() {
+  recordCareer();
+  const storyQueue = queue.events.map((event) =>
+    STORY.events.some((storyEvent) => storyEvent.id === event.id) ? event.id : event
+  );
+  return { ...state, storyQueue, savedAt: Date.now() };
+}
+
 export function save() {
   try {
-    recordCareer();
-    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveSnapshot()));
   } catch (e) {
     /* 隐私模式下忽略 */
   }
 }
 
-export function load() {
+function validSaveData(data) {
+  return !!data && typeof data === 'object' && [6, 7, 8].includes(data.v) &&
+    Number.isInteger(Number(data.month)) && Number(data.month) >= 1 && Number(data.month) <= 36 &&
+    Number.isInteger(Number(data.day)) && Number(data.day) >= 1 && Number(data.day) <= DAYS_PER_MONTH &&
+    Number.isFinite(Number(data.cash)) &&
+    (data.unlocked === undefined || Array.isArray(data.unlocked)) &&
+    (data.played === undefined || Array.isArray(data.played)) &&
+    (data.storyChoices === undefined || (data.storyChoices && typeof data.storyChoices === 'object' && !Array.isArray(data.storyChoices))) &&
+    (data.storyQueue === undefined || Array.isArray(data.storyQueue)) &&
+    (data.career === undefined || (data.career && typeof data.career === 'object' && !Array.isArray(data.career)));
+}
+
+export function inspectSaveText(text) {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    if (data.v !== 6 && data.v !== 7) return false;
-    const migrated = data.v === 6;
+    const data = typeof text === 'string' ? JSON.parse(text) : text;
+    if (!validSaveData(data)) return { ok: false, message: '存档格式无效或版本不受支持。' };
+    return {
+      ok: true,
+      data,
+      preview: {
+        month: Number(data.month),
+        day: Number(data.day),
+        savedAt: Number(data.savedAt) || 0,
+        cash: Number(data.cash) || 0,
+        phase: data.phase || 'playing',
+      },
+    };
+  } catch (e) {
+    return { ok: false, message: '无法读取存档文件。' };
+  }
+}
+
+function applySaveData(data) {
+  if (!validSaveData(data)) return false;
+  try {
+    Object.assign(state, newState());
+    const migrated = data.v !== 8;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined && k !== 'regularCustomers' && k !== 'career') state[k] = data[k];
     });
@@ -364,7 +405,6 @@ export function load() {
       if (fraction) fallback.forEach((id) => addLegacyRecipe(state.pantry, id, fraction / fallback.length));
       state.legacyStock = 0;
       state.cash += Number(data.monthRev || 0);
-      state.v = 7;
       state.dayPhase = data.daySold || data.dayRev ? 'closing' : 'prep';
       state.sqchatMonth = Number(data.friendMonth || 0);
       state.batches = Object.entries(data.shelf || {}).filter(([, qty]) => qty > 0)
@@ -377,6 +417,7 @@ export function load() {
       state.challenge = null;
       state.challengeDayIndex = 0;
     }
+    state.v = 8;
     state.pantry = state.pantry || {};
     state.legacyStock = Number(state.legacyStock || 0);
     state.batches = state.batches || [];
@@ -390,12 +431,91 @@ export function load() {
     );
     state.career = { ...newState().career, ...(data.career || {}) };
     state.career.labReports = { ...newState().career.labReports, ...((data.career || {}).labReports || {}) };
+    state.career.cgs = state.career.cgs || [];
+    state.storyChoices = state.storyChoices || {};
+    state.savedAt = Number(data.savedAt) || 0;
+    const storyEvents = new Map(STORY.events.map((event) => [event.id, event]));
+    const storyQueue = (data.storyQueue || []).map((event) =>
+      typeof event === 'string' ? storyEvents.get(event) : event
+    ).filter((event) =>
+      event && typeof event === 'object' && typeof event.id === 'string' && Array.isArray(event.beats)
+    );
+    queue.events.splice(0, queue.events.length, ...storyQueue);
     state.challengeDayIndex = Number(state.challengeDayIndex || 0);
     const needsChallenge = state.dayPhase === 'prep' && (!state.challenge || state.challengeDayIndex !== state.dayIndex);
     if (needsChallenge) startChallengeForDay();
     recordCareer();
     if (migrated || needsChallenge) save();
     return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function hasSave(manual = false) {
+  try {
+    const raw = localStorage.getItem(manual ? MANUAL_SAVE_KEY : SAVE_KEY);
+    return !!raw && inspectSaveText(raw).ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function saveManual() {
+  try {
+    localStorage.setItem(MANUAL_SAVE_KEY, JSON.stringify(saveSnapshot()));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function manualSaveText() {
+  try {
+    return localStorage.getItem(MANUAL_SAVE_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+export function autoSaveText() {
+  try {
+    return localStorage.getItem(SAVE_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+export function exportSaveText() {
+  return JSON.stringify(saveSnapshot(), null, 2);
+}
+
+export function loadManualSave(persistToAuto = true) {
+  try {
+    const raw = localStorage.getItem(MANUAL_SAVE_KEY);
+    if (!raw || !inspectSaveText(raw).ok) return false;
+    const data = JSON.parse(raw);
+    if (!applySaveData(data)) return false;
+    if (persistToAuto) save();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function importSaveText(text) {
+  const inspected = inspectSaveText(text);
+  if (!inspected.ok) return inspected;
+  if (!applySaveData(inspected.data)) return { ok: false, message: '存档无法载入。' };
+  save();
+  return { ok: true, preview: inspected.preview };
+}
+
+export function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw || !inspectSaveText(raw).ok) return false;
+    return applySaveData(JSON.parse(raw));
   } catch (e) {
     return false;
   }
@@ -420,6 +540,11 @@ function recordCareer() {
   const career = state.career || newState().career;
   career.products = [...new Set([...(career.products || []), ...(state.unlocked || [])])];
   career.photos = [...new Set([...(career.photos || []), ...(state.photos || [])])];
+  const collectedCgs = career.cgs || [];
+  CG_COLLECTION.forEach((cg) => {
+    if ((state.played || []).includes(cg.event) && !collectedCgs.includes(cg.id)) collectedCgs.push(cg.id);
+  });
+  career.cgs = collectedCgs;
   career.decorations = [...new Set([...(career.decorations || []), ...(state.decorations || [])])];
   if (state.phase === 'ended' && state.ending && state.ending.key) {
     state.runEndings = [...new Set([...(state.runEndings || []), state.ending.key])];
@@ -449,7 +574,7 @@ export function beginResearchTrial(attempt) {
   if (state.phase !== 'playing') return labResult(false, '当前不能进行实验。');
   if (state.dayPhase !== 'prep') return labResult(false, '营业开始后不能进行研发。');
   if (state.labPending) return labResult(false, '请先处理上次试吃结果。');
-  if (state.ap < 2) return labResult(false, '至少需要 2 点行动力：试吃消耗 1 点，合格后上架还需 1 点。');
+  if (state.ap < 1) return labResult(false, '至少需要 1 点行动力才能开始试做。');
 
   const productId = attempt && attempt.productId;
   const product = PRODUCTS.find((item) => item.id === productId);
@@ -512,11 +637,12 @@ export function improveProduct(productId, answer) {
   const level = state.levels[productId] || 1;
   if (level >= 5) return labResult(false, '这款产品已达到熟练度上限。');
   if (!Number.isInteger(answer) || answer < 0 || answer >= diagnostic.options.length) return labResult(false, '请选择一个改良方案。');
-  if (state.ap < 2) return labResult(false, '至少需要 2 点行动力完成一次改良。');
+  const correct = answer === diagnostic.correct;
+  if (state.ap < (correct ? 2 : 1)) return labResult(false, correct ? '改良成功需要 2 点行动力。' : '改良试吃需要 1 点行动力。');
   if (!consumeRecipe(productId, 0.25)) return labResult(false, '这款蛋糕的试做原料不足，请先到食材铺采购。');
 
   state.ap -= 1;
-  if (answer !== diagnostic.correct) {
+  if (!correct) {
     const feedback = '这次试吃没有解决问题。' + diagnostic.feedback;
     log('改良「' + product.name + '」未通过试吃，消耗了四分之一配方材料', 'story');
     save();
@@ -673,8 +799,12 @@ export function applyGains(gains) {
 }
 
 /** 玩家在剧情里选了某个选项 */
-export function applyChoice(choice, opt, index) {
+export function applyChoice(choice, opt, index, eventId = '') {
+  const node = choice.node || 'choice-' + index;
+  const selected = state.storyChoices[eventId] || {};
+  if (Object.prototype.hasOwnProperty.call(selected, node)) return [];
   const got = applyGains(opt.gains);
+  state.storyChoices[eventId] = { ...selected, [node]: index };
   // M32 的收购邀约：选第二项就是接受转让
   if (choice && choice.node === '13.6' && index === 1) state.acquired = true;
   if (got.length) log('选择：' + opt.label + '（' + got.join('，') + '）', 'story');
@@ -1549,7 +1679,7 @@ export function queueStory() {
 
 export function startGame() {
   const pro = STORY.events.find((ev) => ev.kind === 'prologue');
-  if (pro && !state.played.includes(pro.id)) pushEvent(pro);
+  if (pro && !state.played.includes(pro.id) && !queue.events.some((event) => event.id === pro.id)) pushEvent(pro);
   queueStory();
 }
 
@@ -1563,20 +1693,43 @@ export function finishEvent(ev) {
   save();
 }
 
-/** 伙伴个人结局：按信赖 / 专业挑一档 */
+/**
+ * 伙伴个人结局分档：按文案 13.7 的触发条件。
+ * 每档按顺序试，第一个满足的生效；高档还可以要求某个剧情已播放。
+ */
+const ENDING_TIERS = {
+  xiaoyu: [
+    { trust: 80, skill: 4, done: 'EVT_M11_YUTONG_BOOK' },
+    { trust: 80 },
+    { skill: 4 },
+    {},
+  ],
+  zhiyao: [{ trust: 75, skill: 4, done: 'EVT_M19_MAIN' }, {}],
+  kexin: [{ trust: 75, skill: 4, done: 'EVT_M21_MAIN' }, {}],
+  qinghe: [{ trust: 75, skill: 4, done: 'EVT_M25_MAIN' }, {}],
+  mom: [{ bond: 75 }, {}],
+};
+
+/** 伙伴个人结局：按信赖 / 专业 / 家庭默契挑一档 */
 export function partnerEndingOf(pid) {
   const list = (STORY.partnerEndings || {})[pid];
   if (!list || !list.length) return null;
-  if (list.length === 1) return list[0];
+
   const trust = state.partnerTrust[pid] || 0;
   const skill = state.partnerSkill[pid] || 0;
-  if (list.length >= 4) {
-    if (trust >= 70 && skill >= 3) return list[0];
-    if (trust >= 70) return list[1];
-    if (skill >= 3) return list[2];
-    return list[3];
+  const bond = state.momBond || 0;
+
+  const rule = ENDING_TIERS[pid];
+  if (!rule) return trust >= 70 ? list[0] : list[1];
+
+  for (const tier of rule) {
+    if (tier.trust != null && trust < tier.trust) continue;
+    if (tier.skill != null && skill < tier.skill) continue;
+    if (tier.bond != null && bond < tier.bond) continue;
+    if (tier.done && !state.played.includes(tier.done)) continue;
+    return list[Math.min(rule.indexOf(tier), list.length - 1)];
   }
-  return trust >= 70 ? list[0] : list[1];
+  return list[list.length - 1];
 }
 
 export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo, DEVICES, deviceById };

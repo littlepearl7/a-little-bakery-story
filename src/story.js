@@ -740,11 +740,14 @@ function parseStory(md) {
             const list = [];
             for (const raw of sub.lines) {
               const line = raw.trim();
+              // 触发条件只是给编辑者看的说明，不进展示文本
+              if (/^【触发条件/.test(line)) continue;
               const m = line.match(/^[-*]\s*\*\*【(.+?)】\*\*\s*(.*)$/);
               if (m) {
                 list.push({ title: m[1], text: (m[2] || '').trim() });
               } else if (list.length && line && !/^[-*#]/.test(line)) {
-                list[list.length - 1].text += line;
+                // 多行正文按段落换行拼起来，弹层里会保留分行
+                list[list.length - 1].text += (list[list.length - 1].text ? '\n' : '') + line;
               }
             }
             if (list.length) partnerEndings[pid] = list;

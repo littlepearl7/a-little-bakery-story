@@ -51,10 +51,25 @@ BACKGROUNDS = [
 
 # 店铺等级插画
 SHOPS = [
-    ('shop-lv1.png', 'shop-lv1.webp'),
-    ('shop-lv2.png', 'shop-lv2.webp'),
-    ('shop-lv3.png', 'shop-lv3.webp'),
-    ('shop-lv4.png', 'shop-lv4.webp'),
+    ('bg-shop-lv1.png', 'bg-shop-lv1.webp'),
+    ('bg-shop-lv2.png', 'bg-shop-lv2.webp'),
+    ('bg-shop-lv3.png', 'bg-shop-lv3.webp'),
+    ('bg-shop-lv4.png', 'bg-shop-lv4.webp'),
+]
+
+CG_FILES = [
+    ('毕业季的拒信.png', 'cg-graduation-rejection.webp'),
+    ('cg-osmanthus.png', 'cg-osmanthus.webp'),
+    ('cg-festival.png', 'cg-festival.webp'),
+    ('cg-memory.png', 'cg-memory.webp'),
+    ('cg-flagship.png', 'cg-flagship.webp'),
+    ('cg-album.png', 'cg-album.webp'),
+    ('cg-finale.png', 'cg-finale.webp'),
+]
+
+COVERS = [
+    ('封面.png', 'cover.webp'),
+    ('封面选项.png', 'cover-options.webp'),
 ]
 
 SPRITE_H = 1100      # 立绘输出高度
@@ -288,6 +303,49 @@ def main():
         img.save(p, 'WEBP', quality=86, method=6)
         total += os.path.getsize(p)
         rows.append((dst, img.size, os.path.getsize(p)))
+
+    # ---------- 封面 ----------
+    for src, dst in COVERS:
+        path = os.path.join(PIC, BG_DIR, src)
+        if not os.path.exists(path):
+            print('缺少封面：', src)
+            continue
+        img = Image.open(path).convert('RGB').resize((BG_W, BG_H), Image.LANCZOS)
+        p = os.path.join(OUT, dst)
+        img.save(p, 'WEBP', quality=88, method=6)
+        total += os.path.getsize(p)
+        rows.append((dst, img.size, os.path.getsize(p)))
+
+    # ---------- CG：等比缩放并留黑边，不裁掉人物和关键细节 ----------
+    for src, dst in CG_FILES:
+        path = os.path.join(PIC, 'CG', src)
+        if not os.path.exists(path):
+            print('缺少 CG：', src)
+            continue
+        img = Image.open(path).convert('RGB')
+        img.thumbnail((BG_W, BG_H), Image.LANCZOS)
+        canvas = Image.new('RGB', (BG_W, BG_H), (26, 20, 16))
+        canvas.paste(img, ((BG_W - img.width) // 2, (BG_H - img.height) // 2))
+        p = os.path.join(OUT, dst)
+        canvas.save(p, 'WEBP', quality=88, method=6)
+        total += os.path.getsize(p)
+        rows.append((dst, canvas.size, os.path.getsize(p)))
+
+    # ---------- 常客头像：从默认透明立绘裁头 ----------
+    for source, output in [
+        ('陈奶奶默认立绘.png', 'customer-chen.webp'),
+        ('张叔默认立绘.png', 'customer-zhang.webp'),
+    ]:
+        path = os.path.join(PIC, CHAR_DIR, '常客', source)
+        if not os.path.exists(path):
+            print('缺少常客立绘：', source)
+            continue
+        sprite = load_sprite(os.path.join('常客', source))
+        face = make_face(sprite)
+        if face:
+            size = save_face(face, output)
+            total += size
+            rows.append((output, (FACE, FACE), size))
 
     print('%-26s %-12s %s' % ('文件', '尺寸', '大小'))
     for n, size, b in rows:
