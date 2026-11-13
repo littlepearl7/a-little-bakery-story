@@ -9,7 +9,7 @@ import {
 import CakeArt from '../components/CakeArt.vue';
 
 const props = defineProps({ paused: { type: Boolean, default: false } });
-const emit = defineEmits(['closed']);
+const emit = defineEmits(['closed', 'open-panel']);
 const notice = ref('');
 const selectedDecoration = ref('');
 const selectedBlessing = ref('');
@@ -114,6 +114,7 @@ onBeforeUnmount(() => { if (clock) clearInterval(clock); });
       <div v-if="state.dayPhase === 'prep' && regularVisits.length" class="small regular-visit"><strong>今日常客来访</strong><span v-for="customer in regularVisits" :key="customer.id">{{ customer.name }} · 想买{{ productById(customer.product).name }}</span></div>
       <div v-if="state.dayPhase === 'prep' && state.challenge" class="small regular-visit"><strong>今日经营挑战</strong><span>{{ state.challenge.type === 'stock' ? '精准备货 · 剩货率不超过 10%' : state.challenge.type === 'new' ? '新品主题日 · ' + productById(state.challenge.target).name + ' 销售至少 3 份' : '定制专场 · 完成当天定制要求' }}</span></div>
       <button v-if="state.dayPhase === 'service-ready'" class="btn primary block" style="margin-top:10px" type="button" @click="begin">开门营业</button>
+      <button v-if="state.dayPhase === 'service-ready'" class="btn block mini-entry" style="margin-top:8px" type="button" @click="$emit('open-panel', 'game:delivery')">亲自接待客人 · 小游戏</button>
       <button v-if="state.dayPhase === 'prep' && !shelfTotal" class="btn block" style="margin-top:10px" type="button" disabled>先去后厨制作蛋糕</button>
     </div>
 
@@ -191,5 +192,11 @@ onBeforeUnmount(() => { if (clock) clearInterval(clock); });
 </template>
 
 <style scoped>
+.mini-entry {
+  background: #fff6e6;
+  border: 1px dashed var(--caramel);
+  color: var(--caramel);
+}
+
 .counter-stats{display:flex;justify-content:space-between;gap:5px;margin:10px 0}.counter-art{display:block;width:100%;height:110px;margin-top:8px;border-radius:10px;object-fit:cover;object-position:center 62%}.section-card{margin-top:10px}.order-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--line-soft)}.order-row strong{font-size:12px}.regular-visit{display:grid;gap:2px;margin-top:8px;padding:8px;border-radius:9px;background:#fff8ec}.regular-visit strong{color:var(--caramel)}.active-queue{margin-top:10px}.queue-guest{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:7px 5px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--caramel);text-align:left}.queue-guest>span{display:grid;gap:2px;flex:1}.queue-guest>.guest-face{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:50%;overflow:hidden;background:var(--apricot);color:var(--caramel)}.guest-face img{width:100%;height:100%;object-fit:cover}.guest-face b{font-size:13px}.queue-guest strong{font-size:12px}.queue-guest small{font-size:10px;color:var(--ink-2)}.queue-guest.chosen{background:#fff8ec}.queue-guest.unhappy strong{color:var(--berry)}.mini-patience{height:5px;width:48px;border-radius:99px;background:#efe2d3;overflow:hidden}.mini-patience b{display:block;height:100%;background:var(--sage)}.customer-card{border:1px solid #e6c29c}.customer-clue{font-family:'Songti SC',serif;font-size:16px;line-height:1.6;color:#6b4a34;margin:10px 0}.patience{height:7px;border-radius:999px;background:#efe2d3;overflow:hidden;margin:9px 0 5px}.patience>span{display:block;height:100%;transition:width .1s linear}.pack-progress{background:var(--caramel)}.cake-pick{display:flex;align-items:center;gap:9px;width:100%;min-height:66px;padding:8px 0;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--caramel);text-align:left;cursor:pointer}.cake-thumb{width:42px;height:42px;overflow:hidden;border-radius:9px;flex:0 0 42px}.cake-thumb :deep(*){width:100%;height:100%}.cake-pick-copy{display:flex;flex:1;flex-direction:column;gap:3px}.cake-pick-copy strong{font-size:12px}.cake-pick-copy span{font-size:10px;color:var(--ink-2)}.cake-pick>span:last-child{font-size:11px}.process-status{min-height:90px}.process-status .patience{margin-top:12px}.decoration-options{margin-top:10px}.pill{min-height:40px;padding:0 11px;margin:5px 5px 0 0;border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--caramel);font-size:12px}.pill.chosen{background:var(--sage);color:white}.leftovers{margin-top:10px}.leftover-button{width:100%;min-height:42px;margin-top:5px;text-align:left;padding:8px 10px;border:1px solid var(--line-soft);border-radius:9px;background:var(--paper);color:var(--caramel)}.leftover-button span{font-size:10px;color:var(--ink-2)}.notice{padding:8px;background:#fff8ec;border-radius:8px}
 </style>

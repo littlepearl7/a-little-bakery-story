@@ -89,6 +89,7 @@ export function newState() {
     onlineOrders: 0,
     festivalOrders: 0,
     monthSnap: { rep: 20, unlocked: [], skill: {} },
+    deliveryDay: -1,
     helpers: 0,
     usedMomHelp: false,
     dayIndex: 1,
