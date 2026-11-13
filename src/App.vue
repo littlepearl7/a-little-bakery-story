@@ -18,6 +18,7 @@ import SupplierPage from './pages/SupplierPage.vue';
 import RenovationPage from './pages/RenovationPage.vue';
 import DeliveryGame from './pages/minigames/DeliveryGame.vue';
 import MarketGame from './pages/minigames/MarketGame.vue';
+import CafeGame from './pages/minigames/CafeGame.vue';
 const scene = ref('shop');
 const started = ref(false);
 const saveCenterOpen = ref(false);
@@ -241,6 +242,7 @@ onMounted(() => {
 
     <DeliveryGame v-if="minigame === 'delivery'" @exit="minigame = ''" @done="minigame = ''" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
+    <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 
     <StoryModal v-if="started && activeEvent" :ev="activeEvent" @done="doneEvent" />
 
