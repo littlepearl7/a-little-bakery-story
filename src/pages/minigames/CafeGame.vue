@@ -1,12 +1,11 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { art, artStatus } from '../../data';
-import { state, availableProducts, priceOf, cafeDemand, serveCafeCustomer, leaveCafeCustomer, startCafeGame, displayProductName, save } from '../../store';
+import { state, availableProducts, priceOf, cafeDemand, serveCafeCustomer, leaveCafeCustomer, startCafeGame, coffeePairingFits, displayProductName, save } from '../../store';
 import MiniShell from './MiniShell.vue';
 
 const emit=defineEmits(['exit']);
 const COFFEES=[{id:'americano',name:'美式咖啡',profile:'bold',note:'深烘浓香'},{id:'latte',name:'拿铁',profile:'mellow',note:'温柔奶香'},{id:'cappuccino',name:'卡布奇诺',profile:'mellow',note:'绵密奶泡'},{id:'mocha',name:'摩卡',profile:'bold',note:'巧克力香'},{id:'iced',name:'冰咖啡',profile:'fresh',note:'清爽明亮'}];
-const PROFILE={plain:'mellow',strawberry:'mellow',chocolate:'bold',taro:'bold',matcha:'fresh',mango:'fresh',tiramisu:'bold',fig:'fresh',seasonal:'fresh',custom:'mellow',festival:'bold',signature:'bold'};
 const WORDS={bold:'浓郁醇厚',mellow:'温柔奶香',fresh:'轻盈清爽'};
 const phase=ref('intro');
 const selectedCake=ref('');
@@ -20,7 +19,7 @@ const demand=computed(()=>cafeDemand());
 const cakes=computed(()=>availableProducts.value.map(p=>({...p,stock:state.shelf[p.id]||0})).filter(p=>p.stock>0));
 const coffee=computed(()=>COFFEES.find(x=>x.id===selectedCoffee.value));
 const theme=computed(()=>['春日花园下午茶','夏日水果特调','秋日暖心咖啡','冬日巧克力时光'][Math.floor((state.month-1)%12/3)]);
-const paired=computed(()=>selectedCake.value && PROFILE[selectedCake.value]===coffee.value.profile);
+const paired=computed(()=>selectedCake.value && coffeePairingFits(selectedCake.value,selectedCoffee.value));
 const fair=computed(()=>selectedCake.value?Math.round(priceOf(selectedCake.value)*1.25+65):0);
 const cakeArt=id=>artStatus(`cake-${id}.webp`)==='ok'?art(`cake-${id}.webp`):'';
 function setup(){

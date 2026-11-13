@@ -48,6 +48,8 @@ try{
   assert(s.serveCafeCustomer({product:'chocolate',coffee:'americano'}).ok);
   assert.equal(s.state.shelf.chocolate,2);
   assert.equal(s.state.monthCost,8);
+  assert(s.coffeePairingFits('matcha','latte'), '抹茶红豆与拿铁是有效的联名搭配');
+  assert(s.coffeePairingFits('strawberry','latte'), '草莓奶油与拿铁是有效的联名搭配');
   // 研发：使用真实配方材料，研发记录与解锁配方持续保存。
   reset();s.state.month=4;s.state.pantry.taro=2;s.state.pantry.crisp=2;
   const r=s.beginRecipeWorkshopTrial({productId:'taro',ingredients:['荔浦芋泥','焦糖杏仁薄脆'],base:'戚风',cream:'栗子泥',direction:1,ratio:0,process:1,decoration:1});

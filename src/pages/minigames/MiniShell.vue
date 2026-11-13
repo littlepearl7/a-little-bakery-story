@@ -18,20 +18,22 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
 
 <template>
   <div class="mg" role="region" :aria-label="title + '独立游戏界面'">
-    <img class="mg-bg" :src="src" alt="" />
-    <div class="mg-shade" />
+    <div class="mg-frame">
+      <img class="mg-bg" :src="src" alt="" />
+      <div class="mg-shade" />
 
-    <header class="mg-top">
-      <button class="mg-back" type="button" @click="$emit('exit')" aria-label="返回">←</button>
-      <div class="mg-title">
-        <div class="t">{{ title }}</div>
-        <div class="s" v-if="sub">{{ sub }}</div>
+      <header class="mg-top">
+        <button class="mg-back" type="button" @click="$emit('exit')" aria-label="返回">←</button>
+        <div class="mg-title">
+          <div class="t">{{ title }}</div>
+          <div class="s" v-if="sub">{{ sub }}</div>
+        </div>
+        <div class="mg-slot"><slot name="top" /></div>
+      </header>
+
+      <div class="mg-body">
+        <slot />
       </div>
-      <div class="mg-slot"><slot name="top" /></div>
-    </header>
-
-    <div class="mg-body">
-      <slot />
     </div>
   </div>
 </template>
@@ -45,14 +47,26 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
   left: 0;
   z-index: 400;
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
   height: 100dvh;
   width: 100vw;
   touch-action: pan-y;
   overscroll-behavior: contain;
-  background: #f7e6d0;
+  background: #3e2c22;
   font-family: inherit;
+}
+.mg-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100vw, 56.25dvh);
+  height: 100dvh;
+  max-width: 100vw;
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #f7e6d0;
+  box-shadow: 0 0 55px rgba(18, 9, 5, 0.35);
 }
 .mg-bg {
   position: absolute;
@@ -78,9 +92,6 @@ const src = artStatus(props.bg + '.webp') === 'ok' ? base : art(props.bg + '.png
   min-width: 0;
   box-sizing: border-box;
   width: 100%;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
   z-index: 5;
   display: flex;
   align-items: center;

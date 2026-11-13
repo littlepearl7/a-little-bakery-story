@@ -1321,6 +1321,17 @@ const CAKE_PROFILES = {
   mango: 'fresh', tiramisu: 'bold', fig: 'fresh', seasonal: 'fresh', custom: 'mellow', festival: 'bold', signature: 'bold',
 };
 const COFFEE_NAMES = { americano: '美式', latte: '拿铁', cappuccino: '卡布奇诺', mocha: '摩卡', iced: '冰咖啡' };
+const SPECIAL_COFFEE_PAIRINGS = {
+  matcha: ['latte', 'cappuccino', 'iced'],
+  strawberry: ['latte', 'cappuccino', 'iced'],
+  tiramisu: ['americano', 'mocha', 'cappuccino'],
+};
+
+export function coffeePairingFits(product, coffee) {
+  if (!CAKE_PROFILES[product] || !COFFEE_PROFILES[coffee]) return false;
+  const exception = SPECIAL_COFFEE_PAIRINGS[product];
+  return exception ? exception.includes(coffee) : CAKE_PROFILES[product] === COFFEE_PROFILES[coffee];
+}
 
 export function startCafeGame({ product, coffee, price, theme } = {}) {
   if (state.cafeRun && !state.cafeRun.completed) return { ok: true, resumed: true };
@@ -1355,7 +1366,7 @@ export function serveCafeCustomer(selection = null) {
   const product = selection?.product || run.menu.product;
   const coffee = selection?.coffee || run.menu.coffee;
   if (!state.unlocked.includes(product) || !COFFEE_PROFILES[coffee]) return { ok: false, message: '请选择已解锁的蛋糕和咖啡。' };
-  const pairing = CAKE_PROFILES[product] === COFFEE_PROFILES[coffee];
+  const pairing = coffeePairingFits(product, coffee);
   const fairPrice = price <= Math.round(priceOf(product) * 1.25 + 65);
   const fits = pairing && fairPrice && (demand.profile === COFFEE_PROFILES[coffee] || run.menu.theme === '四季果香');
   if (!fits) {

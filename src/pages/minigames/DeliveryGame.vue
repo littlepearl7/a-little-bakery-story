@@ -18,6 +18,8 @@ const checked=ref(false);
 const packing=ref(false);
 const packSerial=ref(0);
 const packTime=ref(0);
+const packLoaded=ref(false);
+const packError=ref(false);
 let packTimer=null;
 const PACK_DURATION=3600; // 原始草莓蛋糕打包动画.gif：8 帧 × 450ms
 const LOOK={
@@ -86,15 +88,23 @@ function pack(){
 }
 function resumePacking(){
   packing.value=true;
+  if(packTimer){clearInterval(packTimer);packTimer=null;}
   packSerial.value+=1;
   packTime.value=0;
-  message.value='打包过程中无法跳过或重复触发。';
+  packLoaded.value=false;
+  packError.value=false;
+  message.value='打包动画加载完成后开始计时，期间无法跳过或重复触发。';
+}
+function onPackLoaded(){
+  if(!packing.value || packLoaded.value)return;
+  packLoaded.value=true;
   const startAt=performance.now();
   packTimer=setInterval(()=>{
     packTime.value=Math.min(PACK_DURATION,performance.now()-startAt);
     if(packTime.value>=PACK_DURATION){clearInterval(packTimer);packTimer=null;finishPack();}
   },40);
 }
+function onPackError(){packError.value=true;message.value='打包素材加载失败，请重试。未完成动画不会交付蛋糕。';}
 function finishPack(){
   const t=current.value;
   if(!t)return;
@@ -139,7 +149,7 @@ onUnmounted(()=>{if(packTimer)clearInterval(packTimer);});
 
     <div v-if="phone" class="phone-backdrop" @click.self="phone=false"><section class="phone-screen game-card"><div class="game-row"><h3 class="game-title">📱 手机 · 订单详情</h3><button class="game-btn" type="button" @click="phone=false">返回柜台</button></div><div class="game-row"><input class="order-input" type="search" v-model="query" placeholder="输入预约订单编号" @keyup.enter="lookup"><button class="game-btn primary" type="button" @click="lookup">查询</button></div><div v-if="found" class="order-detail"><b>{{found.orderNo}} · {{found.customer}}</b><p>蛋糕：{{displayProductName(found.product)}} × {{found.qty}}</p><p>外观：{{LOOK[found.product]}}</p><p>规格：{{found.qty}} 份 · {{found.type}}</p><p>装饰：{{found.due||'按标准配方'}}</p><p>祝福：{{found.blessing||'无'}}</p><p>取货：第 {{state.month}} 月第 {{state.day}} 日</p><p>状态：{{({waiting:'待取货',delivered:'已交付',searching:'正在找货',found:'待打包',packing:'打包中',ready:'待交付',unavailable:'缺货'})[found.status]||found.status}}</p></div><div class="game-section">当日预约单</div><div v-for="t in tickets.filter(t=>t.kind==='appointment')" :key="t.id" class="order-list"><span>{{t.orderNo}} · {{t.customer}}</span><span>{{t.status==='delivered'?'已交付':'待取货'}}</span></div><p class="game-lead">订单与柜台营业共用同一份数据，交付后状态自动更新。</p></section></div>
 
-    <div v-if="packing" class="packing-mask"><div class="game-card pack-card"><h3 class="game-title">蛋糕正在打包……</h3><img :key="packSerial" :src="art('minigame-packing.gif')+'?once='+packSerial" alt="草莓蛋糕完整打包动画"><div class="game-progress"><i :style="{width:Math.round(packTime/PACK_DURATION*100)+'%'}"/></div><p class="game-lead game-center">{{(Math.max(0,PACK_DURATION-packTime)/1000).toFixed(1)}} 秒 · 动画播完自动交付</p></div></div>
+    <div v-if="packing" class="packing-mask"><div class="game-card pack-card"><h3 class="game-title">蛋糕正在打包……</h3><img :key="packSerial" :src="art('minigame-packing.gif')+'?once='+packSerial" alt="草莓蛋糕完整打包动画" @load="onPackLoaded" @error="onPackError"><div class="game-progress"><i :style="{width:Math.round(packTime/PACK_DURATION*100)+'%'}"/></div><p class="game-lead game-center">{{packLoaded?(Math.max(0,PACK_DURATION-packTime)/1000).toFixed(1)+' 秒 · 动画播完自动交付':'正在加载原始 GIF 动画……'}}</p><button v-if="packError" class="game-btn" style="width:100%" type="button" @click="resumePacking">重新加载动画</button></div></div>
 
     <div v-if="phase==='result'" class="game-scroll"><div class="game-card"><h3 class="game-title">今日柜台结算</h3><div class="game-stats"><span>完成交付 {{completed}} 份</span><span>本局收入 ¥{{earned}}</span><span>选错／缺货 {{misses}} 次</span><span>订单完成 {{steps}} / {{tickets.length}}</span></div><p class="game-lead">订单状态、库存、营业收入及人物关系已同步至经营数据。{{misses?'下次可以多对照一下订单描述。':'今天的服务非常细致！'}}</p><button class="game-btn primary" style="width:100%" type="button" @click="emit('exit')">返回蛋糕店</button></div></div>
   </MiniShell>

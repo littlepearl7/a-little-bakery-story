@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { art, artStatus, INGREDIENTS, RECIPE_BOM } from '../../data';
 import { state, availableProducts, setPlan, missingIngredients, beginProductionTest, finishProductionTest, canConsumeRecipe, capacity, planPoints, save, displayProductName } from '../../store';
 import MiniShell from './MiniShell.vue';
@@ -27,8 +27,36 @@ const garnishOptions = computed(() => ['奶油裱花', '新鲜草莓', '巧克�
 const rightGarnish = computed(() => ({ plain: '奶油裱花', strawberry: '新鲜草莓', chocolate: '巧克力碎', mango: '芒果果粒', matcha: '抹茶红豆', signature: '桂花栗子', taro: '坚果薄脆', seasonal: '时令鲜果', fig: '时令鲜果', festival: '奶油裱花', custom: '奶油裱花', tiramisu: '巧克力碎' })[chosen.value] || '奶油裱花');
 const progress = computed(() => phase.value === 'ingredients' ? 20 : phase.value === 'mix' ? 40 : phase.value === 'oven' ? 60 : phase.value === 'decoration' ? 85 : phase.value === 'result' ? 100 : 0);
 
+function checkpoint() {
+  if (!state.productionMini || phase.value === 'intro' || phase.value === 'result') return;
+  state.productionMini.checkpoint = {
+    phase: phase.value, picked: [...picked.value], mix: mix.value, bake: bake.value,
+    heat: heat.value, garnish: garnish.value, wrong: wrong.value, scores: { ...scores.value },
+  };
+  save();
+}
+
+function resume() {
+  const mini = state.productionMini;
+  const cp = mini?.checkpoint;
+  if (!mini || !cp || !['ingredients', 'mix', 'oven', 'decoration'].includes(cp.phase)) return false;
+  chosen.value = mini.product;
+  quantity.value = state.plan[mini.product] || quantity.value;
+  picked.value = [...(cp.picked || [])];
+  mix.value = Number(cp.mix) || 0;
+  bake.value = Number(cp.bake) || 0;
+  heat.value = Number(cp.heat) || 175;
+  garnish.value = cp.garnish || '';
+  wrong.value = Number(cp.wrong) || 0;
+  scores.value = { materials: 0, mix: 0, oven: 0, garnish: 0, ...cp.scores };
+  phase.value = cp.phase;
+  message.value = '已恢复上次完成的操作步骤，可以接着制作。';
+  return true;
+}
+
 function begin() {
   if (state.dayPhase !== 'prep') return message.value = '今天已经完成制作，请在下一个营业日再来。';
+  if (resume()) return;
   if (!state.unlocked.includes(chosen.value)) return message.value = '配方还未解锁。';
   setPlan(chosen.value, quantity.value);
   if (Object.keys(missingIngredients()).length) return message.value = '材料不足，请先到街上的食材铺采购，再来制作。';
@@ -43,16 +71,24 @@ function begin() {
   wrong.value = 0;
   message.value = '按配方逐一准备原料。其他批次会由店里的伙伴协助完成。';
   phase.value = 'ingredients';
+  checkpoint();
 }
 
 function chooseIngredient(id) {
   if (picked.value.includes(id)) return;
   if (!ingredients.value.includes(id)) { wrong.value++; message.value = `${materialName(id)}不是本次配方需要的原料。`; return; }
+  if (id !== ingredients.value[picked.value.length]) {
+    wrong.value++;
+    message.value = `请按操作单的顺序放入：先取${materialName(ingredients.value[picked.value.length])}。`;
+    checkpoint();
+    return;
+  }
   if ((state.pantry[id] || 0) + (state.legacyStock || 0) < recipe.value[id] * quantity.value) {
     message.value = `${materialName(id)}余量不足，请检查排产或购买材料。`; return;
   }
   picked.value = [...picked.value, id];
   message.value = `${materialName(id)}已放到操作台。`;
+  checkpoint();
 }
 
 function toMix() {
@@ -60,9 +96,10 @@ function toMix() {
   scores.value.materials = Math.max(40, 100 - wrong.value * 15);
   message.value = '按住搅拌按钮，到绿色的最佳区间（72%～86%）松开。';
   phase.value = 'mix';
+  checkpoint();
 }
 
-function stopHold() { if (timer) { clearInterval(timer); timer = undefined; } }
+function stopHold() { if (timer) { clearInterval(timer); timer = undefined; checkpoint(); } }
 function startHold(kind) {
   if (timer) return;
   timer = setInterval(() => {
@@ -77,6 +114,7 @@ function finishMix() {
   scores.value.mix = Math.max(0, 100 - Math.abs(mix.value - 79) * 2.8);
   phase.value = 'oven';
   message.value = '设定炉温，再按住烘烤按钮，在 72%～86% 停止。';
+  checkpoint();
 }
 function finishOven() {
   stopHold();
@@ -84,6 +122,7 @@ function finishOven() {
   scores.value.oven = Math.max(0, 100 - Math.abs(bake.value - 79) * 2.8 - Math.abs(heat.value - 175) * 1.4);
   phase.value = 'decoration';
   message.value = '依据目标蛋糕的外观，选择最合适的顶部装饰。';
+  checkpoint();
 }
 function finish() {
   if (!garnish.value) return message.value = '还没有完成装饰。';
@@ -96,6 +135,7 @@ function finish() {
   phase.value = 'result';
 }
 
+onMounted(resume);
 onUnmounted(stopHold);
 </script>
 
@@ -120,7 +160,7 @@ onUnmounted(stopHold);
 
       <div v-if="phase === 'ingredients'" class="game-card">
         <h3 class="game-title">① 备齐制作材料</h3>
-        <p class="game-lead">目标：{{ ingredients.map(materialName).join('、') }}。已取 {{ picked.length }} / {{ ingredients.length }} 种</p>
+        <p class="game-lead">按顺序取用：{{ ingredients.map(materialName).join(' → ') }}。已取 {{ picked.length }} / {{ ingredients.length }} 种</p>
         <div class="game-grid"><button v-for="item in ingredientChoices" :key="item.id" type="button" class="game-btn" :class="{selected:picked.includes(item.id)}" @click="chooseIngredient(item.id)">{{ item.name }}<br>仓库 {{ state.pantry[item.id]||0 }}</button></div>
         <button class="game-btn primary" type="button" style="width:100%" :disabled="picked.length<ingredients.length" @click="toMix">原料齐了 · 开始搅拌</button>
       </div>
