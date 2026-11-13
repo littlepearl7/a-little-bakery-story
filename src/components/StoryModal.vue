@@ -60,6 +60,9 @@ const bg = computed(() => BG[bgKey.value] || BG.shop);
 const bgSrc = computed(() => bgSrcOf(bg.value));
 /** 店里穿围裙、出门换便装 */
 const wear = computed(() => wearOf(bgKey.value));
+function wearFor(who) {
+  return who === '林念' ? (state.outfit === 'bakery' ? 'in' : 'out') : wear.value;
+}
 const flashback = computed(
   () => !!scene.value && /回忆|闪回|高中|高三|晚自习|那年|那一年/.test(scene.value.text)
 );
@@ -94,7 +97,7 @@ const NICKNAME = {
 };
 
 const cast = computed(() => {
-  const can = (who) => who && SPRITE[who] && spriteReady(who, wear.value);
+  const can = (who) => who && SPRITE[who] && spriteReady(who, wearFor(who));
 
   if (isSay.value) return can(cur.value.who) ? [cur.value.who] : [];
 
@@ -261,7 +264,7 @@ onUnmounted(() => {
           :class="{ dim: speaker && speaker !== c, off: !speaker }"
           :style="slotStyle(i)"
         >
-          <img :src="spriteOf(c, wear)" :alt="c" />
+          <img :src="spriteOf(c, wearFor(c))" :alt="c" />
         </div>
       </div>
 

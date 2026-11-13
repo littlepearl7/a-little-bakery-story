@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { monthLabel, PARTNERS, STAGES } from './data';
 import {
   state, queue, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
-  skipToNextMonth, continueAfterShortEnding, startNewGamePlus, startTutorial,
+  skipToNextMonth, continueAfterShortEnding, startNewGamePlus, startTutorial, restAtHome, sceneAvailability, visitTownScene, addTownNotice,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
@@ -14,6 +14,8 @@ import PartnersPage from './pages/PartnersPage.vue';
 import ManagePage from './pages/ManagePage.vue';
 import CodexPage from './pages/CodexPage.vue';
 import SceneMapPage from './pages/SceneMapPage.vue';
+import SceneFeaturePage from './pages/SceneFeaturePage.vue';
+import PhonePage from './pages/PhonePage.vue';
 import SupplierPage from './pages/SupplierPage.vue';
 import RenovationPage from './pages/RenovationPage.vue';
 import DeliveryGame from './pages/minigames/DeliveryGame.vue';
@@ -27,6 +29,8 @@ const started = ref(false);
 const saveCenterOpen = ref(false);
 const activePanel = ref('');
 const minigame = ref('');
+const phoneOpen = ref(false);
+const activeFeatureSection = ref('pantry');
 const activeManageSection = ref('overview');
 const activeShopSection = ref('counter');
 function openPanel(name, section = 'overview') {
@@ -37,6 +41,22 @@ function openPanel(name, section = 'overview') {
   activePanel.value = name;
   if (name === 'manage') activeManageSection.value = section;
   if (name === 'shop') activeShopSection.value = section;
+  if (name === 'feature') activeFeatureSection.value = section;
+}
+
+function navigateTown(target) {
+  if (!sceneAvailability(target).open) return;
+  visitTownScene(target);
+  phoneOpen.value = false;
+  scene.value = target;
+}
+
+function sleepAtHome() {
+  const report = restAtHome();
+  if (!report) return;
+  closePanel();
+  scene.value = 'home';
+  onClosed(report);
 }
 function closePanel() {
   activePanel.value = '';
@@ -48,14 +68,14 @@ const askTutorial = ref(false);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
-const devEnabled = new URLSearchParams(location.search).get('dev') === '1'
-  || window.matchMedia('(max-width: 600px), (pointer: coarse)').matches;
+// 开发跳月只允许明确带 ?dev=1；手机竖屏不再误显示调试按钮。
+const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
 
 const ending = computed(() =>
   state.phase === 'ended' && state.ending && !queue.events.length && !endingDismissed.value ? state.ending : null
 );
 const canContinueStory = computed(() =>
-  devEnabled && state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
+  state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
 );
 const pending = computed(() => queue.events.length);
 
@@ -64,6 +84,7 @@ function enterGame(target = {}) {
   saveCenterOpen.value = false;
   scene.value = 'shop';
   activePanel.value = target.panel || '';
+  phoneOpen.value = false;
   activeManageSection.value = target.section || 'overview';
   if (queue.events.length) activeEvent.value = queue.events[0];
 }
@@ -73,6 +94,7 @@ function returnToTitle() {
   started.value = false;
   saveCenterOpen.value = false;
   activePanel.value = '';
+  phoneOpen.value = false;
   activeEvent.value = null;
   dayReport.value = null;
   monthReport.value = null;
@@ -80,7 +102,14 @@ function returnToTitle() {
 }
 
 function openNext() {
-  if (queue.events.length) activeEvent.value = queue.events[0];
+  if (!queue.events.length) return;
+  const next = queue.events[0];
+  if (next.kind === 'tutorial') {
+    if (next.id.includes('KITCHEN')) scene.value = 'kitchen';
+    else if (next.id.includes('STREET') || next.id.includes('PHONE')) scene.value = 'street';
+    else scene.value = 'shop';
+  }
+  activeEvent.value = next;
 }
 
 function doneEvent() {
@@ -158,6 +187,27 @@ watch(
   }
 );
 
+const locationNotices = [
+  ['home', '卧室与衣柜开放', '经营一天后，可以回家休息、更换林念的日常服装。', 'home'],
+  ['park', '公园开放', '苏晴提起了小镇公园，空闲时可以去散步、拍照。', 'park'],
+  ['river', '河岸开放', '公园尽头的小路通向河边，那里有新的故事。', 'river'],
+  ['lab', '实验台开放', '基础配方逐渐熟练，现在可以在后厨研发新口味。', 'kitchen'],
+  ['studio', '设计工作室开放', '完成定制订单后，叶星河邀请林念尝试蛋糕与包装设计。', 'studio'],
+  ['cafe', '咖啡店开放', '栖木咖啡的许沐禾发来了合作邀请。', 'cafe'],
+  ['staff', '员工排班板开放', '第一位伙伴加入后，可以安排岗位和培训。', 'kitchen'],
+  ['market', '小镇市集开放', '林记烘焙收到了参加季节市集的邀请。', 'market'],
+  ['store', '品牌新店开放', '林念已经有能力规划更远处的品牌门店。', 'store'],
+];
+
+watch(() => [state.dayIndex, state.month, state.shopLevel, state.brand, state.customOrders, state.staff.length, state.sqchatMonth, state.sceneVisits.park], () => {
+  locationNotices.forEach(([key, title, detail, target]) => {
+    if (sceneAvailability(key).open && !state.unlockNotified.includes(key)) {
+      state.unlockNotified.push(key);
+      addTownNotice(title, detail, target);
+    }
+  });
+}, { immediate: true });
+
 const partnerLines = computed(() => {
   if (!ending.value) return [];
   const out = PARTNERS.filter((p) => state.staff.includes(p.id)).map((p) => ({
@@ -212,7 +262,7 @@ onMounted(() => {
           <header class="scene-panel-head">
             <div>
               <div class="small muted">林记烘焙 · {{ monthLabel(state.month) }}</div>
-              <strong>{{ ({shop:'柜台营业', kitchen:'后厨操作台', partners:'员工排班板', manage:'经营手账', codex:'图鉴与相册', supplier:'食材采购', renovation:'店铺升级'})[activePanel] || '经营' }}</strong>
+              <strong>{{ ({shop:'柜台营业', kitchen:'后厨操作台', partners:'员工排班板', manage:'经营手账', codex:'图鉴与相册', supplier:'食材采购', renovation:'店铺升级', feature:'小镇互动'})[activePanel] || '经营' }}</strong>
             </div>
             <button type="button" class="scene-panel-close" @click="closePanel">✕</button>
           </header>
@@ -224,10 +274,14 @@ onMounted(() => {
             <PartnersPage v-else-if="activePanel === 'partners'" />
             <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" @open-panel="openPanel" />
             <CodexPage v-else-if="activePanel === 'codex'" :initial-segment="activeManageSection === 'collection' ? 'collection' : 'product'" />
+            <SceneFeaturePage v-else-if="activePanel === 'feature'" :section="activeFeatureSection" @open-panel="openPanel" @rest-day="sleepAtHome" />
           </div>
         </section>
       </div>
     </div>
+
+    <button v-if="started && !minigame" class="phone-fab" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
+    <PhonePage v-if="started && phoneOpen && !minigame" @close="phoneOpen = false" @navigate="navigateTown" @open-panel="openPanel" />
 
     <button
       v-if="started && pending"
@@ -246,27 +300,6 @@ onMounted(() => {
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 
     <StoryModal v-if="started && activeEvent" :ev="activeEvent" @done="doneEvent" />
-
-    <div v-if="started && askTutorial" class="mask">
-      <div class="sheet">
-        <div class="sheet-head">
-          <div class="t serif">要不要先看看这家店？</div>
-          <div class="small muted">林暖 · 林记烘焙前厅</div>
-        </div>
-        <div class="sheet-body">
-          <div class="card card-pad">
-            <p class="small" style="line-height: 1.9; margin: 0">
-              林暖把串着钥匙的钥匙扣放进你手心，问要不要带你从前厅、后厨一直走到街上。
-              看一遍会认得每个角落的用处；跳过也能随时自己摸索。
-            </p>
-          </div>
-        </div>
-        <div class="sheet-foot tut-foot">
-          <button class="btn" type="button" @click="chooseTutorial(false)">暂不查看</button>
-          <button class="btn primary" type="button" @click="chooseTutorial(true)">带我走一圈</button>
-        </div>
-      </div>
-    </div>
 
     <div v-if="started && askTutorial" class="mask">
       <div class="sheet">
@@ -509,4 +542,5 @@ onMounted(() => {
 .scene-panel-close { width:34px; height:34px; border:1px solid var(--line); border-radius:50%; background:var(--cream); color:var(--caramel); font-size:16px; cursor:pointer; }
 .scene-panel-content { overflow:auto; -webkit-overflow-scrolling:touch; padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 20px); }
 .topbar-actions{display:flex;align-items:center;gap:9px}.topbar-save{min-width:48px;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--caramel);font:inherit;font-size:12px}
+.phone-fab{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 17px);z-index:26;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:55px;height:55px;border:2px solid #fff7eb;border-radius:17px;background:#6b4a34;color:#fff9ee;box-shadow:0 4px 13px #34241666;font:600 12px inherit;cursor:pointer;touch-action:manipulation}.phone-fab span{font-size:22px;line-height:1.1}.phone-fab small{font-size:10px;font-weight:700}.phone-fab:active{transform:scale(.96)}
 </style>

@@ -65,6 +65,18 @@ export function newState() {
     cafeRun: null,
     cafeCollab: 0,
     activityRecords: { market: [], cafe: [] },
+    sceneVisits: {},
+    scenePhotos: [],
+    sceneEvents: [],
+    outfit: 'daily',
+    unlockedOutfits: ['daily', 'bakery'],
+    designWorks: [],
+    cafeRelation: 0,
+    cafeLastTalk: 0,
+    notices: [],
+    unlockNotified: [],
+    dailyLedger: [],
+    daySpend: 0,
     staffAssignments: { picker: null, packer: null, auto: false },
     challenge: null,
     challengeDayIndex: 0,
@@ -149,6 +161,7 @@ export function upgradeDevice(id) {
   state.devices[id] = deviceTier(id) + 1;
   if (id === 'warehouse') state.warehouseCapacity = [120, 180, 240, 320][state.devices[id]];
   state.monthCost += next.cost;
+  state.daySpend += next.cost;
   log('升级了' + deviceById(id).name + '，' + next.text, 'good');
   save();
   return true;
@@ -248,6 +261,7 @@ export function buyIngredients(cart) {
   state.ap -= 1;
   state.cash -= payable;
   state.monthCost += payable;
+  state.daySpend += payable;
   Object.entries(items).forEach(([id, qty]) => { state.pantry[id] = (state.pantry[id] || 0) + qty; });
   if (state.newGamePlus && !state.ngpDiscountUsed) state.ngpDiscountUsed = true;
   log('采购了 ' + entries.map(([id, qty]) => INGREDIENTS.find((item) => item.id === id).name + ' ×' + qty).join('、') + (discount ? '，二周目优惠 ¥' + discount : ''), 'good');
@@ -756,6 +770,7 @@ export function buyDecoration(id) {
   if (state.shopLevel < decoration.shopLevel || state.cash < decoration.cost) return false;
   state.cash -= decoration.cost;
   state.monthCost += decoration.cost;
+  state.daySpend += decoration.cost;
   state.decorations.push(id);
   log('添置了' + decoration.name + '，店铺舒适度 +1', 'good');
   save();
@@ -1078,6 +1093,7 @@ export function doAction(id, opt) {
   state.ap -= info.ap;
   if (COOLDOWN[id]) state.cd[id] = state.dayIndex + COOLDOWN[id];
   if (cashBefore > state.cash) state.monthCost += cashBefore - state.cash;
+  if (cashBefore > state.cash) state.daySpend += cashBefore - state.cash;
   save();
   return true;
 }
@@ -1309,6 +1325,7 @@ export function restockMarket(productId, qty = 1) {
   if (state.cash < fee) return { ok: false, message: '运货费用不足。' };
   state.cash -= fee;
   state.monthCost += fee;
+  state.daySpend += fee;
   run.inventory[productId] = (run.inventory[productId] || 0) + amount;
   run.misses += 0.2;
   save();
@@ -1378,6 +1395,7 @@ export function serveCafeCustomer(selection = null) {
   const revenue = addGameRevenue(product, 1, price);
   state.cash -= 8;
   state.monthCost += 8;
+  state.daySpend += 8;
   run.sold += 1;
   run.revenue += revenue;
   run.menu.lastServed = { product, coffee };
@@ -1773,6 +1791,8 @@ export function closeDay(mode) {
   state.batches = [];
 
   const report = { day: state.day, rev: state.dayRev, sold: state.daySold, left, gain };
+  state.dailyLedger.unshift({ month: state.month, day: state.day, rev: state.dayRev + gain, cost: state.daySpend, sold: state.daySold, orders: state.doneOrders });
+  state.dailyLedger = state.dailyLedger.slice(0, 40);
 
   state.dayRev = 0;
   state.daySold = 0;
@@ -1783,6 +1803,13 @@ export function closeDay(mode) {
   advanceDay();
   save();
   return report;
+}
+
+/** 卧室可结束尚未开门的经营日；正在接待顾客时不能跳过流程。 */
+export function restAtHome() {
+  if (state.phase !== 'playing' || !['prep', 'service-ready', 'closing'].includes(state.dayPhase)) return null;
+  state.dayPhase = 'closing';
+  return closeDay('discount');
 }
 
 function advanceDay() {
@@ -1797,6 +1824,7 @@ function advanceDay() {
 }
 
 function startDay() {
+  state.daySpend = 0;
   state.ap = state.maxAp;
   state.stamina = Math.min(state.maxStamina, state.stamina + 70);
   state.plan = {};
@@ -2013,6 +2041,119 @@ export function startTutorial(show) {
   state.tutorialProgress = show ? 1 : 0;
   save();
   return pick.length;
+}
+
+/* ---------------- 栖云镇：场景、日历和收藏 ---------------- */
+
+export const TOWN_EVENTS = [
+  { season: 0, title: '春日花卉节', place: '公园 · 小镇市集', materials: ['strawberry', 'decor'], detail: '草莓与花卉装饰是春季订单的主角。' },
+  { season: 1, title: '夏日水果节', place: '咖啡店 · 小镇市集', materials: ['mango', 'strawberry'], detail: '准备新鲜水果，留意咖啡店的夏日联名邀请。' },
+  { season: 2, title: '秋日丰收季', place: '小镇市集', materials: ['chestnut', 'decor'], detail: '秋栗与坚果风味适合节日摊位。' },
+  { season: 3, title: '暖冬甜品节', place: '蛋糕店 · 咖啡店', materials: ['cocoa', 'decor'], detail: '巧克力与礼盒订单会更受欢迎。' },
+];
+
+export function seasonalEvent(month = state.month) {
+  return TOWN_EVENTS[Math.floor(((month - 1) % 12) / 3)];
+}
+
+export function sceneAvailability(id) {
+  switch (id) {
+    case 'school': return { open: false, reason: '高中仅在回忆与主线剧情中出现，不作为日常地图。' };
+    case 'home': return { open: state.dayIndex >= 2, reason: '第一天营业结束后，林念才有时间回家整理。' };
+    case 'park': return { open: state.dayIndex >= 2, reason: '完成第一天经营后，苏晴会带你熟悉公园。' };
+    case 'river': return { open: (state.sceneVisits.park || 0) > 0 && (state.sqchatMonth > 0 || state.dayIndex >= 3), reason: '先去公园散步，认识通往河岸的小路。' };
+    case 'lab': return { open: state.month >= 3 && state.unlocked.length >= 3, reason: '掌握三款基础配方，并经营到第 3 个月。' };
+    case 'staff': return { open: state.staff.length >= 1, reason: '招聘第一位伙伴后开放排班板。' };
+    case 'studio': return { open: state.customOrders >= 1, reason: '完成第一份定制订单后，叶星河会邀请你来设计。' };
+    case 'cafe': return { open: state.shopLevel >= 2 && state.month >= 6, reason: '店铺达到 Lv2 且进入第 6 个月，咖啡店主会提出合作。' };
+    case 'market': return { open: state.shopLevel >= 3 && state.month >= 6, reason: '店铺达到 Lv3，并完成前期经营（第 6 个月起）。' };
+    case 'store': return { open: state.shopLevel >= 4 && state.customOrders >= 2 && state.brand >= 25 && state.month >= 19, reason: '店铺 Lv4、完成 2 份定制、品牌 ≥25，并推进到第 19 个月。' };
+    default: return { open: true, reason: '' };
+  }
+}
+
+export function addTownNotice(title, detail, target = 'shop') {
+  if ((state.notices || []).some((item) => item.title === title)) return;
+  state.notices.unshift({ id: 'n-' + Date.now() + '-' + state.notices.length, title, detail, target, month: state.month, day: state.day, seen: false });
+  state.notices = state.notices.slice(0, 60);
+  save();
+}
+
+export function visitTownScene(id) {
+  const gate = sceneAvailability(id);
+  if (!gate.open) return false;
+  state.sceneVisits[id] = (state.sceneVisits[id] || 0) + 1;
+  if (id === 'park' && state.sceneVisits[id] === 1) addTownNotice('河边的小路', '公园通往河边。你可以去看看风景，也许会遇到特别的人。', 'river');
+  if (id === 'cafe' && state.sceneVisits[id] === 1) addTownNotice('咖啡店的邀请', '主理人许沐禾想和林记烘焙推出第一份联名菜单。', 'cafe');
+  if (id === 'studio' && state.sceneVisits[id] === 1) addTownNotice('叶星河的设计工作室', '定制订单带来了新的设计灵感，试着制作一份包装设计。', 'studio');
+  save();
+  return true;
+}
+
+export function takeTownPhoto(place) {
+  if (!['park', 'river'].includes(place)) return { ok: false, message: '只能在风景地点拍照。' };
+  const key = place + '-' + state.month;
+  if (state.scenePhotos.some((entry) => entry.id === key)) return { ok: false, message: '这个月已经收集过这里的风景了。' };
+  if (state.dayPhase !== 'prep' || state.ap < 1) return { ok: false, message: '拍摄风景需要准备阶段的 1 点行动力。' };
+  state.ap -= 1;
+  state.scenePhotos.push({ id: key, place, month: state.month, day: state.day, title: place === 'river' ? '河岸晚风' : '公园花影' });
+  state.loyalty = Math.min(100, state.loyalty + 1);
+  addTownNotice('新的风景照片', '拍摄的照片已经存入手机收藏。', place);
+  save();
+  return { ok: true, message: '拍到了「' + (place === 'river' ? '河岸晚风' : '公园花影') + '」，已收入收藏。' };
+}
+
+export const RIVER_EVENTS = [
+  { id: 'walk', title: '河边的第一次散步', detail: '苏晴陪林念沿着水边慢慢走，聊起接手蛋糕店后忙碌的生活。', unlock: () => state.dayIndex >= 3, reward: '苏晴好感与河岸回忆' },
+  { id: 'lost', title: '遗失的物品', detail: '在长椅下发现一枚小小的钥匙扣。循着线索找到失主，是常来林记的小镇居民。', unlock: () => (state.sceneVisits.river || 0) >= 2, reward: '小镇纪念物与人物线索' },
+  { id: 'rain', title: '雨天的小插曲', detail: '约好见面的午后下起雨，林念和苏晴帮陌生人遮住了刚买的甜点。', unlock: () => state.month >= 5, reward: '特殊订单线索' },
+  { id: 'festival', title: '河岸灯会', detail: '夜色里亮起一串串小灯，林记的节日甜点为小镇添上了温暖。', unlock: () => state.month >= 6, reward: '灯会纪念与限定照片' },
+  { id: 'bridge', title: '旧桥边的回忆', detail: '苏晴在旧桥边提起那年一起走过的路，林念终于想起了很多珍贵的小事。', unlock: () => state.sqchatMonth >= 4, reward: '苏晴专属回忆' },
+];
+
+export function exploreRiver(id) {
+  const ev = RIVER_EVENTS.find((entry) => entry.id === id);
+  if (!ev || !ev.unlock()) return { ok: false, message: '这段故事还没有到来的时机。' };
+  if (state.sceneEvents.includes(id)) return { ok: false, message: '这段回忆已经收藏。' };
+  if (state.dayPhase !== 'prep' || state.ap < 1) return { ok: false, message: '今天先完成店里的营业，明天再来吧。' };
+  state.ap -= 1;
+  state.sceneEvents.push(id);
+  if (id === 'walk' || id === 'bridge') state.loyalty = Math.min(100, state.loyalty + 3);
+  if (id === 'festival') state.marketPoints += 2;
+  addTownNotice('河边回忆 · ' + ev.title, ev.reward + '已记入手机收藏。', 'river');
+  save();
+  return { ok: true, message: ev.detail + '\n获得：' + ev.reward };
+}
+
+export function changeOutfit(id) {
+  if (!state.unlockedOutfits.includes(id)) return false;
+  state.outfit = id;
+  save();
+  return true;
+}
+
+export function submitDesign({ shape, color, decoration, packaging }) {
+  if (!sceneAvailability('studio').open || state.dayPhase !== 'prep' || state.ap < 1) return { ok: false, message: '现在还无法进行设计。' };
+  if ((state.pantry.decor || 0) < 1) return { ok: false, message: '需要 1 份裱花装饰料，请先去食材铺补货。' };
+  const id = 'design-' + state.designWorks.length + '-' + state.dayIndex;
+  state.pantry.decor -= 1;
+  state.ap -= 1;
+  state.designWorks.push({ id, shape, color, decoration, packaging, month: state.month, day: state.day });
+  state.brand = Math.min(100, state.brand + 1);
+  addTownNotice('设计作品已保存', '新设计已归入手机收藏，将为品牌形象积累经验。', 'studio');
+  save();
+  return { ok: true, message: '设计保存成功！消耗装饰料 ×1，品牌 +1。' };
+}
+
+export function chatCafeOwner() {
+  if (!sceneAvailability('cafe').open || state.dayPhase !== 'prep' || state.ap < 1) return { ok: false, message: '当前无法交流。' };
+  if (state.cafeLastTalk === state.dayIndex) return { ok: false, message: '今天已经和许沐禾聊过了。' };
+  state.ap -= 1;
+  state.cafeRelation += 3;
+  state.cafeLastTalk = state.dayIndex;
+  addTownNotice('街角咖啡馆', '许沐禾分享了咖啡与蛋糕搭配的心得，联名合作又近了一步。', 'cafe');
+  save();
+  return { ok: true, message: '和许沐禾聊了新品与小镇生活。咖啡店好感 +3。' };
 }
 
 export function startGame() {
