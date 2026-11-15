@@ -3,7 +3,9 @@ import { computed, reactive, ref } from 'vue';
 import { INGREDIENTS } from '../data';
 import { state, buyIngredients, pantryUnits, restockPlan } from '../store';
 
-const cart = reactive({});
+const props = defineProps({ tutorial: { type: Boolean, default: false } });
+const emit = defineEmits(['done']);
+const cart = reactive(props.tutorial ? { base: 2 } : {});
 const notice = ref('');
 const available = computed(() => INGREDIENTS.filter((item) => item.month <= state.month));
 const total = computed(() => available.value.reduce((sum, item) => sum + (cart[item.id] || 0) * item.price, 0));
@@ -26,6 +28,14 @@ function fillPlan() {
 }
 
 function submit() {
+  if (props.tutorial) {
+    if (total.value <= 0) {
+      notice.value = '先输入要准备的原料数量。';
+      return;
+    }
+    emit('done');
+    return;
+  }
   const result = buyIngredients(cart);
   notice.value = result.message;
   if (result.ok) Object.keys(cart).forEach((id) => { cart[id] = 0; });
@@ -36,16 +46,16 @@ function submit() {
   <div>
     <div class="card card-pad">
       <div class="between"><div class="h2">食材铺</div><span class="chip">仓库 {{ pantryUnits }}/{{ state.warehouseCapacity }}</span></div>
-      <p class="small muted">选好今天要用的原料，一次结账。数量可以直接输入，也能用 ±5 快速调。采购消耗 1 点行动力；二周目优惠在首笔采购时抵扣，最高 ¥300。</p>
-      <button class="btn" type="button" :disabled="state.dayPhase !== 'prep'" @click="fillPlan">按生产计划补齐缺料</button>
+      <p class="small muted">{{ tutorial ? '练习任务：给明天准备 2 份基础烘焙包。数量可直接输入；本次不会扣款、消耗行动力或改变仓库。' : '选好今天要用的原料，一次结账。数量可以直接输入，也能用 ±5 快速调。采购消耗 1 点行动力；二周目优惠在首笔采购时抵扣，最高 ¥300。' }}</p>
+      <button v-if="!tutorial" class="btn" type="button" :disabled="state.dayPhase !== 'prep'" @click="fillPlan">按生产计划补齐缺料</button>
     </div>
 
     <div class="card ingredient-list">
       <div v-for="item in available" :key="item.id" class="ingredient">
         <div><strong>{{ item.name }}</strong><div class="small muted">库存 {{ state.pantry[item.id] || 0 }} · ¥{{ item.price }} / 份</div></div>
         <div class="stepper">
-          <button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(item.id, -5)">−5</button>
-          <button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(item.id, -1)">−</button>
+          <button type="button" :disabled="!tutorial && state.dayPhase !== 'prep'" @click="bump(item.id, -5)">−5</button>
+          <button type="button" :disabled="!tutorial && state.dayPhase !== 'prep'" @click="bump(item.id, -1)">−</button>
           <input
             class="qty"
             type="number"
@@ -53,17 +63,17 @@ function submit() {
             min="0"
             max="99"
             :value="cart[item.id] || 0"
-            :disabled="state.dayPhase !== 'prep'"
+            :disabled="!tutorial && state.dayPhase !== 'prep'"
             @input="setQty(item.id, $event)"
             @blur="setQty(item.id, $event)"
           />
-          <button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(item.id, 1)">+</button>
-          <button type="button" :disabled="state.dayPhase !== 'prep'" @click="bump(item.id, 5)">+5</button>
+          <button type="button" :disabled="!tutorial && state.dayPhase !== 'prep'" @click="bump(item.id, 1)">+</button>
+          <button type="button" :disabled="!tutorial && state.dayPhase !== 'prep'" @click="bump(item.id, 5)">+5</button>
         </div>
       </div>
     </div>
     <p v-if="notice" class="small" role="status">{{ notice }}</p>
-    <div class="purchase-footer"><span>合计 ¥{{ total }}</span><button class="btn primary" type="button" :disabled="state.dayPhase !== 'prep' || state.ap < 1 || total <= 0" @click="submit">确认采购 · 1 点行动力</button></div>
+    <div class="purchase-footer"><span>{{ tutorial ? '练习合计' : '合计' }} ¥{{ total }}</span><button class="btn primary" type="button" :disabled="(!tutorial && (state.dayPhase !== 'prep' || state.ap < 1)) || total <= 0" @click="submit">{{ tutorial ? '确认练习采购' : '确认采购 · 1 点行动力' }}</button></div>
   </div>
 </template>
 

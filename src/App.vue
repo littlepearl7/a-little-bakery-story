@@ -329,6 +329,20 @@ onMounted(() => {
           </div>
         </section>
       </div>
+
+      <div v-if="started && state.tutorialPractice === 'purchase'" class="scene-panel-mask">
+        <section class="scene-panel">
+          <header class="scene-panel-head">
+            <div>
+              <div class="small muted">林记烘焙 · 新手教程</div>
+              <strong>街道练习 · 采购原料</strong>
+            </div>
+          </header>
+          <div class="scene-panel-content">
+            <SupplierPage tutorial @done="finishTutorialPractice('purchase')" />
+          </div>
+        </section>
+      </div>
     </div>
 
     <button v-if="started && !minigame" class="phone-fab" :class="{ 'phone-fab-guide-target': guideTarget === 'phone' }" :data-guide-key="guideTarget === 'phone' ? 'phone' : undefined" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
@@ -347,7 +361,7 @@ onMounted(() => {
     <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
     <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />
     <DeliveryGame v-if="minigame === 'delivery'" :paused="!!activeEvent" @exit="minigame = ''" />
-    <TutorialPractice v-if="started && state.tutorialPractice && !['counter', 'production'].includes(state.tutorialPractice)" :step="state.tutorialPractice" @done="finishTutorialPractice" />
+    <TutorialPractice v-if="started && state.tutorialPractice && !['counter', 'production', 'purchase'].includes(state.tutorialPractice)" :step="state.tutorialPractice" @done="finishTutorialPractice" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 
@@ -564,4 +578,3 @@ onMounted(() => {
 .phone-fab-guide-target{outline:3px solid #fff2ad;outline-offset:4px;box-shadow:0 0 0 9px rgba(192,112,48,.7),0 0 26px rgba(255,223,139,.95);animation:phoneGuideSpotlight 1.35s ease-in-out infinite alternate}
 @keyframes phoneGuideSpotlight{to{box-shadow:0 0 0 12px rgba(192,112,48,.38),0 0 34px rgba(255,223,139,.9)}}
 </style>
-

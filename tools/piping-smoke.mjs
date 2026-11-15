@@ -20,7 +20,8 @@ assert.deepEqual([6, 11, 16, 17].map((angle) => scorePipingClick(angle, 0, 5).sc
 
 const run = createPipingRun(() => 0.5);
 assert.equal(run.targets.length, 6);
-assert.equal(run.speed, 40);
+assert.equal(run.speed, 60);
+assert(run.speed >= 54 && run.speed <= 66);
 assert.equal(run.current, 0);
 assert.equal(new Set(run.targets).size, 6);
 for (let i = 0; i < run.targets.length; i += 1) {
@@ -57,6 +58,10 @@ for (const flower of ['classic', 'berry', 'cocoa', 'taro', 'matcha', 'mango', 't
 }
 assert.match(bakingSource, /\['ingredients', 'mix', 'oven', 'decoration', 'piping'\]/);
 assert.match(bakingSource, /results: \[\.\.\.piping\.value\.results\]/);
+assert.match(bakingSource, /@pointerup="finishMix"/);
+assert.match(bakingSource, /@pointerup="finishOven"/);
+assert.doesNotMatch(bakingSource, /确认搅拌结果|蛋糕胚出炉 →|转速 \{\{ piping\?\.speed/);
+assert.match(bakingSource, /if \(entries\.length === 6\) finish\(\)/);
 const packingScreen = deliverySource.match(/<div v-if="packing" class="packing-mask">([\s\S]*?)<div v-if="phase === 'result'/)?.[1] || '';
 assert(packingScreen, '打包遮罩应有独立显示层');
 assert.doesNotMatch(packingScreen, /game-progress|packTime|秒|完整播放后递交/);

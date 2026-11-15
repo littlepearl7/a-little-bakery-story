@@ -11,7 +11,7 @@ export function createPipingRun(random = Math.random) {
   }
   return {
     targets,
-    speed: 36 + random() * 8,
+    speed: 54 + random() * 12,
     angle: random() * 360,
     current: 0,
     results: [],

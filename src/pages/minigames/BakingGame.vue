@@ -137,15 +137,21 @@ function toMix() {
 }
 
 function stopHold() { if (timer) { clearInterval(timer); timer = undefined; checkpoint(); } }
-function startHold(kind) {
+function startHold(kind, event) {
+  if ((kind === 'mix' && phase.value !== 'mix') || (kind === 'bake' && phase.value !== 'oven')) return;
   if (timer) return;
+  if (event?.currentTarget?.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId);
   timer = setInterval(() => {
     const target = kind === 'mix' ? mix : bake;
     target.value = Math.min(100, target.value + 1.8);
-    if (target.value >= 100) stopHold();
+    if (target.value >= 100) {
+      stopHold();
+      kind === 'mix' ? finishMix() : finishOven();
+    }
   }, 46);
 }
 function finishMix() {
+  if (phase.value !== 'mix') return;
   stopHold();
   if (mix.value < 8) return message.value = '再多搅拌一会儿才能成型。';
   scores.value.mix = Math.max(0, 100 - Math.abs(mix.value - 79) * 2.8);
@@ -154,6 +160,7 @@ function finishMix() {
   checkpoint();
 }
 function finishOven() {
+  if (phase.value !== 'oven') return;
   stopHold();
   if (bake.value < 8) return message.value = '蛋糕胚还没有烤熟。';
   scores.value.oven = Math.max(0, 100 - Math.abs(bake.value - 79) * 2.8 - Math.abs(heat.value - 175) * 1.4);
@@ -204,6 +211,7 @@ function attemptPiping() {
     message.value = `六次裱花完成 · 平均 ${scores.value.garnish} 分`;
   }
   checkpoint();
+  if (entries.length === 6) finish();
 }
 function finish() {
   if (!piping.value || piping.value.results.length !== 6) return message.value = '完成六次裱花后才能入库。';
@@ -265,8 +273,7 @@ onUnmounted(() => {
         <div class="quality-track" role="progressbar" :aria-valuenow="Math.round(mix)" aria-valuemin="0" aria-valuemax="100" aria-label="搅拌进度">
           <span class="quality-zone" /><span class="quality-cursor" :style="{ left: mix + '%' }" />
         </div><div class="game-center">{{ Math.round(mix) }}%</div>
-        <button class="game-btn primary" type="button" style="width:100%;touch-action:none" @pointerdown.prevent="startHold('mix')" @pointerup="stopHold" @pointercancel="stopHold" @pointerleave="stopHold">按住搅拌 · 松开停止</button>
-        <button class="game-btn" type="button" style="width:100%;margin-top:7px" @click="finishMix">确认搅拌结果 →</button>
+        <button class="game-btn primary" type="button" style="width:100%;touch-action:none" @pointerdown.prevent="startHold('mix', $event)" @pointerup="finishMix" @pointercancel="finishMix">按住搅拌 · 松开自动判定</button>
       </div>
 
       <div v-if="phase === 'oven'" class="game-card">
@@ -274,8 +281,7 @@ onUnmounted(() => {
         <div class="quality-track" role="progressbar" :aria-valuenow="Math.round(bake)" aria-valuemin="0" aria-valuemax="100" aria-label="烘烤进度">
           <span class="quality-zone" /><span class="quality-cursor" :style="{ left: bake + '%' }" />
         </div><div class="game-center">烘烤 {{ Math.round(bake) }}%</div>
-        <button class="game-btn primary" type="button" style="width:100%;touch-action:none" @pointerdown.prevent="startHold('bake')" @pointerup="stopHold" @pointercancel="stopHold" @pointerleave="stopHold">按住烘烤计时 · 松开停炉</button>
-        <button class="game-btn" type="button" style="width:100%;margin-top:7px" @click="finishOven">蛋糕胚出炉 →</button>
+        <button class="game-btn primary" type="button" style="width:100%;touch-action:none" @pointerdown.prevent="startHold('bake', $event)" @pointerup="finishOven" @pointercancel="finishOven">按住烘烤 · 松开自动判定</button>
       </div>
 
       <div v-if="phase === 'piping'" class="game-card piping-card">
@@ -291,10 +297,9 @@ onUnmounted(() => {
           </span>
           <span class="piping-pointer" :style="pointerStyle"><i /></span>
         </button>
-        <div class="piping-count"><strong>{{ piping?.results.length || 0 }} / 6</strong><span>本轮操作进度</span><span>熟练度 Lv{{ skillLevel }} · 指针转速 {{ piping?.speed.toFixed(0) }}°/秒</span></div>
+        <div class="piping-count"><strong>{{ piping?.results.length || 0 }} / 6</strong><span>本轮操作进度</span><span>熟练度 Lv{{ skillLevel }}</span></div>
         <p v-if="message" class="piping-feedback" role="status">{{ message }}</p>
         <button class="game-btn primary piping-click" type="button" :disabled="piping?.results.length >= 6" @click="attemptPiping">裱花</button>
-        <button v-if="piping?.results.length === 6" class="game-btn primary" type="button" style="width:100%;margin-top:8px" @click="finish">完成制作并入库</button>
       </div>
 
       <div v-if="phase === 'result' && settlement" class="game-card">
