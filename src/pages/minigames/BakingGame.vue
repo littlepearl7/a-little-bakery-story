@@ -31,14 +31,21 @@ const materialName = (id) => INGREDIENTS.find(x => x.id === id)?.name || id;
 const cakeArt = (id) => artStatus(`cake-${id}.webp`) === 'ok' ? art(`cake-${id}.webp`) : '';
 const progress = computed(() => phase.value === 'ingredients' ? 20 : phase.value === 'mix' ? 40 : phase.value === 'oven' ? 60 : phase.value === 'piping' ? 70 + (piping.value?.results.length || 0) * 5 : phase.value === 'result' ? 100 : 0);
 const pipingPalette = computed(() => ({
-  plain: ['#f4dfb2', '#fff7e7', '#d6b775'], strawberry: ['#f7d3d1', '#fff1eb', '#cf777e'],
-  chocolate: ['#704c43', '#e8c5a5', '#4a302a'], taro: ['#d6c3df', '#fff1fa', '#92739f'],
-  matcha: ['#b9c49b', '#fff8e2', '#738457'], mango: ['#f3c779', '#fff2cf', '#c08228'],
-  tiramisu: ['#ad7b60', '#f5dec4', '#694233'], fig: ['#e5c5ca', '#fff0f1', '#9c596b'],
-  seasonal: ['#e3d09a', '#fff2d8', '#a56e4b'], custom: ['#f5ccd8', '#fff2f5', '#a36d81'],
-  festival: ['#c9856e', '#ffebdc', '#8c493d'], signature: ['#d2a868', '#fff0ca', '#98703e'],
-}[chosen.value] || ['#f4dfb2', '#fff7e7', '#d6b775']));
-const pipingCakeStyle = computed(() => ({ '--cake-color': pipingPalette.value[0], '--cream-color': pipingPalette.value[1], '--cake-edge': pipingPalette.value[2] }));
+  plain: { cake: '#f4dfb2', cream: '#fff7e7', edge: '#d6b775', flower: 'classic' },
+  strawberry: { cake: '#f7d3d1', cream: '#fff1eb', edge: '#cf777e', flower: 'berry' },
+  chocolate: { cake: '#704c43', cream: '#e8c5a5', edge: '#4a302a', flower: 'cocoa' },
+  taro: { cake: '#d6c3df', cream: '#fff1fa', edge: '#92739f', flower: 'taro' },
+  matcha: { cake: '#b9c49b', cream: '#fff8e2', edge: '#738457', flower: 'matcha' },
+  mango: { cake: '#f3c779', cream: '#fff2cf', edge: '#c08228', flower: 'mango' },
+  tiramisu: { cake: '#ad7b60', cream: '#f5dec4', edge: '#694233', flower: 'tiramisu' },
+  fig: { cake: '#e5c5ca', cream: '#fff0f1', edge: '#9c596b', flower: 'fig' },
+  seasonal: { cake: '#e3d09a', cream: '#fff2d8', edge: '#a56e4b', flower: 'seasonal' },
+  custom: { cake: '#f5ccd8', cream: '#fff2f5', edge: '#a36d81', flower: 'custom' },
+  festival: { cake: '#c9856e', cream: '#ffebdc', edge: '#8c493d', flower: 'festival' },
+  signature: { cake: '#d2a868', cream: '#fff0ca', edge: '#98703e', flower: 'signature' },
+}[chosen.value] || { cake: '#f4dfb2', cream: '#fff7e7', edge: '#d6b775', flower: 'classic' }));
+const pipingCakeStyle = computed(() => ({ '--cake-color': pipingPalette.value.cake, '--cream-color': pipingPalette.value.cream, '--cake-edge': pipingPalette.value.edge }));
+const pipingFlowerClass = computed(() => `piping-flower flower-${pipingPalette.value.flower}`);
 const pointerStyle = computed(() => ({ transform: `rotate(${pointerAngle.value}deg)` }));
 const skillLevel = computed(() => props.tutorial ? 1 : Number(state.levels[chosen.value]) || 1);
 
@@ -278,7 +285,7 @@ onUnmounted(() => {
           <span class="piping-ring" />
           <span class="piping-cake"><i class="piping-cream" /></span>
           <span class="piping-target" v-for="(angle, index) in piping.targets" :key="index" :style="targetPosition(angle)" :class="{ active: index === piping.current, completed: index < piping.results.length, missed: piping.results[index]?.tier === 'miss' }">
-            <i v-if="piping.results[index]?.tier === 'perfect' || piping.results[index]?.tier === 'close'" class="piping-flower" />
+            <i v-if="piping.results[index]?.tier === 'perfect' || piping.results[index]?.tier === 'close'" :class="pipingFlowerClass" />
             <i v-else-if="piping.results[index]?.tier === 'poor'" class="piping-dot" />
             <b v-else-if="index === piping.current" />
           </span>
@@ -317,7 +324,18 @@ onUnmounted(() => {
 .piping-pointer{position:absolute;left:50%;top:50%;width:45%;height:3px;transform-origin:left center;z-index:4;pointer-events:none}
 .piping-pointer i{position:absolute;inset:0;border-radius:3px;background:#9b3f42;box-shadow:0 0 4px #fff}
 .piping-pointer:after{content:"";position:absolute;right:-4px;top:50%;width:10px;height:10px;transform:translateY(-50%);border:2px solid #fff4e0;border-radius:50%;background:#d7514d;box-shadow:0 1px 4px #493021}
-.piping-flower{display:block;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 50% 50%,#edbf61 0 19%,transparent 21%),radial-gradient(circle at 50% 12%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 84% 38%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 72% 82%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 28% 82%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 16% 38%,var(--cream-color) 0 22%,transparent 24%);filter:drop-shadow(0 1px 1px #6b4a3470)}
+.piping-flower{display:block;width:22px;height:22px;border-radius:50%;transform:rotate(var(--flower-turn,0deg));background:radial-gradient(circle at 50% 50%,var(--flower-center,#edbf61) 0 19%,transparent 21%),radial-gradient(circle at 50% 12%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 84% 38%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 72% 82%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 28% 82%,var(--cream-color) 0 22%,transparent 24%),radial-gradient(circle at 16% 38%,var(--cream-color) 0 22%,transparent 24%);filter:drop-shadow(0 1px 1px #6b4a3470)}
+.flower-berry{--flower-center:#d85e68;--flower-turn:18deg}
+.flower-cocoa{--flower-center:#754238;--flower-turn:30deg;filter:drop-shadow(0 1px 1px #39231d)}
+.flower-taro{--flower-center:#b387c6;--flower-turn:45deg}
+.flower-matcha{--flower-center:#7d9b61;--flower-turn:12deg}
+.flower-mango{--flower-center:#efa43e;--flower-turn:36deg}
+.flower-tiramisu{--flower-center:#72402f;--flower-turn:24deg}
+.flower-fig{--flower-center:#a94d69;--flower-turn:54deg;border-radius:48% 52% 45% 55%}
+.flower-seasonal{--flower-center:#9eaa50;--flower-turn:60deg}
+.flower-custom{--flower-center:#d98da8;outline:1px dotted #fff;outline-offset:-2px}
+.flower-festival{--flower-center:#b64343;--flower-turn:30deg;filter:drop-shadow(0 0 2px #f4c879)}
+.flower-signature{--flower-center:#d39c35;--flower-turn:15deg;outline:1px solid #f6dc9b;outline-offset:-2px}
 .piping-dot{display:block;width:8px;height:8px;border:1px solid #fff8e7;border-radius:50%;background:var(--cream-color);box-shadow:0 1px 3px #523b28}
 .piping-target.active b{width:7px;height:7px;border-radius:50%;background:#fff}
 .piping-count{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:5px 10px;color:#866b54;font-size:11px}

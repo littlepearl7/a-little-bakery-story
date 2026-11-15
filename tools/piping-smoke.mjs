@@ -52,6 +52,9 @@ const bakingSource = await readFile(new URL('../src/pages/minigames/BakingGame.v
 const deliverySource = await readFile(new URL('../src/pages/minigames/DeliveryGame.vue', import.meta.url), 'utf8');
 assert.match(bakingSource, /class="quality-zone"/);
 assert.match(bakingSource, /left:72%;top:-1px;width:14%/);
+for (const flower of ['classic', 'berry', 'cocoa', 'taro', 'matcha', 'mango', 'tiramisu', 'fig', 'seasonal', 'custom', 'festival', 'signature']) {
+  assert(bakingSource.includes(`flower: '${flower}'`), `缺少 ${flower} 蛋糕裱花样式`);
+}
 assert.match(bakingSource, /\['ingredients', 'mix', 'oven', 'decoration', 'piping'\]/);
 assert.match(bakingSource, /results: \[\.\.\.piping\.value\.results\]/);
 const packingScreen = deliverySource.match(/<div v-if="packing" class="packing-mask">([\s\S]*?)<div v-if="phase === 'result'/)?.[1] || '';
