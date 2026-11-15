@@ -359,7 +359,7 @@ onUnmounted(() => {
   padding: 12px;
   background: none;
 }
-.vn-guide-box {
+.vn-guide .vn-guide-box {
   top: 50%;
   right: 10px;
   bottom: auto;
