@@ -16,6 +16,14 @@ const vite = await createServer({
 
 try {
   const store = await vite.ssrLoadModule('/src/store.js');
+  const story = await vite.ssrLoadModule('/src/story.js');
+
+  store.reset();
+  store.startGame();
+  assert.equal(store.queue.events[0]?.kind, 'prologue', '新的开始先进入序幕');
+  assert.equal(store.queue.events[0]?.id, 'EVT_PROLOGUE_01');
+  assert(store.queue.events[0].beats.length > 0, '序幕应有可播放正文');
+
   store.reset();
   store.state.played = ['EVT_PROLOGUE_01'];
   store.state.tutorialPromptPending = true;
@@ -35,7 +43,17 @@ try {
   store.startTutorial(false);
   assert.equal(store.queue.events[0].id, 'EVT_TUTORIAL_SKIP', '跳过时先播简短收尾');
   assert.equal(store.state.tutorialSeen, true);
-  console.log('✓ 教程提示存档、事件顺序与跳过流程通过');
+
+  store.reset();
+  store.state.played = ['EVT_PROLOGUE_01'];
+  store.startGame();
+  const apBeforeChat = store.state.ap;
+  assert(store.doAction('sqchat', {}), '准备阶段可以开始本月苏晴剧情');
+  assert.equal(store.queue.events[0]?.id, story.STORY.friend[1]?.id, '主动互动剧情排在待播主线之前');
+  assert.equal(store.state.ap, apBeforeChat - 1, '苏晴互动只扣一次行动力');
+  assert.equal(store.doAction('sqchat', {}), false, '同月重复互动不会重复触发');
+  assert.equal(store.state.ap, apBeforeChat - 1, '重复互动不再扣行动力');
+  console.log('✓ 序幕开场、教程提示与苏晴互动剧情流程通过');
 } finally {
   await vite.close();
 }
