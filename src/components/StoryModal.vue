@@ -33,7 +33,7 @@ const isNar = computed(() => !!cur.value && cur.value.t === 'nar');
 const isMapGuide = computed(() =>
   ['EVT_TUTORIAL_START', 'EVT_TUTORIAL_FRONT', 'EVT_TUTORIAL_KITCHEN', 'EVT_TUTORIAL_STREET', 'EVT_TUTORIAL_PHONE'].includes(props.ev.id)
 );
-const guideSpeaker = computed(() => (isSay.value ? cur.value.who : '林暖'));
+const guideSpeaker = computed(() => (isSay.value ? cur.value.who : ''));
 const text = computed(() => (cur.value && cur.value.text) || '');
 const guideTarget = computed(() => {
   if (!isMapGuide.value) return '';
@@ -74,10 +74,7 @@ const typing = computed(() => typed.value < text.value.length);
 function updateGuideLayout() {
   const targetId = guideTarget.value;
   emit('guide-target', targetId);
-  if (!targetId || typeof document === 'undefined') {
-    guideBoxStyle.value = {};
-    return;
-  }
+  if (!targetId || typeof document === 'undefined') return;
   nextTick(() => {
     if (targetId !== guideTarget.value) return;
     const target = document.querySelector(`[data-guide-key="${targetId}"]`);
@@ -196,6 +193,7 @@ const speaker = computed(() => (isSay.value ? cur.value.who : ''));
 watch(
   () => props.ev,
   () => {
+    guideBoxStyle.value = {};
     // 条件段落（伙伴信赖、家庭默契）在这里按当前存档展开
     list.value = resolveBeats(props.ev.beats || [], state);
     const saved = state.storyChoices[props.ev.id] || {};
@@ -391,7 +389,7 @@ onUnmounted(() => {
 
       <!-- 对话框 -->
       <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" :style="isMapGuide ? guideBoxStyle : undefined" @click="advance">
-        <div v-if="isMapGuide" class="guide-speaker">
+        <div v-if="isMapGuide && isSay" class="guide-speaker">
           <img v-if="faceOfName(guideSpeaker)" :src="faceOfName(guideSpeaker)" alt="" />
           <span>{{ guideSpeaker }}</span>
           <small>带你认地图</small>
