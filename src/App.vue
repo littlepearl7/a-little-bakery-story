@@ -27,6 +27,7 @@ import ResearchGame from './pages/minigames/ResearchGame.vue';
 import TutorialPractice from './pages/TutorialPractice.vue';
 import './pages/minigames/game-ui.css';
 const scene = ref('shop');
+const guideTarget = ref('');
 const started = ref(false);
 const saveCenterOpen = ref(false);
 const activePanel = ref('');
@@ -305,7 +306,7 @@ onMounted(() => {
         @click="devSkipMonth"
       >开发者后门 · 跳到下个月</button>
 
-      <SceneMapPage :scene="scene" @change-scene="scene = $event" @open-panel="openPanel" />
+      <SceneMapPage :scene="scene" :guide-target="guideTarget" @change-scene="scene = $event" @open-panel="openPanel" />
 
       <div v-if="activePanel" class="scene-panel-mask" @click.self="closePanel">
         <section class="scene-panel">
@@ -330,7 +331,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <button v-if="started && !minigame" class="phone-fab" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
+    <button v-if="started && !minigame" class="phone-fab" :class="{ 'phone-fab-guide-target': guideTarget === 'phone' }" :data-guide-key="guideTarget === 'phone' ? 'phone' : undefined" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
     <PhonePage v-if="started && phoneOpen && !minigame" @close="phoneOpen = false" @navigate="navigateTown" @open-panel="openPanel" />
 
     <button
@@ -350,7 +351,7 @@ onMounted(() => {
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 
-    <StoryModal v-if="started && activeEvent" :ev="activeEvent" @done="doneEvent" />
+    <StoryModal v-if="started && activeEvent" :ev="activeEvent" @guide-target="guideTarget = $event" @done="doneEvent" />
 
     <div v-if="started && dayReport" class="mask" @click.self="nextDay">
       <div class="sheet">
