@@ -1,0 +1,2441 @@
+(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const a of document.querySelectorAll('link[rel="modulepreload"]'))r(a);new MutationObserver(a=>{for(const o of a)if(o.type==="childList")for(const i of o.addedNodes)i.tagName==="LINK"&&i.rel==="modulepreload"&&r(i)}).observe(document,{childList:!0,subtree:!0});function n(a){const o={};return a.integrity&&(o.integrity=a.integrity),a.referrerPolicy&&(o.referrerPolicy=a.referrerPolicy),a.crossOrigin==="use-credentials"?o.credentials="include":a.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(a){if(a.ep)return;a.ep=!0;const o=n(a);fetch(a.href,o)}})();/**
+* @vue/shared v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/function il(e){const t=Object.create(null);for(const n of e.split(","))t[n]=1;return n=>n in t}const Te={},yn=[],At=()=>{},Ba=()=>!1,sr=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&(e.charCodeAt(2)>122||e.charCodeAt(2)<97),rr=e=>e.startsWith("onUpdate:"),Be=Object.assign,ul=(e,t)=>{const n=e.indexOf(t);n>-1&&e.splice(n,1)},Bi=Object.prototype.hasOwnProperty,Me=(e,t)=>Bi.call(e,t),fe=Array.isArray,nn=e=>hs(e)==="[object Map]",xn=e=>hs(e)==="[object Set]",Bl=e=>hs(e)==="[object Date]",ke=e=>typeof e=="function",Re=e=>typeof e=="string",$t=e=>typeof e=="symbol",Ce=e=>e!==null&&typeof e=="object",qa=e=>(Ce(e)||ke(e))&&ke(e.then)&&ke(e.catch),Ua=Object.prototype.toString,hs=e=>Ua.call(e),qi=e=>hs(e).slice(8,-1),Ha=e=>hs(e)==="[object Object]",cl=e=>Re(e)&&e!=="NaN"&&e[0]!=="-"&&""+parseInt(e,10)===e,Yn=il(",key,ref,ref_for,ref_key,onVnodeBeforeMount,onVnodeMounted,onVnodeBeforeUpdate,onVnodeUpdated,onVnodeBeforeUnmount,onVnodeUnmounted"),lr=e=>{const t=Object.create(null);return(n=>t[n]||(t[n]=e(n)))},Ui=/-\w/g,kt=lr(e=>e.replace(Ui,t=>t.slice(1).toUpperCase())),Hi=/\B([A-Z])/g,on=lr(e=>e.replace(Hi,"-$1").toLowerCase()),Ka=lr(e=>e.charAt(0).toUpperCase()+e.slice(1)),_r=lr(e=>e?`on${Ka(e)}`:""),Tt=(e,t)=>!Object.is(e,t),Ls=(e,...t)=>{for(let n=0;n<e.length;n++)e[n](...t)},Ga=(e,t,n,r=!1)=>{Object.defineProperty(e,t,{configurable:!0,enumerable:!1,writable:r,value:n})},ms=e=>{const t=parseFloat(e);return isNaN(t)?e:t},Ki=e=>{const t=Re(e)?Number(e):NaN;return isNaN(t)?e:t};let ql;const ar=()=>ql||(ql=typeof globalThis<"u"?globalThis:typeof self<"u"?self:typeof window<"u"?window:typeof global<"u"?global:{});function ot(e){if(fe(e)){const t={};for(let n=0;n<e.length;n++){const r=e[n],a=Re(r)?Yi(r):ot(r);if(a)for(const o in a)t[o]=a[o]}return t}else if(Re(e)||Ce(e))return e}const Gi=/;(?![^(]*\))/g,Wi=/:([^]+)/,zi=/"(?:[^"\\]|\\[^])*"|'(?:[^'\\]|\\[^])*'|\\[^]|\/\*[^]*?\*\//g;function Yi(e){const t={};return e.replace(zi,n=>n.startsWith("/*")?"":n).split(Gi).forEach(n=>{if(n){const r=n.split(Wi);r.length>1&&(t[r[0].trim()]=r[1].trim())}}),t}function ve(e){let t="";if(Re(e))t=e;else if(fe(e))for(let n=0;n<e.length;n++){const r=ve(e[n]);r&&(t+=r+" ")}else if(Ce(e))for(const n in e)e[n]&&(t+=n+" ");return t.trim()}const Ji="itemscope,allowfullscreen,disablepictureinpicture,disableremoteplayback,formnovalidate,ismap,nomodule,novalidate,playsinline,readonly",Qi=il(Ji);function Wa(e){return!!e||e===""}function Zi(e,t,n){if(e.length!==t.length)return!1;let r=!0;for(let a=0;r&&a<e.length;a++)r=Ot(e[a],t[a],n);return r}function Ul(e,t,n){if(e.size!==t.size)return!1;const r=Array.from(t),a=new Uint8Array(r.length);for(const o of e){let i=-1;for(let c=0;c<r.length;c++)if(!a[c]&&Ot(o,r[c],n)){i=c;break}if(i<0)return!1;a[i]=1}return!0}function Xi(e,t,n){let r=nn(e),a=nn(t);if(r||a||(r=xn(e),a=xn(t),r||a))return r&&a?Ul(e,t,n):!1;const o=Object.keys(e).length,i=Object.keys(t).length;if(o!==i)return!1;for(const c in e){const f=e.hasOwnProperty(c),v=t.hasOwnProperty(c);if(f&&!v||!f&&v||!Ot(e[c],t[c],n))return!1}return String(e)===String(t)}function Hl(e,t,n,r){n||(n=[new Map,new Map]);const[a,o]=n;if(a.has(e)||o.has(t))return a.get(e)===t&&o.get(t)===e;a.set(e,t),o.set(t,e);const i=r(e,t,n);return a.delete(e),o.delete(t),i}function Ot(e,t,n){if(e===t)return!0;let r=Bl(e),a=Bl(t);return r||a?r&&a?e.getTime()===t.getTime():!1:(r=$t(e),a=$t(t),r||a?e===t:(r=fe(e),a=fe(t),r||a?r&&a?Hl(e,t,n,Zi):!1:(r=Ce(e),a=Ce(t),r||a?!r||!a?!1:Hl(e,t,n,Xi):String(e)===String(t))))}function eu(e,t){return e.findIndex(n=>Ot(n,t))}const za=e=>!!(e&&e.__v_isRef===!0),u=e=>Re(e)?e:e==null?"":fe(e)||Ce(e)&&(e.toString===Ua||!ke(e.toString))?za(e)?u(e.value):JSON.stringify(e,Ya,2):String(e),Ya=(e,t)=>za(t)?Ya(e,t.value):nn(t)?{[`Map(${t.size})`]:[...t.entries()].reduce((n,[r,a],o)=>(n[$r(r,o)+" =>"]=a,n),{})}:xn(t)?{[`Set(${t.size})`]:[...t.values()].map(n=>$r(n))}:$t(t)?$r(t):Ce(t)&&!fe(t)&&!Ha(t)?String(t):t,$r=(e,t="")=>{var n;return $t(e)?`Symbol(${(n=e.description)!=null?n:t})`:e};/**
+* @vue/reactivity v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/let Ge;class tu{constructor(t=!1){this.detached=t,this._active=!0,this._on=0,this.effects=[],this.cleanups=[],this._isPaused=!1,this._warnOnRun=!0,this.__v_skip=!0,!t&&Ge&&(Ge.active?(this.parent=Ge,this.index=(Ge.scopes||(Ge.scopes=[])).push(this)-1):(this._active=!1,this._warnOnRun=!1))}get active(){return this._active}pause(){if(this._active){this._isPaused=!0;let t,n;if(this.scopes){const r=this.scopes.slice();for(t=0,n=r.length;t<n;t++)r[t].pause()}for(t=0,n=this.effects.length;t<n;t++)this.effects[t].pause()}}resume(){if(this._active&&this._isPaused){this._isPaused=!1;let t,n;if(this.scopes){const a=this.scopes.slice();for(t=0,n=a.length;t<n;t++)a[t].resume()}const r=this.effects.slice();for(t=0,n=r.length;t<n;t++)r[t].resume()}}run(t){if(this._active){const n=Ge;try{return Ge=this,t()}finally{Ge=n}}}on(){++this._on===1&&(this.prevScope=Ge,Ge=this)}off(){if(this._on>0&&--this._on===0){if(Ge===this)Ge=this.prevScope;else{let t=Ge;for(;t;){if(t.prevScope===this){t.prevScope=this.prevScope;break}t=t.prevScope}}this.prevScope=void 0}}stop(t){if(this._active){this._active=!1;let n,r;for(n=0,r=this.effects.length;n<r;n++)this.effects[n].stop();for(this.effects.length=0,n=0,r=this.cleanups.length;n<r;n++)this.cleanups[n]();if(this.cleanups.length=0,this.scopes){const a=this.scopes.slice();for(n=0,r=a.length;n<r;n++)a[n].stop(!0);this.scopes.length=0}if(!this.detached&&this.parent&&!t){const a=this.parent.scopes.pop();a&&a!==this&&(this.parent.scopes[this.index]=a,a.index=this.index)}this.parent=void 0}}}function nu(){return Ge}let Ie;const xr=new WeakSet;class Ja{constructor(t){this.fn=t,this.deps=void 0,this.depsTail=void 0,this.flags=5,this.next=void 0,this.cleanup=void 0,this.scheduler=void 0,Ge&&(Ge.active?Ge.effects.push(this):this.flags&=-2)}pause(){this.flags|=64}resume(){this.flags&64&&(this.flags&=-65,xr.has(this)&&(xr.delete(this),this.trigger()))}notify(){this.flags&2&&!(this.flags&32)||this.flags&8||Za(this)}run(){if(!(this.flags&1))return this.fn();this.flags|=2,Kl(this),Xa(this);const t=Ie,n=_t;Ie=this,_t=!0;try{return this.fn()}finally{eo(this),Ie=t,_t=n,this.flags&=-3}}stop(){if(this.flags&1){for(let t=this.deps;t;t=t.nextDep)pl(t);this.deps=this.depsTail=void 0,Kl(this),this.onStop&&this.onStop(),this.flags&=-2}}trigger(){this.flags&64?xr.add(this):this.scheduler?this.scheduler():this.runIfDirty()}runIfDirty(){Fr(this)&&this.run()}get dirty(){return Fr(this)}}let Qa=0,Jn,Qn;function Za(e,t=!1){if(e.flags|=8,t){e.next=Qn,Qn=e;return}e.next=Jn,Jn=e}function dl(){Qa++}function fl(){if(--Qa>0)return;if(Qn){let t=Qn;for(Qn=void 0;t;){const n=t.next;t.next=void 0,t.flags&=-9,t=n}}let e;for(;Jn;){let t=Jn;for(Jn=void 0;t;){const n=t.next;if(t.next=void 0,t.flags&=-9,t.flags&1)try{t.trigger()}catch(r){e||(e=r)}t=n}}if(e)throw e}function Xa(e){for(let t=e.deps;t;t=t.nextDep)t.version=-1,t.prevActiveLink=t.dep.activeLink,t.dep.activeLink=t}function eo(e){let t,n=e.depsTail,r=n;for(;r;){const a=r.prevDep;r.version===-1?(r===n&&(n=a),pl(r),su(r)):t=r,r.dep.activeLink=r.prevActiveLink,r.prevActiveLink=void 0,r=a}e.deps=t,e.depsTail=n}function Fr(e){for(let t=e.deps;t;t=t.nextDep)if(t.dep.version!==t.version||t.dep.computed&&(to(t.dep.computed)||t.dep.version!==t.version))return!0;return!!e._dirty}function to(e){if(e.flags&4&&!(e.flags&16)||(e.flags&=-17,e.globalVersion===ts)||(e.globalVersion=ts,!e.isSSR&&e.flags&128&&(!e.deps&&!e._dirty||!Fr(e))))return;e.flags|=2;const t=e.dep,n=Ie,r=_t;Ie=e,_t=!0;try{Xa(e);const a=e.fn(e._value);(t.version===0||Tt(a,e._value))&&(e.flags|=128,e._value=a,t.version++)}catch(a){throw t.version++,a}finally{Ie=n,_t=r,eo(e),e.flags&=-3}}function pl(e,t=!1){const{dep:n,prevSub:r,nextSub:a}=e;if(r&&(r.nextSub=a,e.prevSub=void 0),a&&(a.prevSub=r,e.nextSub=void 0),n.subs===e&&(n.subs=r,!r&&n.computed)){n.computed.flags&=-5;for(let o=n.computed.deps;o;o=o.nextDep)pl(o,!0)}!t&&!--n.sc&&n.map&&n.map.delete(n.key)}function su(e){const{prevDep:t,nextDep:n}=e;t&&(t.nextDep=n,e.prevDep=void 0),n&&(n.prevDep=t,e.nextDep=void 0)}let _t=!0;const no=[];function Nt(){no.push(_t),_t=!1}function Dt(){const e=no.pop();_t=e===void 0?!0:e}function Kl(e){const{cleanup:t}=e;if(e.cleanup=void 0,t){const n=Ie;Ie=void 0;try{t()}finally{Ie=n}}}let ts=0;class ru{constructor(t,n){this.sub=t,this.dep=n,this.version=n.version,this.nextDep=this.prevDep=this.nextSub=this.prevSub=this.prevActiveLink=void 0}}class vl{constructor(t){this.computed=t,this.version=0,this.activeLink=void 0,this.subs=void 0,this.map=void 0,this.key=void 0,this.sc=0,this.__v_skip=!0}track(t){if(!Ie||!_t||Ie===this.computed)return;let n=this.activeLink;if(n===void 0||n.sub!==Ie)n=this.activeLink=new ru(Ie,this),Ie.deps?(n.prevDep=Ie.depsTail,Ie.depsTail.nextDep=n,Ie.depsTail=n):Ie.deps=Ie.depsTail=n,so(n);else if(n.version===-1&&(n.version=this.version,n.nextDep)){const r=n.nextDep;r.prevDep=n.prevDep,n.prevDep&&(n.prevDep.nextDep=r),n.prevDep=Ie.depsTail,n.nextDep=void 0,Ie.depsTail.nextDep=n,Ie.depsTail=n,Ie.deps===n&&(Ie.deps=r)}return n}trigger(t){this.version++,ts++,this.notify(t)}notify(t){dl();try{for(let n=this.subs;n;n=n.prevSub)n.sub.notify()&&n.sub.dep.notify()}finally{fl()}}}function so(e){if(e.dep.sc++,e.sub.flags&4){const t=e.dep.computed;if(t&&!e.dep.subs){t.flags|=20;for(let r=t.deps;r;r=r.nextDep)so(r)}const n=e.dep.subs;n!==e&&(e.prevSub=n,n&&(n.nextSub=e)),e.dep.subs=e}}const jr=new WeakMap,bn=Symbol(""),Br=Symbol(""),ns=Symbol("");function Je(e,t,n){if(_t&&Ie){let r=jr.get(e);r||jr.set(e,r=new Map);let a=r.get(n);a||(r.set(n,a=new vl),a.map=r,a.key=n),a.track()}}function Kt(e,t,n,r,a,o){const i=jr.get(e);if(!i){ts++;return}const c=f=>{f&&f.trigger()};if(dl(),t==="clear")i.forEach(c);else{const f=fe(e),v=f&&cl(n);if(f&&n==="length"){const h=Number(r);i.forEach((y,b)=>{(b==="length"||b===ns||!$t(b)&&b>=h)&&c(y)})}else switch((n!==void 0||i.has(void 0))&&c(i.get(n)),v&&c(i.get(ns)),t){case"add":f?v&&c(i.get("length")):(c(i.get(bn)),nn(e)&&c(i.get(Br)));break;case"delete":f||(c(i.get(bn)),nn(e)&&c(i.get(Br)));break;case"set":nn(e)&&c(i.get(bn));break}}fl()}function Tn(e){const t=xe(e);return t===e||(Je(t,"iterate",ns),dt(e))?t:Lt(e)?sn(e)?t.map(n=>ln(pt(n))):t.map(ln):t.map(pt)}function or(e){return Je(e=xe(e),"iterate",ns),e}function wt(e,t){return Lt(e)?ln(sn(e)?pt(t):t):pt(t)}const lu={__proto__:null,[Symbol.iterator](){return Mr(this,Symbol.iterator,e=>wt(this,e))},concat(...e){return Tn(this).concat(...e.map(t=>fe(t)?Tn(t):t))},entries(){return Mr(this,"entries",e=>(e[1]=wt(this,e[1]),e))},every(e,t){return Bt(this,"every",e,t,void 0,arguments)},filter(e,t){return Bt(this,"filter",e,t,n=>n.map(r=>wt(this,r)),arguments)},find(e,t){return Bt(this,"find",e,t,n=>wt(this,n),arguments)},findIndex(e,t){return Bt(this,"findIndex",e,t,void 0,arguments)},findLast(e,t){return Bt(this,"findLast",e,t,n=>wt(this,n),arguments)},findLastIndex(e,t){return Bt(this,"findLastIndex",e,t,void 0,arguments)},forEach(e,t){return Bt(this,"forEach",e,t,void 0,arguments)},includes(...e){return Cr(this,"includes",e)},indexOf(...e){return Cr(this,"indexOf",e)},join(e){return Tn(this).join(e)},lastIndexOf(...e){return Cr(this,"lastIndexOf",e)},map(e,t){return Bt(this,"map",e,t,void 0,arguments)},pop(){return Bn(this,"pop")},push(...e){return Bn(this,"push",e)},reduce(e,...t){return Wl(this,"reduce",e,t)},reduceRight(e,...t){return Wl(this,"reduceRight",e,t)},shift(){return Bn(this,"shift")},some(e,t){return Bt(this,"some",e,t,void 0,arguments)},splice(...e){return Bn(this,"splice",e)},toReversed(){return Tn(this).toReversed()},toSorted(e){return Tn(this).toSorted(e)},toSpliced(...e){return Tn(this).toSpliced(...e)},unshift(...e){return Bn(this,"unshift",e)},values(){return Mr(this,"values",e=>wt(this,e))}};function Mr(e,t,n){const r=or(e),a=r[t],o=a.call(r);if(r!==e&&!dt(e)){if(o[Symbol.toStringTag]==="Array Iterator"){const i=Object.create(Object.getPrototypeOf(o));return i.next=()=>Gl(o.next(),n),a!==ro[t]&&Object.defineProperties(i,{return:{get(){const c=o.return;return typeof c=="function"?c.bind(o):c}},throw:{get(){const c=o.throw;return typeof c=="function"?c.bind(o):c}}}),i}o._next=o.next,o.next=()=>Gl(o._next(),n)}return o}function Gl(e,t){return e.done||(e.value=t(e.value)),e}const ro=Array.prototype;function Bt(e,t,n,r,a,o){const i=or(e),c=i!==e&&!dt(e),f=i[t];if(f!==ro[t]){const y=f.apply(e,o);return c?pt(y):y}let v=n;i!==e&&(c?v=function(y,b){return n.call(this,wt(e,y),b,e)}:n.length>2&&(v=function(y,b){return n.call(this,y,b,e)}));const h=f.call(i,v,r);return c&&a?a(h):h}function Wl(e,t,n,r){const a=or(e),o=a!==e&&!dt(e);let i=n,c=!1;a!==e&&(o?(c=r.length===0,i=function(v,h,y){return c&&(c=!1,v=wt(e,v)),n.call(this,v,wt(e,h),y,e)}):n.length>3&&(i=function(v,h,y){return n.call(this,v,h,y,e)}));const f=a[t](i,...r);return c?wt(e,f):f}function Cr(e,t,n){const r=xe(e);Je(r,"iterate",ns);const a=r[t](...n);return(a===-1||a===!1)&&gl(n[0])?(n[0]=xe(n[0]),r[t](...n)):a}function Bn(e,t,n=[]){Nt(),dl();const r=xe(e)[t].apply(e,n);return fl(),Dt(),r}const au=il("__proto__,__v_isRef,__isVue"),lo=new Set(Object.getOwnPropertyNames(Symbol).filter(e=>e!=="arguments"&&e!=="caller").map(e=>Symbol[e]).filter($t));function ou(e){$t(e)||(e=String(e));const t=xe(this);return Je(t,"has",e),t.hasOwnProperty(e)}class ao{constructor(t=!1,n=!1){this._isReadonly=t,this._isShallow=n}get(t,n,r){if(n==="__v_skip")return t.__v_skip;const a=this._isReadonly,o=this._isShallow;if(n==="__v_isReactive")return!a;if(n==="__v_isReadonly")return a;if(n==="__v_isShallow")return o;if(n==="__v_raw")return r===(a?o?gu:co:o?uo:io).get(t)||Object.getPrototypeOf(t)===Object.getPrototypeOf(r)?t:void 0;const i=fe(t);if(!a){let f;if(i&&(f=lu[n]))return f;if(n==="hasOwnProperty")return ou}const c=Reflect.get(t,n,Ze(t)?t:r);if(($t(n)?lo.has(n):au(n))||(a||Je(t,"get",n),o))return c;if(Ze(c)){const f=i&&cl(n)?c:c.value;return a&&Ce(f)?Ur(f):f}return Ce(c)?a?Ur(c):un(c):c}}class oo extends ao{constructor(t=!1){super(!1,t)}set(t,n,r,a){let o=t[n];const i=fe(t)&&cl(n);if(!this._isShallow){const v=Lt(o);if(!dt(r)&&!Lt(r)&&(o=xe(o),r=xe(r)),!i&&Ze(o)&&!Ze(r))return v||(o.value=r),!0}const c=i?Number(n)<t.length:Me(t,n),f=Reflect.set(t,n,r,Ze(t)?t:a);return t===xe(a)&&f&&(c?Tt(r,o)&&Kt(t,"set",n,r):Kt(t,"add",n,r)),f}deleteProperty(t,n){const r=Me(t,n);t[n];const a=Reflect.deleteProperty(t,n);return a&&r&&Kt(t,"delete",n,void 0),a}has(t,n){const r=Reflect.has(t,n);return(!$t(n)||!lo.has(n))&&Je(t,"has",n),r}ownKeys(t){return Je(t,"iterate",fe(t)?"length":bn),Reflect.ownKeys(t)}}class iu extends ao{constructor(t=!1){super(!0,t)}set(t,n){return!0}deleteProperty(t,n){return!0}}const uu=new oo,cu=new iu,du=new oo(!0);const qr=e=>e,xs=e=>Reflect.getPrototypeOf(e);function fu(e,t,n){return function(...r){const a=this.__v_raw,o=xe(a),i=nn(o),c=e==="entries"||e===Symbol.iterator&&i,f=e==="keys"&&i,v=a[e](...r),h=n?qr:t?ln:pt;return!t&&Je(o,"iterate",f?Br:bn),Be(Object.create(v),{next(){const{value:y,done:b}=v.next();return b?{value:y,done:b}:{value:c?[h(y[0]),h(y[1])]:h(y),done:b}}})}}function Ms(e){return function(...t){return e==="delete"?!1:e==="clear"?void 0:this}}function pu(e,t){const n={get(a){const o=this.__v_raw,i=xe(o),c=xe(a);e||(Tt(a,c)&&Je(i,"get",a),Je(i,"get",c));const{has:f}=xs(i),v=t?qr:e?ln:pt;if(f.call(i,a))return v(o.get(a));if(f.call(i,c))return v(o.get(c));o!==i&&o.get(a)},get size(){const a=this.__v_raw;return!e&&Je(xe(a),"iterate",bn),a.size},has(a){const o=this.__v_raw,i=xe(o),c=xe(a);return e||(Tt(a,c)&&Je(i,"has",a),Je(i,"has",c)),a===c?o.has(a):o.has(a)||o.has(c)},forEach(a,o){const i=this,c=i.__v_raw,f=xe(c),v=t?qr:e?ln:pt;return!e&&Je(f,"iterate",bn),c.forEach((h,y)=>a.call(o,v(h),v(y),i))}};return Be(n,e?{add:Ms("add"),set:Ms("set"),delete:Ms("delete"),clear:Ms("clear")}:{add(a){const o=xe(this),i=xs(o),c=xe(a),f=!t&&!dt(a)&&!Lt(a)?c:a;return i.has.call(o,f)||Tt(a,f)&&i.has.call(o,a)||Tt(c,f)&&i.has.call(o,c)||(o.add(f),Kt(o,"add",f,f)),this},set(a,o){!t&&!dt(o)&&!Lt(o)&&(o=xe(o));const i=xe(this),{has:c,get:f}=xs(i);let v=c.call(i,a);v||(a=xe(a),v=c.call(i,a));const h=f.call(i,a);return i.set(a,o),v?Tt(o,h)&&Kt(i,"set",a,o):Kt(i,"add",a,o),this},delete(a){const o=xe(this),{has:i,get:c}=xs(o);let f=i.call(o,a);f||(a=xe(a),f=i.call(o,a)),c&&c.call(o,a);const v=o.delete(a);return f&&Kt(o,"delete",a,void 0),v},clear(){const a=xe(this),o=a.size!==0,i=a.clear();return o&&Kt(a,"clear",void 0,void 0),i}}),["keys","values","entries",Symbol.iterator].forEach(a=>{n[a]=fu(a,e,t)}),n}function hl(e,t){const n=pu(e,t);return(r,a,o)=>a==="__v_isReactive"?!e:a==="__v_isReadonly"?e:a==="__v_isShallow"?t:a==="__v_raw"?r:Reflect.get(Me(n,a)&&a in r?n:r,a,o)}const vu={get:hl(!1,!1)},hu={get:hl(!1,!0)},mu={get:hl(!0,!1)};const io=new WeakMap,uo=new WeakMap,co=new WeakMap,gu=new WeakMap;function yu(e){switch(e){case"Object":case"Array":return 1;case"Map":case"Set":case"WeakMap":case"WeakSet":return 2;default:return 0}}function un(e){return Lt(e)?e:ml(e,!1,uu,vu,io)}function bu(e){return ml(e,!1,du,hu,uo)}function Ur(e){return ml(e,!0,cu,mu,co)}function ml(e,t,n,r,a){if(!Ce(e)||e.__v_raw&&!(t&&e.__v_isReactive)||e.__v_skip||!Object.isExtensible(e))return e;const o=a.get(e);if(o)return o;const i=yu(qi(e));if(i===0)return e;const c=new Proxy(e,i===2?r:n);return a.set(e,c),c}function sn(e){return Lt(e)?sn(e.__v_raw):!!(e&&e.__v_isReactive)}function Lt(e){return!!(e&&e.__v_isReadonly)}function dt(e){return!!(e&&e.__v_isShallow)}function gl(e){return e?!!e.__v_raw:!1}function xe(e){const t=e&&e.__v_raw;return t?xe(t):e}function ku(e){return!Me(e,"__v_skip")&&Object.isExtensible(e)&&Ga(e,"__v_skip",!0),e}const pt=e=>Ce(e)?un(e):e,ln=e=>Ce(e)?Ur(e):e;function Ze(e){return e?e.__v_isRef===!0:!1}function K(e){return _u(e,!1)}function _u(e,t){return Ze(e)?e:new $u(e,t)}class $u{constructor(t,n){this.dep=new vl,this.__v_isRef=!0,this.__v_isShallow=!1,this._rawValue=n?t:xe(t),this._value=n?t:pt(t),this.__v_isShallow=n}get value(){return this.dep.track(),this._value}set value(t){const n=this._rawValue,r=this.__v_isShallow||dt(t)||Lt(t);t=r?t:xe(t),Tt(t,n)&&(this._rawValue=t,this._value=r?t:pt(t),this.dep.trigger())}}function g(e){return Ze(e)?e.value:e}const xu={get:(e,t,n)=>t==="__v_raw"?e:g(Reflect.get(e,t,n)),set:(e,t,n,r)=>{const a=e[t];return Ze(a)&&!Ze(n)?(a.value=n,!0):Reflect.set(e,t,n,r)}};function fo(e){return sn(e)?e:new Proxy(e,xu)}class Mu{constructor(t,n,r){this.fn=t,this.setter=n,this._value=void 0,this.dep=new vl(this),this.__v_isRef=!0,this.deps=void 0,this.depsTail=void 0,this.flags=16,this.globalVersion=ts-1,this.next=void 0,this.effect=this,this.__v_isReadonly=!n,this.isSSR=r}notify(){if(this.flags|=16,!(this.flags&8)&&Ie!==this)return Za(this,!0),!0}get value(){const t=this.dep.track();return to(this),t&&(t.version=this.dep.version),this._value}set value(t){this.setter&&this.setter(t)}}function Cu(e,t,n=!1){let r,a;return ke(e)?r=e:(r=e.get,a=e.set),new Mu(r,a,n)}const Cs={},Hs=new WeakMap;let hn;function wu(e,t=!1,n=hn){if(n){let r=Hs.get(n);r||Hs.set(n,r=[]),r.push(e)}}function Eu(e,t,n=Te){const{immediate:r,deep:a,once:o,scheduler:i,augmentJob:c,call:f}=n,v=k=>a?k:dt(k)||a===!1||a===0?Gt(k,1):Gt(k);let h,y,b,m,M=!1,_=!1;if(Ze(e)?(y=()=>e.value,M=dt(e)):sn(e)?(y=()=>v(e),M=!0):fe(e)?(_=!0,M=e.some(k=>sn(k)||dt(k)),y=()=>e.map(k=>{if(Ze(k))return k.value;if(sn(k))return v(k);if(ke(k))return f?f(k,2):k()})):ke(e)?t?y=f?()=>f(e,2):e:y=()=>{if(b){Nt();try{b()}finally{Dt()}}const k=hn;hn=h;try{return f?f(e,3,[m]):e(m)}finally{hn=k}}:y=At,t&&a){const k=y,H=a===!0?1/0:a;y=()=>Gt(k(),H)}const E=nu(),T=()=>{h.stop(),E&&E.active&&ul(E.effects,h)};if(o&&t){const k=t;t=(...H)=>{try{return k(...H)}finally{T()}}}let w=_?new Array(e.length).fill(Cs):Cs;const x=k=>{if(!(!(h.flags&1)||!h.dirty&&!k))if(t){const H=h.run();if(k||a||M||(_?H.some((ie,q)=>Tt(ie,w[q])):Tt(H,w))){const ie=hn;Nt();try{b&&b(),hn=h;const q=[H,w===Cs?void 0:_&&w[0]===Cs?[]:w,m];w=H,f?f(t,3,q):t(...q)}finally{hn=ie,Dt()}}}else h.run()};return c&&c(x),h=new Ja(y),h.scheduler=i?()=>i(x,!1):x,m=k=>wu(k,!1,h),b=h.onStop=()=>{const k=Hs.get(h);if(k){if(f)f(k,4);else for(const H of k)H();Hs.delete(h)}},t?r?x(!0):w=h.run():i?i(x.bind(null,!0),!0):h.run(),T.pause=h.pause.bind(h),T.resume=h.resume.bind(h),T.stop=T,T}function Gt(e,t=1/0,n){if(t<=0||!Ce(e)||e.__v_skip||(n=n||new Map,(n.get(e)||0)>=t))return e;if(n.set(e,t),t--,Ze(e))Gt(e.value,t,n);else if(fe(e))for(let r=0;r<e.length;r++)Gt(e[r],t,n);else if(xn(e)||nn(e))e.forEach(r=>{Gt(r,t,n)});else if(Ha(e)){for(const r in e)Gt(e[r],t,n);for(const r of Object.getOwnPropertySymbols(e))Object.prototype.propertyIsEnumerable.call(e,r)&&Gt(e[r],t,n)}return e}/**
+* @vue/runtime-core v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/function gs(e,t,n,r){try{return r?e(...r):e()}catch(a){ir(a,t,n)}}function vt(e,t,n,r){if(ke(e)){const a=gs(e,t,n,r);return a&&qa(a)&&a.catch(o=>{ir(o,t,n,void 0,!0)}),a}if(fe(e)){const a=[];for(let o=0;o<e.length;o++)a.push(vt(e[o],t,n,r));return a}}function ir(e,t,n,r=!0,a=!1){const o=t?t.vnode:null,{errorHandler:i,throwUnhandledErrorInProduction:c}=t&&t.appContext.config||Te;if(t){let f=t.parent;const v=t.proxy,h=`https://vuejs.org/error-reference/#runtime-${n}`;for(;f;){const y=f.ec;if(y&&!f.isUnmounted&&(!a||f.scope.active)){for(let b=0;b<y.length;b++)if(y[b](e,v,h)===!1)return}f=f.parent}if(i){Nt(),gs(i,null,10,[e,v,h]),Dt();return}}Su(e,n,o,r,c)}function Su(e,t,n,r=!0,a=!1){if(a)throw e;console.error(e)}const tt=[];let yt=-1;const Et=[];let Zt=null,In=0;const po=Promise.resolve();let Ks=null;function vo(e){const t=Ks||po;return e?t.then(this?e.bind(this):e):t}function Tu(e){let t=yt+1,n=tt.length;for(;t<n;){const r=t+n>>>1,a=tt[r],o=ss(a);o<e||o===e&&a.flags&2?t=r+1:n=r}return t}function ur(e){if(!(e.flags&1)){const t=ss(e),n=tt[tt.length-1];!n||!(e.flags&2)&&t>=ss(n)?tt.push(e):tt.splice(Tu(t),0,e),e.flags|=1,ho()}}function ho(){Ks||(Ks=po.then(yo))}function Iu(e){if(!fe(e))Zt&&e.id===-1?Zt.splice(In+1,0,e):e.flags&1||(Et.push(e),e.flags|=1);else for(let t=0;t<e.length;t++)Et.push(e[t]);ho()}function mo(e,t,n,r=yt+1){for(;r<tt.length;r++){const a=tt[r];if(a&&a.flags&2){if(e&&a.id!==e.uid||t!==void 0&&!(a.id>=t))continue;tt.splice(r,1),r=e?r-1:yt,a.flags&4&&(a.flags&=-2),a(),a.flags&4||(a.flags&=-2)}}}function go(e,t,n=0){if(Et.length){let r=Et,a=0;if(t){r=[];for(let i=0;i<Et.length;i++){const c=Et[i];(c.i!==void 0?!c.i||c.i.uid<n:t.has(c))?Et[a++]=c:r.push(c)}}const o=[...new Set(r)].sort((i,c)=>ss(i)-ss(c));if(Et.length=a,Zt){for(let i=0;i<o.length;i++)Zt.push(o[i]);return}for(Zt=o,In=0;In<Zt.length;In++){const i=Zt[In];i.flags&4&&(i.flags&=-2),i.flags&8||i(),i.flags&=-2}Zt=null,In=0}}let wr=!1;function Au(e,t){if(wr){e();return}const n=t===void 0?void 0:new Set(Et);e(),wr=!0;try{mo(void 0,t),go(void 0,n,t)}finally{wr=!1}}const ss=e=>e.id==null?e.flags&2?-1:1/0:e.id;function yo(e){try{for(yt=0;yt<tt.length;yt++){const t=tt[yt];t&&!(t.flags&8)&&(t.flags&4&&(t.flags&=-2),gs(t,t.i,t.i?15:14),t.flags&4||(t.flags&=-2))}}finally{for(;yt<tt.length;yt++){const t=tt[yt];t&&(t.flags&=-2)}yt=-1,tt.length=0,go(),Ks=null,(tt.length||Et.length)&&yo()}}let Qe=null,bo=null;function Gs(e){const t=Qe;return Qe=e,bo=e&&e.type.__scopeId||null,t}function En(e,t=Qe,n){if(!t||e._n)return e;const r=(...a)=>{r._d&&Js(-1);const o=Gs(t),i=zt.length;let c;try{c=e(...a)}finally{for(let f=zt.length;f>i;f--)kl();Gs(o),r._d&&Js(1)}return c};return r._n=!0,r._c=!0,r._d=!0,r}function st(e,t){if(Qe===null)return e;const n=vr(Qe),r=e.dirs||(e.dirs=[]);for(let a=0;a<t.length;a++){let[o,i,c,f=Te]=t[a];o&&(ke(o)&&(o={mounted:o,updated:o}),o.deep&&Gt(i),r.push({dir:o,instance:n,value:i,oldValue:void 0,arg:c,modifiers:f}))}return e}function dn(e,t,n,r){let a=e;if(r==="beforeMount")e._mount=e;else if(r==="beforeUpdate"){const c=t&&t._mount;c&&(c._latest=e,e._mount=c)}else if(r==="mounted"){const c=e._latest;e._mount=e._latest=void 0,c&&(a=c,c._mount=void 0)}const o=a.dirs,i=t&&t.dirs;for(let c=0;c<o.length;c++){let f=o[c];i?f.oldValue=i[c].value:r==="mounted"&&f.oldValue!==void 0&&(f=Be({},f,{oldValue:void 0}));let v=f.dir[r];v&&(Nt(),vt(v,n,8,[e.el,f,a,t]),Dt())}}function Pu(e,t){if(nt){let n=nt.provides;const r=nt.parent&&nt.parent.provides;r===n&&(n=nt.provides=Object.create(r)),n[e]=t}}function Vs(e,t,n=!1){const r=Jo();if(r||Pn){let a=Pn?Pn._context.provides:r?r.parent==null||r.ce?r.vnode.appContext&&r.vnode.appContext.provides:r.parent.provides:void 0;if(a&&e in a)return a[e];if(arguments.length>1)return n&&ke(t)?t.call(r&&r.proxy):t}}const Ru=Symbol.for("v-scx"),Ou=()=>Vs(Ru);function Pt(e,t,n){return ko(e,t,n)}function ko(e,t,n=Te){const{immediate:r,deep:a,flush:o,once:i}=n,c=Be({},n),f=t&&r||!t&&o!=="post";let v;if(is){if(o==="sync"){const m=Ou();v=m.__watcherHandles||(m.__watcherHandles=[])}else if(!f){const m=()=>{};return m.stop=At,m.resume=At,m.pause=At,m}}const h=nt;c.call=(m,M,_)=>vt(m,h,M,_);let y=!1;o==="post"?c.scheduler=m=>{m.i=h,et(m,h&&h.suspense)}:o!=="sync"&&(y=!0,c.scheduler=(m,M)=>{M?m():ur(m)}),c.augmentJob=m=>{t&&(m.flags|=4),y&&(m.flags|=2,h&&(m.id=h.uid,m.i=h))};const b=Eu(e,t,c);return is&&(v?v.push(b):f&&b()),b}function Nu(e,t,n){const r=this.proxy,a=Re(e)?e.includes(".")?_o(r,e):()=>r[e]:e.bind(r,r);let o;ke(t)?o=t:(o=t.handler,n=t);const i=bs(this),c=ko(a,o.bind(r),n);return i(),c}function _o(e,t){const n=t.split(".");return()=>{let r=e;for(let a=0;a<n.length&&r;a++)r=r[n[a]];return r}}const Du=Symbol("_vte"),cr=e=>e.__isTeleport,ct=Symbol("_leaveCb"),qn=Symbol("_enterCb");function Lu(){const e={isMounted:!1,isLeaving:!1,isUnmounting:!1,leavingVNodes:new Map};return Sn(()=>{e.isMounted=!0}),So(()=>{e.isUnmounting=!0}),e}const ut=[Function,Array],$o={mode:String,appear:Boolean,persisted:Boolean,onBeforeEnter:ut,onEnter:ut,onAfterEnter:ut,onEnterCancelled:ut,onBeforeLeave:ut,onLeave:ut,onAfterLeave:ut,onLeaveCancelled:ut,onBeforeAppear:ut,onAppear:ut,onAfterAppear:ut,onAppearCancelled:ut},Vu={name:"BaseTransition",props:$o,setup(e,{slots:t}){const n=Jo(),r=Lu();return()=>{const a=t.default&&Co(t.default(),!0),o=a&&a.length?xo(a):n.subTree?S():void 0;if(!o)return;const i=xe(e),{mode:c}=i;if(r.isLeaving)return Er(o);const f=Ws(o);if(!f)return Er(o);const v=Hr(f,i,r,n);f.type!==ze&&kn(f,v);let h=n.subTree&&Ws(n.subTree);if(h&&h.type!==ze&&!mn(h,f)&&rs(n.subTree)){let y=Hr(h,i,r,n);if(kn(h,y),c==="out-in"&&f.type!==ze)return r.isLeaving=!0,y.afterLeave=()=>{if(r.isLeaving=!1,!(n.job.flags&8))if(n.effect.flags&2){const b=()=>{n.job.flags&8||n.update()};b.i=n,ur(b)}else n.update();delete y.afterLeave,h=void 0},Er(o);c==="in-out"&&f.type!==ze?y.delayLeave=(b,m,M)=>{const _=Mo(r,h);_[String(h.key)]=h,b[ct]=()=>{m(),b[ct]=void 0,delete v.delayedLeave,h=void 0},v.delayedLeave=()=>{M(),delete v.delayedLeave,h=void 0}}:h=void 0}else h&&(h=void 0);return o}}};function xo(e){let t=e[0];if(e.length>1){for(const n of e)if(n.type!==ze){t=n;break}}return t}const Fu=Vu;function Mo(e,t){const{leavingVNodes:n}=e;let r=n.get(t.type);return r||(r=Object.create(null),n.set(t.type,r)),r}function Hr(e,t,n,r){const{appear:a,mode:o,persisted:i=!1,onBeforeEnter:c,onEnter:f,onAfterEnter:v,onEnterCancelled:h,onBeforeLeave:y,onLeave:b,onAfterLeave:m,onLeaveCancelled:M,onBeforeAppear:_,onAppear:E,onAfterAppear:T,onAppearCancelled:w}=t,x=String(e.key),k=Mo(n,e),H=(J,Y)=>{J&&vt(J,r,9,Y)},ie=(J,Y)=>{const re=Y[1];H(J,Y),fe(J)?J.every(ne=>ne.length<=1)&&re():J.length<=1&&re()},q={mode:o,persisted:i,beforeEnter(J){let Y=c;if(!n.isMounted)if(a)Y=_||c;else return;J[ct]&&J[ct](!0);const re=k[x];if(re&&mn(e,re)){let ne=re.el[ct];if(!ne){const P=rs(re);ne=P&&P.el[ct]}ne&&ne()}H(Y,[J])},enter(J){if(k[x]===e)return;let Y=f,re=v,ne=h;if(!n.isMounted)if(a)Y=E||f,re=T||v,ne=w||h;else return;let P=!1;J[qn]=ue=>{P||(P=!0,ue?H(ne,[J]):H(re,[J]),q.delayedLeave&&q.delayedLeave(),J[qn]=void 0)};const N=J[qn].bind(null,!1);Y?ie(Y,[J,N]):N()},leave(J,Y){const re=String(e.key);if(J[qn]&&J[qn](!0),n.isUnmounting)return Y();H(y,[J]);let ne=!1;J[ct]=N=>{ne||(ne=!0,Y(),N?H(M,[J]):H(m,[J]),J[ct]=void 0,k[re]===e&&delete k[re])};const P=J[ct].bind(null,!1);k[re]=e,b?ie(b,[J,P]):P()},clone(J){const Y=Hr(J,t,n,r);return Y.afterLeave=()=>{q.afterLeave&&q.afterLeave()},Y.delayLeave=(re,ne,P)=>{q.delayLeave?q.delayLeave(re,ne,P):P()},Y.delayedLeave=()=>{q.delayedLeave&&q.delayedLeave()},Y}};return q}function Er(e){if(dr(e))return e=an(e),e.children=null,e}function Ws(e){if(!dr(e))return cr(e.type)&&e.children?xo(e.children):e;if(e.component)return e.component.subTree;const{shapeFlag:t,children:n}=e;if(n){if(t&16)return n[0];if(t&32&&ke(n.default))return n.default()}}function kn(e,t){if(e.shapeFlag&6&&e.component){e.transition=t;const n=e.component.subTree;kn(cr(n.type)&&Ws(n)||n,t)}else if(e.shapeFlag&128){const n=e.suspense;if(n){const r=n.isHydrating?n.pendingBranch:n.activeBranch;r&&kn(r,t.clone(r))}else e.ssContent.transition=t.clone(e.ssContent),e.ssFallback.transition=t.clone(e.ssFallback)}else if(e.transition=t,e.type===V&&fe(e.children)){const n=Oo(e.children,!1);n&&kn(n,t)}}function Co(e,t=!1,n){let r=[],a=0;for(let o=0;o<e.length;o++){let i=e[o];const c=n==null?i.key:String(n)+String(i.key!=null?i.key:o);i.type===V?(i.patchFlag&128&&a++,r=r.concat(Co(i.children,t,c))):(t||i.type!==ze)&&r.push(c!=null?an(i,{key:c}):i)}if(a>1)for(let o=0;o<r.length;o++)r[o].patchFlag=-2;return r}function rs(e){if(e.component)return rs(e.component.subTree);if(e.type===V){const t=fe(e.children)&&Oo(e.children,!1);return t?rs(t):void 0}if(e.type!==ze)return e}function wo(e){e.ids=[e.ids[0]+e.ids[2]+++"-",0,0]}function zl(e,t){let n;return!!((n=Object.getOwnPropertyDescriptor(e,t))&&!n.configurable)}const zs=new WeakMap;function Zn(e,t,n,r,a=!1){if(fe(e)){e.forEach((_,E)=>Zn(_,t&&(fe(t)?t[E]:t),n,r,a));return}if(An(r)&&!a){r.shapeFlag&512&&r.type.__asyncResolved&&r.component.subTree.component&&Zn(e,t,n,r.component.subTree);return}const o=r.shapeFlag&4?vr(r.component):r.el,i=a?null:o,{i:c,r:f}=e,v=t&&t.r,h=c.refs===Te?c.refs={}:c.refs,y=c.setupState,b=xe(y),m=y===Te?Ba:_=>zl(h,_)?!1:Me(b,_),M=(_,E)=>!(E&&zl(h,E));if(v!=null&&v!==f){if(Yl(t),Re(v))h[v]=null,m(v)&&(y[v]=null);else if(Ze(v)){const _=t;M(v,_.k)&&(v.value=null),_.k&&(h[_.k]=null)}}if(ke(f))gs(f,c,12,[i,h]);else{const _=Re(f),E=Ze(f);if(_||E){const T=()=>{if(e.f){const w=_?m(f)?y[f]:h[f]:M()||!e.k?f.value:h[e.k];if(a)fe(w)&&ul(w,o);else if(fe(w))w.includes(o)||w.push(o);else if(_)h[f]=[o],m(f)&&(y[f]=h[f]);else{const x=[o];M(f,e.k)&&(f.value=x),e.k&&(h[e.k]=x)}}else _?(h[f]=i,m(f)&&(y[f]=i)):E&&(M(f,e.k)&&(f.value=i),e.k&&(h[e.k]=i))};if(i){const w=()=>{T(),zs.delete(e)};w.id=-1,zs.set(e,w),et(w,n)}else Yl(e),T()}}}function Yl(e){const t=zs.get(e);t&&(t.flags|=8,zs.delete(e))}ar().requestIdleCallback;ar().cancelIdleCallback;const An=e=>!!e.type.__asyncLoader,dr=e=>e.type.__isKeepAlive;function ju(e,t){Eo(e,"a",t)}function Bu(e,t){Eo(e,"da",t)}function Eo(e,t,n=nt){const r=e.__wdc||(e.__wdc=()=>{let a=n;for(;a;){if(a.isDeactivated)return;a=a.parent}return e()});if(ls(t,r,n),n){let a=n.parent;for(;a&&a.parent;)dr(a.parent.vnode)&&qu(r,t,n,a),a=a.parent}}function qu(e,t,n,r){const a=ls(t,e,r,!0),o=ls("um",()=>ul(r[t],a),n);o.flags=16}function ls(e,t,n=nt,r=!1){if(n){const a=n[e]||(n[e]=[]),o=t.__weh||(t.__weh=(...i)=>{Nt();const c=bs(n),f=vt(t,n,e,i);return c(),Dt(),f});return r?a.unshift(o):a.push(o),o}}const Jt=e=>(t,n=nt)=>{(!is||e==="sp")&&ls(e,(...r)=>t(...r),n)},Uu=Jt("bm"),Sn=Jt("m"),Hu=Jt("bu"),Ku=Jt("u"),So=Jt("bum"),ys=Jt("um"),Gu=Jt("sp"),Wu=Jt("rtg"),zu=Jt("rtc");function Yu(e,t=nt){ls("ec",e,t)}const Ju=Symbol.for("v-ndc");function ee(e,t,n,r){let a;const o=n,i=fe(e);if(i||Re(e)){const c=i&&sn(e);let f=!1,v=!1;c&&(f=!dt(e),v=Lt(e),e=or(e)),a=new Array(e.length);for(let h=0,y=e.length;h<y;h++)a[h]=t(f?v?ln(pt(e[h])):pt(e[h]):e[h],h,void 0,o)}else if(typeof e=="number")if(!Number.isInteger(e)||e<0)a=[];else{a=new Array(e);for(let c=0;c<e;c++)a[c]=t(c+1,c,void 0,o)}else if(Ce(e))if(e[Symbol.iterator])a=Array.from(e,(c,f)=>t(c,f,void 0,o));else{const c=Object.keys(e);a=new Array(c.length);for(let f=0,v=c.length;f<v;f++){const h=c[f];a[f]=t(e[h],h,f,o)}}else a=[];return a}function Jl(e,t,n,r,a,o){if(n==null&&(n={}),Qe.ce||Qe.parent&&An(Qe.parent)&&Qe.parent.ce){const v=n,h=Object.keys(v).length>0;return t!=="default"&&(v.name=t),d(),Se(V,null,[je("slot",v,r)],h?-2:64)}let i=e[t];i&&i._c&&(i._d=!1);const c=zt.length;d();let f;try{const v=i&&To(i(n)),h=n.key||o||v&&v.key;f=Se(V,{key:(h&&!$t(h)?h:`_${t}`)+(!v&&r?"_fb":"")},v||(r?r():[]),v&&e._===1?64:-2)}catch(v){for(let h=zt.length;h>c;h--)kl();throw v}finally{i&&i._c&&(i._d=!0)}return f}function To(e){return e.some(t=>On(t)?!(t.type===ze||t.type===V&&!To(t.children)):!0)?e:null}const Kr=e=>e?Qo(e)?vr(e):Kr(e.parent):null,Xn=Be(Object.create(null),{$:e=>e,$el:e=>e.vnode.el,$data:e=>e.data,$props:e=>e.props,$attrs:e=>e.attrs,$slots:e=>e.slots,$refs:e=>e.refs,$parent:e=>Kr(e.parent),$root:e=>Kr(e.root),$host:e=>e.ce,$emit:e=>e.emit,$options:e=>Ao(e),$forceUpdate:e=>e.f||(e.f=()=>{ur(e.update)}),$nextTick:e=>e.n||(e.n=vo.bind(e.proxy)),$watch:e=>Nu.bind(e)}),Sr=(e,t)=>e!==Te&&!e.__isScriptSetup&&Me(e,t),Qu={get({_:e},t){if(t==="__v_skip")return!0;const{ctx:n,setupState:r,data:a,props:o,accessCache:i,type:c,appContext:f}=e;if(t[0]!=="$"){const b=i[t];if(b!==void 0)switch(b){case 1:return r[t];case 2:return a[t];case 4:return n[t];case 3:return o[t]}else{if(Sr(r,t))return i[t]=1,r[t];if(a!==Te&&Me(a,t))return i[t]=2,a[t];if(Me(o,t))return i[t]=3,o[t];if(n!==Te&&Me(n,t))return i[t]=4,n[t];Gr&&(i[t]=0)}}const v=Xn[t];let h,y;if(v)return t==="$attrs"&&Je(e.attrs,"get",""),v(e);if((h=c.__cssModules)&&(h=h[t]))return h;if(n!==Te&&Me(n,t))return i[t]=4,n[t];if(y=f.config.globalProperties,Me(y,t))return y[t]},set({_:e},t,n){const{data:r,setupState:a,ctx:o}=e;return Sr(a,t)?(a[t]=n,!0):r!==Te&&Me(r,t)?(r[t]=n,!0):Me(e.props,t)||t[0]==="$"&&t.slice(1)in e?!1:(o[t]=n,!0)},has({_:{data:e,setupState:t,accessCache:n,ctx:r,appContext:a,props:o,type:i}},c){let f;return!!(n[c]||e!==Te&&c[0]!=="$"&&Me(e,c)||Sr(t,c)||Me(o,c)||Me(r,c)||Me(Xn,c)||Me(a.config.globalProperties,c)||(f=i.__cssModules)&&f[c])},defineProperty(e,t,n){return n.get!=null?e._.accessCache[t]=0:Me(n,"value")&&this.set(e,t,n.value,null),Reflect.defineProperty(e,t,n)}};function Ql(e){return fe(e)?e.reduce((t,n)=>(t[n]=null,t),{}):e}let Gr=!0;function Zu(e){const t=Ao(e),n=e.proxy,r=e.ctx;Gr=!1,t.beforeCreate&&Zl(t.beforeCreate,e,"bc");const{data:a,computed:o,methods:i,watch:c,provide:f,inject:v,created:h,beforeMount:y,mounted:b,beforeUpdate:m,updated:M,activated:_,deactivated:E,beforeDestroy:T,beforeUnmount:w,destroyed:x,unmounted:k,render:H,renderTracked:ie,renderTriggered:q,errorCaptured:J,serverPrefetch:Y,expose:re,inheritAttrs:ne,components:P,directives:N,filters:ue}=t;if(v&&Xu(v,r,null),i)for(const z in i){const U=i[z];ke(U)&&(r[z]=U.bind(n))}if(a){const z=a.call(n,n);Ce(z)&&(e.data=un(z))}if(Gr=!0,o)for(const z in o){const U=o[z],O=ke(U)?U.bind(n,n):ke(U.get)?U.get.bind(n,n):At,Q=!ke(U)&&ke(U.set)?U.set.bind(n):At,te=j({get:O,set:Q});Object.defineProperty(r,z,{enumerable:!0,configurable:!0,get:()=>te.value,set:A=>te.value=A})}if(c)for(const z in c)Io(c[z],r,n,z);if(f){const z=ke(f)?f.call(n):f;Reflect.ownKeys(z).forEach(U=>{Pu(U,z[U])})}h&&Zl(h,e,"c");function me(z,U){fe(U)?U.forEach(O=>z(O.bind(n))):U&&z(U.bind(n))}if(me(Uu,y),me(Sn,b),me(Hu,m),me(Ku,M),me(ju,_),me(Bu,E),me(Yu,J),me(zu,ie),me(Wu,q),me(So,w),me(ys,k),me(Gu,Y),fe(re))if(re.length){const z=e.exposed||(e.exposed={});re.forEach(U=>{Object.defineProperty(z,U,{get:()=>n[U],set:O=>n[U]=O,enumerable:!0})})}else e.exposed||(e.exposed={});H&&e.render===At&&(e.render=H),ne!=null&&(e.inheritAttrs=ne),P&&(e.components=P),N&&(e.directives=N),Y&&wo(e)}function Xu(e,t,n=At){fe(e)&&(e=Wr(e));for(const r in e){const a=e[r];let o;Ce(a)?"default"in a?o=Vs(a.from||r,a.default,!0):o=Vs(a.from||r):o=Vs(a),Ze(o)?Object.defineProperty(t,r,{enumerable:!0,configurable:!0,get:()=>o.value,set:i=>o.value=i}):t[r]=o}}function Zl(e,t,n){vt(fe(e)?e.map(r=>r.bind(t.proxy)):e.bind(t.proxy),t,n)}function Io(e,t,n,r){let a=r.includes(".")?_o(n,r):()=>n[r];if(Re(e)){const o=t[e];ke(o)&&Pt(a,o)}else if(ke(e))Pt(a,e.bind(n));else if(Ce(e))if(fe(e))e.forEach(o=>Io(o,t,n,r));else{const o=ke(e.handler)?e.handler.bind(n):t[e.handler];ke(o)&&Pt(a,o,e)}}function Ao(e){const t=e.type,{mixins:n,extends:r}=t,{mixins:a,optionsCache:o,config:{optionMergeStrategies:i}}=e.appContext,c=o.get(t);let f;return c?f=c:!a.length&&!n&&!r?f=t:(f={},a.length&&a.forEach(v=>Ys(f,v,i,!0)),Ys(f,t,i)),Ce(t)&&o.set(t,f),f}function Ys(e,t,n,r=!1){const{mixins:a,extends:o}=t;o&&Ys(e,o,n,!0),a&&a.forEach(i=>Ys(e,i,n,!0));for(const i in t)if(!(r&&i==="expose")){const c=ec[i]||n&&n[i];e[i]=c?c(e[i],t[i]):t[i]}return e}const ec={data:Xl,props:ea,emits:ea,methods:Kn,computed:Kn,beforeCreate:Xe,created:Xe,beforeMount:Xe,mounted:Xe,beforeUpdate:Xe,updated:Xe,beforeDestroy:Xe,beforeUnmount:Xe,destroyed:Xe,unmounted:Xe,activated:Xe,deactivated:Xe,errorCaptured:Xe,serverPrefetch:Xe,components:Kn,directives:Kn,watch:nc,provide:Xl,inject:tc};function Xl(e,t){return t?e?function(){return Be(ke(e)?e.call(this,this):e,ke(t)?t.call(this,this):t)}:t:e}function tc(e,t){return Kn(Wr(e),Wr(t))}function Wr(e){if(fe(e)){const t={};for(let n=0;n<e.length;n++)t[e[n]]=e[n];return t}return e}function Xe(e,t){return e?[...new Set([].concat(e,t))]:t}function Kn(e,t){return e?Be(Object.create(null),e,t):t}function ea(e,t){return e?fe(e)&&fe(t)?[...new Set([...e,...t])]:Be(Object.create(null),Ql(e),Ql(t??{})):t}function nc(e,t){if(!e)return t;if(!t)return e;const n=Be(Object.create(null),e);for(const r in t)n[r]=Xe(e[r],t[r]);return n}function Po(){return{app:null,config:{isNativeTag:Ba,performance:!1,globalProperties:{},optionMergeStrategies:{},errorHandler:void 0,warnHandler:void 0,compilerOptions:{}},mixins:[],components:{},directives:{},provides:Object.create(null),optionsCache:new WeakMap,propsCache:new WeakMap,emitsCache:new WeakMap}}let sc=0;function rc(e,t){return function(r,a=null){ke(r)||(r=Be({},r)),a!=null&&!Ce(a)&&(a=null);const o=Po(),i=new WeakSet,c=[];let f=!1;const v=o.app={_uid:sc++,_component:r,_props:a,_container:null,_context:o,_instance:null,version:Lc,get config(){return o.config},set config(h){},use(h,...y){return i.has(h)||(h&&ke(h.install)?(i.add(h),h.install(v,...y)):ke(h)&&(i.add(h),h(v,...y))),v},mixin(h){return o.mixins.includes(h)||o.mixins.push(h),v},component(h,y){return y?(o.components[h]=y,v):o.components[h]},directive(h,y){return y?(o.directives[h]=y,v):o.directives[h]},mount(h,y,b){if(!f){const m=v._ceVNode||je(r,a);return m.appContext=o,b===!0?b="svg":b===!1&&(b=void 0),e(m,h,b),f=!0,v._container=h,h.__vue_app__=v,vr(m.component)}},onUnmount(h){c.push(h)},unmount(){f&&(vt(c,v._instance,16),e(null,v._container),delete v._container.__vue_app__)},provide(h,y){return o.provides[h]=y,v},runWithContext(h){const y=Pn;Pn=v;try{return h()}finally{Pn=y}}};return v}}let Pn=null;const lc=(e,t)=>t==="modelValue"||t==="model-value"?e.modelModifiers:e[`${t}Modifiers`]||e[`${kt(t)}Modifiers`]||e[`${on(t)}Modifiers`];function ac(e,t,...n){if(e.isUnmounted)return;const r=e.vnode.props||Te;let a=n;const o=t.startsWith("update:"),i=o&&lc(r,t.slice(7));i&&(i.trim&&(a=n.map(h=>Re(h)?h.trim():h)),i.number&&(a=a.map(ms)));let c,f=r[c=_r(t)]||r[c=_r(kt(t))];!f&&o&&(f=r[c=_r(on(t))]),f&&vt(f,e,6,a);const v=r[c+"Once"];if(v){if(!e.emitted)e.emitted={};else if(e.emitted[c])return;e.emitted[c]=!0,vt(v,e,6,a)}}const oc=new WeakMap;function Ro(e,t,n=!1){const r=n?oc:t.emitsCache,a=r.get(e);if(a!==void 0)return a;const o=e.emits;let i={},c=!1;if(!ke(e)){const f=v=>{const h=Ro(v,t,!0);h&&(c=!0,Be(i,h))};!n&&t.mixins.length&&t.mixins.forEach(f),e.extends&&f(e.extends),e.mixins&&e.mixins.forEach(f)}return!o&&!c?(Ce(e)&&r.set(e,null),null):(fe(o)?o.forEach(f=>i[f]=null):Be(i,o),Ce(e)&&r.set(e,i),i)}function fr(e,t){return!e||!sr(t)?!1:(t=t.slice(2),t=t==="Once"?t:t.replace(/Once$/,""),Me(e,t[0].toLowerCase()+t.slice(1))||Me(e,on(t))||Me(e,t))}function ta(e){const{type:t,vnode:n,proxy:r,withProxy:a,propsOptions:[o],slots:i,attrs:c,emit:f,render:v,renderCache:h,props:y,data:b,setupState:m,ctx:M,inheritAttrs:_}=e,E=Gs(e);let T,w;try{if(n.shapeFlag&4){const k=a||r,H=k;T=St(v.call(H,k,h,y,m,b,M)),w=c}else{const k=t;T=St(k.length>1?k(y,{attrs:c,slots:i,emit:f}):k(y,null)),w=t.props?c:ic(c)}}catch(k){zt.length=0,ir(k,e,1),T=je(ze)}let x=T;if(w&&_!==!1){const k=Object.keys(w),{shapeFlag:H}=x;k.length&&H&7&&(o&&k.some(rr)&&(w=uc(w,o)),x=an(x,w,!1,!0))}if(n.dirs&&(x=an(x,null,!1,!0),x.dirs=x.dirs?x.dirs.concat(n.dirs):n.dirs),n.transition){const k=cr(x.type)&&Ws(x)||x;kn(k,n.transition)}return T=x,Gs(E),T}function Oo(e,t=!0){let n;for(let r=0;r<e.length;r++){const a=e[r];if(On(a)){if(a.type!==ze||a.children==="v-if"){if(n)return;n=a}}else return}return n}const ic=e=>{let t;for(const n in e)(n==="class"||n==="style"||sr(n))&&((t||(t={}))[n]=e[n]);return t},uc=(e,t)=>{const n={};for(const r in e)(!rr(r)||!(r.slice(9)in t))&&(n[r]=e[r]);return n};function cc(e,t,n){const{props:r,children:a,component:o}=e,{props:i,children:c,patchFlag:f}=t,v=o.emitsOptions;if(t.dirs||t.transition)return!0;if(n&&f>=0){if(f&1024)return!0;if(f&16)return r?na(r,i,v):!!i;if(f&8){const h=t.dynamicProps;for(let y=0;y<h.length;y++){const b=h[y];if(No(i,r,b)&&!fr(v,b))return!0}}}else return(a||c)&&(!c||!c.$stable)?!0:r===i?!1:r?i?na(r,i,v):!0:!!i;return!1}function na(e,t,n){const r=Object.keys(t);if(r.length!==Object.keys(e).length)return!0;for(let a=0;a<r.length;a++){const o=r[a];if(!Me(e,o)||No(t,e,o)&&!fr(n,o))return!0}return!1}function No(e,t,n){const r=e[n],a=t[n];return n==="style"&&Ce(r)&&Ce(a)?!Ot(r,a):r!==a}function dc({vnode:e,parent:t,suspense:n},r){for(;t;){const a=t.subTree;if(a.suspense&&a.suspense.activeBranch===e&&(a.suspense.vnode.el=a.el=r,e=a),a===e)(e=t.vnode).el=r,t=t.parent;else break}n&&n.activeBranch===e&&(n.vnode.el=r)}const Do={},Lo=()=>Object.create(Do),Vo=e=>Object.getPrototypeOf(e)===Do;function fc(e,t,n,r=!1){const a={},o=Lo();e.propsDefaults=Object.create(null),Fo(e,t,a,o);for(const i in e.propsOptions[0])i in a||(a[i]=void 0);n?e.props=r?a:bu(a):e.type.props?e.props=a:e.props=o,e.attrs=o}function pc(e,t,n,r){const{props:a,attrs:o,vnode:{patchFlag:i}}=e,c=xe(a),[f]=e.propsOptions;let v=!1;if((r||i>0)&&!(i&16)){if(i&8){const h=e.vnode.dynamicProps;for(let y=0;y<h.length;y++){let b=h[y];if(fr(e.emitsOptions,b))continue;const m=t[b];if(f)if(Me(o,b))m!==o[b]&&(o[b]=m,v=!0);else{const M=kt(b);a[M]=zr(f,c,M,m,e,!1)}else m!==o[b]&&(o[b]=m,v=!0)}}}else{Fo(e,t,a,o)&&(v=!0);let h;for(const y in c)(!t||!Me(t,y)&&((h=on(y))===y||!Me(t,h)))&&(f?n&&(n[y]!==void 0||n[h]!==void 0)&&(a[y]=zr(f,c,y,void 0,e,!0)):delete a[y]);if(o!==c)for(const y in o)(!t||!Me(t,y))&&(delete o[y],v=!0)}v&&Kt(e.attrs,"set","")}function Fo(e,t,n,r){const[a,o]=e.propsOptions;let i=!1,c;if(t)for(let f in t){if(Yn(f))continue;const v=t[f];let h;a&&Me(a,h=kt(f))?!o||!o.includes(h)?n[h]=v:(c||(c={}))[h]=v:fr(e.emitsOptions,f)||(!(f in r)||v!==r[f])&&(r[f]=v,i=!0)}if(o){const f=xe(n),v=c||Te;for(let h=0;h<o.length;h++){const y=o[h];n[y]=zr(a,f,y,v[y],e,!Me(v,y))}}return i}function zr(e,t,n,r,a,o){const i=e[n];if(i!=null){const c=Me(i,"default");if(c&&r===void 0){const f=i.default;if(i.type!==Function&&!i.skipFactory&&ke(f)){const{propsDefaults:v}=a;if(n in v)r=v[n];else{const h=bs(a);r=v[n]=f.call(null,t),h()}}else r=f;a.ce&&a.ce._setProp(n,r)}i[0]&&(o&&!c?r=!1:i[1]&&(r===""||r===on(n))&&(r=!0))}return r}const vc=new WeakMap;function jo(e,t,n=!1){const r=n?vc:t.propsCache,a=r.get(e);if(a)return a;const o=e.props,i={},c=[];let f=!1;if(!ke(e)){const h=y=>{f=!0;const[b,m]=jo(y,t,!0);Be(i,b),m&&c.push(...m)};!n&&t.mixins.length&&t.mixins.forEach(h),e.extends&&h(e.extends),e.mixins&&e.mixins.forEach(h)}if(!o&&!f)return Ce(e)&&r.set(e,yn),yn;if(fe(o))for(let h=0;h<o.length;h++){const y=kt(o[h]);sa(y)&&(i[y]=Te)}else if(o)for(const h in o){const y=kt(h);if(sa(y)){const b=o[h],m=i[y]=fe(b)||ke(b)?{type:b}:Be({},b),M=m.type;let _=!1,E=!0;if(fe(M))for(let T=0;T<M.length;++T){const w=M[T],x=ke(w)&&w.name;if(x==="Boolean"){_=!0;break}else x==="String"&&(E=!1)}else _=ke(M)&&M.name==="Boolean";m[0]=_,m[1]=E,(_||Me(m,"default"))&&c.push(y)}}const v=[i,c];return Ce(e)&&r.set(e,v),v}function sa(e){return e[0]!=="$"&&!Yn(e)}const yl=e=>e==="_"||e==="_ctx"||e==="$stable",bl=e=>fe(e)?e.map(St):[St(e)],hc=(e,t,n)=>{if(t._n)return t;const r=En((...a)=>bl(t(...a)),n);return r._c=!1,r},Bo=(e,t,n)=>{const r=e._ctx;for(const a in e){if(yl(a))continue;const o=e[a];if(ke(o))t[a]=hc(a,o,r);else if(o!=null){const i=bl(o);t[a]=()=>i}}},qo=(e,t)=>{const n=bl(t);e.slots.default=()=>n},Uo=(e,t,n)=>{for(const r in t)(n||!yl(r))&&(e[r]=t[r])},mc=(e,t,n)=>{const r=e.slots=Lo();if(e.vnode.shapeFlag&32){const a=t._;a?(Uo(r,t,n),n&&Ga(r,"_",a,!0)):Bo(t,r)}else t&&qo(e,t)},gc=(e,t,n)=>{const{vnode:r,slots:a}=e;let o=!0,i=Te;if(r.shapeFlag&32){const c=t._;c?n&&c===1?o=!1:Uo(a,t,n):(o=!t.$stable,Bo(t,a)),i=t}else t&&(qo(e,t),i={default:1});if(o)for(const c in a)!yl(c)&&i[c]==null&&delete a[c]},et=xc;function yc(e){return bc(e)}function bc(e,t){const n=ar();n.__VUE__=!0;const{insert:r,remove:a,patchProp:o,createElement:i,createText:c,createComment:f,setText:v,setElementText:h,parentNode:y,nextSibling:b,setScopeId:m=At,insertStaticContent:M}=e,_=($,C,B,Z=null,G=null,I=null,D=void 0,F=null,se=!!C.dynamicChildren)=>{if($===C)return;$&&!mn($,C)&&(Z=pe($),A($,G,I,!0),$=null),C.patchFlag===-2&&(se=!1,C.dynamicChildren=null),C.dynamicChildren&&$&&$.dynamicChildren&&$.dynamicChildren.hasOnce&&(C.dynamicChildren===yn&&(C.dynamicChildren=[]),C.dynamicChildren.hasOnce=!0);const{type:W,ref:ce,shapeFlag:ae}=C;switch(W){case pr:E($,C,B,Z);break;case ze:T($,C,B,Z);break;case Fs:$==null&&w(C,B,Z,D);break;case V:P($,C,B,Z,G,I,D,F,se);break;default:ae&1?H($,C,B,Z,G,I,D,F,se):ae&6?N($,C,B,Z,G,I,D,F,se):(ae&64||ae&128)&&W.process($,C,B,Z,G,I,D,F,se,Le)}ce!=null&&G?Zn(ce,$&&$.ref,I,C||$,!C):ce==null&&$&&$.ref!=null&&Zn($.ref,null,I,$,!0)},E=($,C,B,Z)=>{if($==null)r(C.el=c(C.children),B,Z);else{const G=C.el=$.el;C.children!==$.children&&v(G,C.children)}},T=($,C,B,Z)=>{$==null?r(C.el=f(C.children||""),B,Z):C.el=$.el},w=($,C,B,Z)=>{[$.el,$.anchor]=M($.children,C,B,Z,$.el,$.anchor)},x=({el:$,anchor:C},B,Z)=>{let G;for(;$&&$!==C;)G=b($),r($,B,Z),$=G;r(C,B,Z)},k=({el:$,anchor:C})=>{let B;for(;$&&$!==C;)B=b($),a($),$=B;a(C)},H=($,C,B,Z,G,I,D,F,se)=>{if(C.type==="svg"?D="svg":C.type==="math"&&(D="mathml"),$==null)ie(C,B,Z,G,I,D,F,se);else{const W=$.el&&$.el._isVueCE?$.el:null;try{W&&W._beginPatch(),Y($,C,G,I,D,F,se)}finally{W&&W._endPatch()}}},ie=($,C,B,Z,G,I,D,F)=>{let se,W;const{props:ce,shapeFlag:ae,transition:de,dirs:he}=$;if(se=$.el=i($.type,I,ce&&ce.is,ce),ae&8?h(se,$.children):ae&16&&J($.children,se,null,Z,G,Tr($,I),D,F),he&&dn($,null,Z,"created"),q(se,$,$.scopeId,D,Z),ce){for(const Ee in ce)Ee!=="value"&&!Yn(Ee)&&o(se,Ee,null,ce[Ee],I,Z);"value"in ce&&o(se,"value",null,ce.value,I),(W=ce.onVnodeBeforeMount)&&Ct(W,Z,$)}he&&dn($,null,Z,"beforeMount");const _e=kc(G,de);_e?de.beforeEnter(se):de&&!de.persisted&&(se[$c]=!0),r(se,C,B),((W=ce&&ce.onVnodeMounted)||_e||he)&&et(()=>{try{W&&Ct(W,Z,$),_e&&de.enter(se),he&&dn($,null,Z,"mounted")}finally{}},G)},q=($,C,B,Z,G)=>{if(B&&m($,B),Z)for(let I=0;I<Z.length;I++)m($,Z[I]);if(G){let I=G.subTree;if(C===I||Go(I.type)&&(I.ssContent===C||I.ssFallback===C)){const D=G.vnode;q($,D,D.scopeId,D.slotScopeIds,G.parent)}}},J=($,C,B,Z,G,I,D,F,se=0)=>{for(let W=se;W<$.length;W++){const ce=$[W]=F?Ht($[W]):St($[W]);_(null,ce,C,B,Z,G,I,D,F)}},Y=($,C,B,Z,G,I,D)=>{const F=C.el=$.el;let{patchFlag:se,dynamicChildren:W,dirs:ce}=C;se|=$.patchFlag&16;const ae=$.props||Te,de=C.props||Te;let he;if(B&&fn(B,!1),(he=de.onVnodeBeforeUpdate)&&Ct(he,B,C,$),ce&&dn(C,$,B,"beforeUpdate"),B&&fn(B,!0),W&&(!$.dynamicChildren||$.dynamicChildren.length!==W.length)&&(se=0,D=!1,W=null),(ae.innerHTML&&de.innerHTML==null||ae.textContent&&de.textContent==null)&&h(F,""),W?re($.dynamicChildren,W,F,B,Z,Tr(C,G),I):D||U($,C,F,null,B,Z,Tr(C,G),I,!1),se>0){if(se&16)ne(F,ae,de,B,G);else if(se&2&&ae.class!==de.class&&o(F,"class",null,de.class,G),se&4&&o(F,"style",ae.style,de.style,G),se&8){const _e=C.dynamicProps;for(let Ee=0;Ee<_e.length;Ee++){const we=_e[Ee],Ve=ae[we],Ke=de[we];(Ke!==Ve||we==="value")&&o(F,we,Ve,Ke,G,B)}}se&1&&$.children!==C.children&&h(F,C.children)}else!D&&W==null&&ne(F,ae,de,B,G);((he=de.onVnodeUpdated)||ce)&&et(()=>{he&&Ct(he,B,C,$),ce&&dn(C,$,B,"updated")},Z)},re=($,C,B,Z,G,I,D)=>{for(let F=0;F<C.length;F++){const se=$[F],W=C[F],ce=se.el||es(se),ae=ce&&(se.type===V||!mn(se,W)||se.shapeFlag&198)?y(ce):B;_(se,W,ae,null,Z,G,I,D,!0)}},ne=($,C,B,Z,G)=>{if(C!==B){if(C!==Te)for(const I in C)!Yn(I)&&!(I in B)&&o($,I,C[I],null,G,Z);for(const I in B){if(Yn(I))continue;const D=B[I],F=C[I];D!==F&&I!=="value"&&o($,I,F,D,G,Z)}"value"in B&&o($,"value",C.value,B.value,G)}},P=($,C,B,Z,G,I,D,F,se)=>{const W=C.el=$?$.el:c(""),ce=C.anchor=$?$.anchor:c("");let{patchFlag:ae,dynamicChildren:de,slotScopeIds:he}=C;he&&(F=F?F.concat(he):he),$==null?(r(W,B,Z),r(ce,B,Z),J(C.children||[],B,ce,G,I,D,F,se)):ae>0&&ae&64&&de&&$.dynamicChildren&&$.dynamicChildren.length===de.length?(re($.dynamicChildren,de,B,G,I,D,F),(C.key!=null||G&&C===G.subTree)&&Ho($,C,!0)):U($,C,B,ce,G,I,D,F,se)},N=($,C,B,Z,G,I,D,F,se)=>{C.slotScopeIds=F,$==null?C.shapeFlag&512?G.ctx.activate(C,B,Z,D,se):ue(C,B,Z,G,I,D,se):ge($,C,se)},ue=($,C,B,Z,G,I,D)=>{const F=$.component=Ic($,Z,G);if(dr($)&&(F.ctx.renderer=Le),Ac(F,!1,D),F.asyncDep){if(G&&G.registerDep(F,me,D,I),!$.el){const se=F.subTree=je(ze);T(null,se,C,B),$.placeholder=se.el}}else me(F,$,C,B,G,I,D)},ge=($,C,B)=>{const Z=C.component=$.component;if(cc($,C,B))if(Z.asyncDep&&!Z.asyncResolved){C.el=$.el,C.placeholder=$.placeholder,z(Z,C,B);return}else Z.next=C,Z.update();else C.el=$.el,C.placeholder=$.placeholder,Z.vnode=C},me=($,C,B,Z,G,I,D)=>{const F=()=>{if($.isMounted){let{next:ae,bu:de,u:he,parent:_e,vnode:Ee}=$;{const xt=Ko($);if(xt){ae&&(ae.el=Ee.el,z($,ae,D)),xt.asyncDep.then(()=>{const jt=()=>{$.job.flags&8||(G&&G.pendingBranch?et(jt,G):W())};jt.flags=48,et(jt,G)});return}}let we=ae,Ve;fn($,!1),ae?(ae.el=Ee.el,z($,ae,D)):ae=Ee,de&&Ls(de),(Ve=ae.props&&ae.props.onVnodeBeforeUpdate)&&Ct(Ve,_e,ae,Ee),fn($,!0);const Ke=ta($),ht=$.subTree;$.subTree=Ke,_(ht,Ke,y(ht.el||es(ht)),pe(ht),$,G,I),ae.el=Ke.el,we===null&&dc($,Ke.el),he&&et(he,G),(Ve=ae.props&&ae.props.onVnodeUpdated)&&et(()=>Ct(Ve,_e,ae,Ee),G)}else{let ae;const{el:de,props:he}=C,{bm:_e,m:Ee,parent:we,root:Ve,type:Ke}=$,ht=An(C);fn($,!1),_e&&Ls(_e),!ht&&(ae=he&&he.onVnodeBeforeMount)&&Ct(ae,we,C),fn($,!0);{Ve.ce&&Ve.ce._hasShadowRoot()&&Ve.ce._injectChildStyle(Ke,$.parent?$.parent.type:void 0);const xt=$.subTree=ta($);_(null,xt,B,Z,$,G,I),C.el=xt.el}if(Ee&&et(Ee,G),!ht&&(ae=he&&he.onVnodeMounted)){const xt=C;et(()=>Ct(ae,we,xt),G)}(C.shapeFlag&256||we&&An(we.vnode)&&we.vnode.shapeFlag&256)&&$.a&&et($.a,G),$.isMounted=!0,C=B=Z=null}};$.scope.on();const se=$.effect=new Ja(F);$.scope.off();const W=$.update=se.run.bind(se),ce=$.job=se.runIfDirty.bind(se);ce.i=$,ce.id=$.uid,se.scheduler=()=>ur(ce),fn($,!0),W()},z=($,C,B)=>{C.component=$;const Z=$.vnode.props;$.vnode=C,$.next=null,pc($,C.props,Z,B),gc($,C.children,B),Nt(),mo($),Dt()},U=($,C,B,Z,G,I,D,F,se=!1)=>{const W=$&&$.children,ce=$?$.shapeFlag:0,ae=C.children,{patchFlag:de,shapeFlag:he}=C;if(de>0){if(de&128){Q(W,ae,B,Z,G,I,D,F,se);return}else if(de&256){O(W,ae,B,Z,G,I,D,F,se);return}}he&8?(ce&16&&le(W,G,I),ae!==W&&h(B,ae)):ce&16?he&16?Q(W,ae,B,Z,G,I,D,F,se):le(W,G,I,!0):(ce&8&&h(B,""),he&16&&J(ae,B,Z,G,I,D,F,se))},O=($,C,B,Z,G,I,D,F,se)=>{$=$||yn,C=C||yn;const W=$.length,ce=C.length,ae=Math.min(W,ce);let de;for(de=0;de<ae;de++){const he=C[de]=se?Ht(C[de]):St(C[de]);_($[de],he,B,null,G,I,D,F,se)}W>ce?le($,G,I,!0,!1,ae):J(C,B,Z,G,I,D,F,se,ae)},Q=($,C,B,Z,G,I,D,F,se)=>{let W=0;const ce=C.length;let ae=$.length-1,de=ce-1;for(;W<=ae&&W<=de;){const he=$[W],_e=C[W]=se?Ht(C[W]):St(C[W]);if(mn(he,_e))_(he,_e,B,null,G,I,D,F,se);else break;W++}for(;W<=ae&&W<=de;){const he=$[ae],_e=C[de]=se?Ht(C[de]):St(C[de]);if(mn(he,_e))_(he,_e,B,null,G,I,D,F,se);else break;ae--,de--}if(W>ae){if(W<=de){const he=de+1,_e=he<ce?C[he].el:Z;for(;W<=de;)_(null,C[W]=se?Ht(C[W]):St(C[W]),B,_e,G,I,D,F,se),W++}}else if(W>de)for(;W<=ae;)A($[W],G,I,!0),W++;else{const he=W,_e=W,Ee=new Map;for(W=_e;W<=de;W++){const rt=C[W]=se?Ht(C[W]):St(C[W]);rt.key!=null&&Ee.set(rt.key,W)}let we,Ve=0;const Ke=de-_e+1;let ht=!1,xt=0;const jt=new Array(Ke);for(W=0;W<Ke;W++)jt[W]=0;for(W=he;W<=ae;W++){const rt=$[W];if(Ve>=Ke){A(rt,G,I,!0);continue}let Mt;if(rt.key!=null)Mt=Ee.get(rt.key);else for(we=_e;we<=de;we++)if(jt[we-_e]===0&&mn(rt,C[we])){Mt=we;break}Mt===void 0?A(rt,G,I,!0):(jt[Mt-_e]=W+1,Mt>=xt?xt=Mt:ht=!0,_(rt,C[Mt],B,null,G,I,D,F,se),Ve++)}const Vl=ht?_c(jt):yn;for(we=Vl.length-1,W=Ke-1;W>=0;W--){const rt=_e+W,Mt=C[rt],Fl=C[rt+1],jl=rt+1<ce?Fl.el||es(Fl):Z;jt[W]===0?_(null,Mt,B,jl,G,I,D,F,se):ht&&(we<0||W!==Vl[we]?te(Mt,B,jl,2):we--)}}},te=($,C,B,Z,G=null)=>{const{el:I,type:D,transition:F,children:se,shapeFlag:W}=$;if(W&6){te($.component.subTree,C,B,Z);return}if(W&128){$.suspense.move(C,B,Z);return}if(W&64){D.move($,C,B,Le);return}if(D===V){r(I,C,B);for(let ae=0;ae<se.length;ae++)te(se[ae],C,B,Z);r($.anchor,C,B);return}if(D===Fs){x($,C,B);return}if(Z!==2&&W&1&&F)if(Z===0)F.persisted&&!I[ct]?r(I,C,B):(F.beforeEnter(I),r(I,C,B),et(()=>F.enter(I),G));else{const{leave:ae,delayLeave:de,afterLeave:he}=F,_e=()=>{$.ctx.isUnmounted?a(I):r(I,C,B)},Ee=()=>{const we=I._isLeaving||!!I[ct];I._isLeaving&&I[ct](!0),F.persisted&&!we?_e():ae(I,()=>{_e(),he&&he()})};de?de(I,_e,Ee):Ee()}else r(I,C,B)},A=($,C,B,Z=!1,G=!1)=>{const{type:I,props:D,ref:F,children:se,dynamicChildren:W,shapeFlag:ce,patchFlag:ae,dirs:de,cacheIndex:he,memo:_e}=$;if((ae===-2||W&&W.hasOnce)&&(G=!1),F!=null&&(Nt(),Zn(F,null,B,$,!0),Dt()),he!=null&&(!$.ctx||$.ctx===C)&&(C.renderCache[he]=void 0),ce&256&&C.ctx.deactivate($))return;const Ee=ce&1&&de,we=!An($);let Ve;if(we&&(Ve=D&&D.onVnodeBeforeUnmount)&&Ct(Ve,C,$),ce&6)X($.component,B,Z);else{if(ce&128){$.suspense.unmount(B,Z);return}Ee&&dn($,null,C,"beforeUnmount"),ce&64?$.type.remove($,C,B,Le,Z):W&&!W.hasOnce&&(I!==V||ae>0&&ae&64)?le(W,C,B,!1,!0):(I===V&&ae&384||!G&&ce&16)&&le(se,C,B),Z&&L($)}const Ke=_e!=null&&he==null;(we&&(Ve=D&&D.onVnodeUnmounted)||Ee||Ke)&&et(()=>{Ve&&Ct(Ve,C,$),Ee&&dn($,null,C,"unmounted"),Ke&&($.el=null)},B)},L=$=>{const{type:C,el:B,anchor:Z,transition:G}=$,I=C===V;if(I&&!G){R(B,Z);return}if(C===Fs){k($),G&&!G.persisted&&G.afterLeave&&G.afterLeave();return}const D=I?rs($):$,F=()=>{I?y(B)&&R(B,Z):a(B),G&&!G.persisted&&G.afterLeave&&G.afterLeave()};if(D&&D.shapeFlag&1&&G&&!G.persisted){const{leave:se,delayLeave:W}=G,ce=D.el,ae=()=>se(ce,F);W?W(ce,F,ae):ae()}else F()},R=($,C)=>{let B;for(;$!==C;)B=b($),a($),$=B;a(C)},X=($,C,B)=>{const{bum:Z,scope:G,job:I,subTree:D,um:F,m:se,a:W}=$;ra(se),ra(W),Z&&Ls(Z),G.stop(),I?(I.flags|=8,A(D,$,C,B)):D&&(D.transition=$.vnode.transition,A(D,$,C,B)),F&&et(F,C);const ce=()=>{$.isUnmounted=!0};ce.flags=16,et(ce,C)},le=($,C,B,Z=!1,G=!1,I=0)=>{for(let D=I;D<$.length;D++)A($[D],C,B,Z,G)},pe=$=>{if($.shapeFlag&6)return pe($.component.subTree);if($.shapeFlag&128)return $.suspense.next();const C=b($.anchor||$.el),B=C&&C[Du];return B?b(B):C},be=($,C,B)=>{const Z=$&&C._vnode?void 0:$&&$.component?$.component.uid:Tc();Au(()=>{$==null?C._vnode&&A(C._vnode,null,null,!0):_(C._vnode||null,$,C,null,null,null,B),C._vnode=$},Z)},Le={p:_,um:A,m:te,r:L,mt:ue,mc:J,pc:U,pbc:re,n:pe,o:e};return{render:be,hydrate:void 0,createApp:rc(be)}}function Tr({type:e,props:t},n){return n==="svg"&&e==="foreignObject"||n==="mathml"&&e==="annotation-xml"&&t&&t.encoding&&t.encoding.includes("html")?void 0:n}function fn({effect:e,job:t},n){n?(e.flags|=32,t.flags|=4):(e.flags&=-33,t.flags&=-5)}function kc(e,t){return(!e||e&&!e.pendingBranch)&&t&&!t.persisted}function Ho(e,t,n=!1){const r=e.children,a=t.children;if(fe(r)&&fe(a))for(let o=0;o<r.length;o++){const i=r[o];let c=a[o];c.shapeFlag&1&&!c.dynamicChildren&&((c.patchFlag<=0||c.patchFlag===32)&&(c=a[o]=Ht(a[o]),c.el=i.el),!n&&c.patchFlag!==-2&&Ho(i,c)),c.type===pr&&(c.patchFlag===-1&&(c=a[o]=Ht(c)),c.el=i.el),c.type===ze&&!c.el&&(c.el=i.el)}}function _c(e){const t=e.slice(),n=[0];let r,a,o,i,c;const f=e.length;for(r=0;r<f;r++){const v=e[r];if(v!==0){if(a=n[n.length-1],e[a]<v){t[r]=a,n.push(r);continue}for(o=0,i=n.length-1;o<i;)c=o+i>>1,e[n[c]]<v?o=c+1:i=c;v<e[n[o]]&&(o>0&&(t[r]=n[o-1]),n[o]=r)}}for(o=n.length,i=n[o-1];o-- >0;)n[o]=i,i=t[i];return n}function Ko(e){const t=e.subTree.component;if(t)return t.asyncDep&&!t.asyncResolved?t:Ko(t)}function ra(e){if(e)for(let t=0;t<e.length;t++)e[t].flags|=8}function es(e){if(e.placeholder)return e.placeholder;const t=e.component;if(t)return es(t.subTree);const n=e.suspense;return n&&n.activeBranch?es(n.activeBranch):null}const Go=e=>e.__isSuspense,$c=Symbol("_deferredEnter");function xc(e,t){t&&t.pendingBranch?fe(e)?t.effects.push(...e):t.effects.push(e):Iu(e)}const V=Symbol.for("v-fgt"),pr=Symbol.for("v-txt"),ze=Symbol.for("v-cmt"),Fs=Symbol.for("v-stc"),zt=[];let lt=null;function d(e=!1){zt.push(lt=e?null:[])}function kl(){zt.pop(),lt=zt[zt.length-1]||null}let as=1;function Js(e,t=!1){as+=e,e<0&&lt&&t&&(lt.hasOnce=!0)}function Wo(e){return e.dynamicChildren=as>0?lt||yn:null,kl(),as>0&&lt&&lt.push(e),e}function p(e,t,n,r,a,o){return Wo(l(e,t,n,r,a,o,!0))}function Se(e,t,n,r,a){return Wo(je(e,t,n,r,a,!0))}function On(e){return e?e.__v_isVNode===!0:!1}function mn(e,t){return e.type===t.type&&e.key===t.key}const zo=({key:e})=>e??null,js=({ref:e,ref_key:t,ref_for:n})=>(typeof e=="number"&&(e=""+e),e!=null?Re(e)||Ze(e)||ke(e)?{i:Qe,r:e,k:t,f:!!n}:e:null);function l(e,t=null,n=null,r=0,a=null,o=e===V?0:1,i=!1,c=!1){const f={__v_isVNode:!0,__v_skip:!0,type:e,props:t,key:t&&zo(t),ref:t&&js(t),scopeId:bo,slotScopeIds:null,children:n,component:null,suspense:null,ssContent:null,ssFallback:null,dirs:null,transition:null,el:null,anchor:null,target:null,targetStart:null,targetAnchor:null,staticCount:0,shapeFlag:o,patchFlag:r,dynamicProps:a,dynamicChildren:null,appContext:null,ctx:Qe};return c?(Qs(f,n),o&128&&e.normalize(f)):n&&(f.shapeFlag|=Re(n)?8:16),as>0&&!i&&lt&&(f.patchFlag>0||o&6)&&f.patchFlag!==32&&lt.push(f),f}const je=Mc;function Mc(e,t=null,n=null,r=0,a=null,o=!1){if((!e||e===Ju)&&(e=ze),On(e)){const c=an(e,t,!0);return n&&Qs(c,n),as>0&&!o&&lt&&(c.shapeFlag&6?lt[lt.indexOf(e)]=c:lt.push(c)),c.patchFlag=-2,c}if(Nc(e)&&(e=e.__vccOpts),t){t=Cc(t);let{class:c,style:f}=t;c&&!Re(c)&&(t.class=ve(c)),Ce(f)&&(gl(f)&&!fe(f)&&(f=Be({},f)),t.style=ot(f))}const i=Re(e)?1:Go(e)?128:cr(e)?64:Ce(e)?4:ke(e)?2:0;return l(e,t,n,r,a,i,o,!0)}function Cc(e){return e?gl(e)?Be({},e):Vo(e)?Be({},e[Xo]||e):e:null}function an(e,t,n=!1,r=!1){const{props:a,ref:o,patchFlag:i,children:c,transition:f}=e,v=t?Ec(a||{},t):a,h={__v_isVNode:!0,__v_skip:!0,type:e.type,props:v,key:v&&zo(v),ref:t&&t.ref?n&&o?fe(o)?o.concat(js(t)):[o,js(t)]:js(t):o,scopeId:e.scopeId,slotScopeIds:e.slotScopeIds,children:c,target:e.target,targetStart:e.targetStart,targetAnchor:e.targetAnchor,staticCount:e.staticCount,shapeFlag:e.shapeFlag,patchFlag:t&&e.type!==V?i===-1?16:i|16:i,dynamicProps:e.dynamicProps,dynamicChildren:e.dynamicChildren,appContext:e.appContext,dirs:e.dirs,transition:f,component:e.component,suspense:e.suspense,ssContent:e.ssContent&&an(e.ssContent),ssFallback:e.ssFallback&&an(e.ssFallback),placeholder:e.placeholder,el:e.el,anchor:e.anchor,ctx:e.ctx,ce:e.ce,cacheIndex:e.cacheIndex};return f&&r&&kn(h,f.clone(h)),h}function ye(e=" ",t=0){return je(pr,null,e,t)}function wc(e,t){const n=je(Fs,null,e);return n.staticCount=t,n}function S(e="",t=!1){return t?(d(),Se(ze,null,e)):je(ze,null,e)}function St(e){return e==null||typeof e=="boolean"?je(ze):fe(e)?je(V,null,e.slice()):On(e)?Ht(e):je(pr,null,String(e))}function Ht(e){return e.el===null&&e.patchFlag!==-1||e.memo?e:an(e)}function Qs(e,t){let n=0;const{shapeFlag:r}=e;if(t==null)t=null;else if(fe(t))n=16;else if(typeof t=="object")if(r&65){const a=t.default;a&&(a._c&&(a._d=!1),Qs(e,a()),a._c&&(a._d=!0));return}else{n=32;const a=t._;!a&&!Vo(t)?t._ctx=Qe:a===3&&Qe&&(Qe.slots._===1?t._=1:(t._=2,e.patchFlag|=1024))}else if(ke(t)){if(r&65){Qs(e,{default:t});return}t={default:t,_ctx:Qe},n=32}else t=String(t),r&64?(n=16,t=[ye(t)]):n=8;e.children=t,e.shapeFlag|=n}function Ec(...e){const t={};for(let n=0;n<e.length;n++){const r=e[n];for(const a in r)if(a==="class")t.class!==r.class&&(t.class=ve([t.class,r.class]));else if(a==="style")t.style=ot([t.style,r.style]);else if(sr(a)){const o=t[a],i=r[a];i&&o!==i&&!(fe(o)&&o.includes(i))?t[a]=o?[].concat(o,i):i:i==null&&o==null&&!rr(a)&&(t[a]=i)}else a!==""&&(t[a]=r[a])}return t}function Ct(e,t,n,r=null){vt(e,t,7,[n,r])}const Sc=Po();let Yo=0;function Tc(){return Yo}function Ic(e,t,n){const r=e.type,a=(t?t.appContext:e.appContext)||Sc,o={uid:Yo++,vnode:e,type:r,parent:t,appContext:a,root:null,next:null,subTree:null,effect:null,update:null,job:null,scope:new tu(!0),render:null,proxy:null,exposed:null,exposeProxy:null,withProxy:null,provides:t?t.provides:Object.create(a.provides),ids:t?t.ids:["",0,0],accessCache:null,renderCache:[],components:null,directives:null,propsOptions:jo(r,a),emitsOptions:Ro(r,a),emit:null,emitted:null,propsDefaults:Te,inheritAttrs:r.inheritAttrs,ctx:Te,data:Te,props:Te,attrs:Te,slots:Te,refs:Te,setupState:Te,setupContext:null,suspense:n,suspenseId:n?n.pendingId:0,asyncDep:null,asyncResolved:!1,isMounted:!1,isUnmounted:!1,isDeactivated:!1,bc:null,c:null,bm:null,m:null,bu:null,u:null,um:null,bum:null,da:null,a:null,rtg:null,rtc:null,ec:null,sp:null};return o.ctx={_:o},o.root=t?t.root:o,o.emit=ac.bind(null,o),e.ce&&e.ce(o),o}let nt=null;const Jo=()=>nt||Qe;let Zs,os;{const e=ar(),t=(n,r)=>{let a;return(a=e[n])||(a=e[n]=[]),a.push(r),o=>{a.length>1?a.forEach(i=>i(o)):a[0](o)}};Zs=t("__VUE_INSTANCE_SETTERS__",n=>nt=n),os=t("__VUE_SSR_SETTERS__",n=>is=n)}const bs=e=>{const t=nt;return Zs(e),e.scope.on(),()=>{e.scope.off(),Zs(t)}},la=()=>{nt&&nt.scope.off(),Zs(null)};function Qo(e){return e.vnode.shapeFlag&4}let is=!1;function Ac(e,t=!1,n=!1){t&&os(t);const{props:r,children:a}=e.vnode,o=Qo(e);fc(e,r,o,t),mc(e,a,n||t);const i=o?Pc(e,t):void 0;return t&&os(!1),i}function Pc(e,t){const n=e.type;e.accessCache=Object.create(null),e.proxy=new Proxy(e.ctx,Qu);const{setup:r}=n;if(r){Nt();const a=e.setupContext=r.length>1?Oc(e):null,o=bs(e),i=gs(r,e,0,[e.props,a]),c=qa(i);if(Dt(),o(),(c||e.sp)&&!An(e)&&wo(e),c){if(i.then(la,la),t)return i.then(f=>{os(!0);try{aa(e,f,t)}finally{os(!1)}}).catch(f=>{ir(f,e,0,void 0,!0),e.ssrRender=(v,h)=>h("<!---->")});e.asyncDep=i}else aa(e,i)}else Zo(e)}function aa(e,t,n){ke(t)?e.type.__ssrInlineRender?e.ssrRender=t:e.render=t:Ce(t)&&(e.setupState=fo(t)),Zo(e)}function Zo(e,t,n){const r=e.type;e.render||(e.render=r.render||At);{const a=bs(e);Nt();try{Zu(e)}finally{Dt(),a()}}}const Xo=Symbol(),Rc={get(e,t){return Je(e,"get",""),t===Xo?e:e[t]}};function Oc(e){const t=n=>{e.exposed=n||{}};return{attrs:new Proxy(e.attrs,Rc),slots:e.slots,emit:e.emit,expose:t}}function vr(e){return e.exposed?e.exposeProxy||(e.exposeProxy=new Proxy(fo(ku(e.exposed)),{get(t,n){if(n in t)return t[n];if(n in Xn)return Xn[n](e)},has(t,n){return n in t||n in Xn}})):e.proxy}function Nc(e){return ke(e)&&"__vccOpts"in e}const j=(e,t)=>Cu(e,t,is);function Dc(e,t,n){try{Js(-1);const r=arguments.length;return r===2?Ce(t)&&!fe(t)?On(t)?je(e,null,[t]):je(e,t):je(e,null,t):(r>3?n=Array.prototype.slice.call(arguments,2):r===3&&On(n)&&(n=[n]),je(e,t,n))}finally{Js(1)}}const Lc="3.5.45";/**
+* @vue/runtime-dom v3.5.45
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/let Yr;const oa=typeof window<"u"&&window.trustedTypes;if(oa)try{Yr=oa.createPolicy("vue",{createHTML:e=>e})}catch{}const ei=Yr?e=>Yr.createHTML(e):e=>e,Vc="http://www.w3.org/2000/svg",Fc="http://www.w3.org/1998/Math/MathML",Ut=typeof document<"u"?document:null,ia=Ut&&Ut.createElement("template"),jc={insert:(e,t,n)=>{t.insertBefore(e,n||null)},remove:e=>{const t=e.parentNode;t&&t.removeChild(e)},createElement:(e,t,n,r)=>{const a=t==="svg"?Ut.createElementNS(Vc,e):t==="mathml"?Ut.createElementNS(Fc,e):n?Ut.createElement(e,{is:n}):Ut.createElement(e);return e==="select"&&r&&r.multiple!=null&&a.setAttribute("multiple",r.multiple),a},createText:e=>Ut.createTextNode(e),createComment:e=>Ut.createComment(e),setText:(e,t)=>{e.nodeValue=t},setElementText:(e,t)=>{e.textContent=t},parentNode:e=>e.parentNode,nextSibling:e=>e.nextSibling,querySelector:e=>Ut.querySelector(e),setScopeId(e,t){e.setAttribute(t,"")},insertStaticContent(e,t,n,r,a,o){const i=n?n.previousSibling:t.lastChild;if(a&&(a===o||a.nextSibling))for(;t.insertBefore(a.cloneNode(!0),n),!(a===o||!(a=a.nextSibling)););else{ia.innerHTML=ei(r==="svg"?`<svg>${e}</svg>`:r==="mathml"?`<math>${e}</math>`:e);const c=ia.content;if(r==="svg"||r==="mathml"){const f=c.firstChild;for(;f.firstChild;)c.appendChild(f.firstChild);c.removeChild(f)}t.insertBefore(c,n)}return[i?i.nextSibling:t.firstChild,n?n.previousSibling:t.lastChild]}},Qt="transition",Un="animation",us=Symbol("_vtc"),ti={name:String,type:String,css:{type:Boolean,default:!0},duration:[String,Number,Object],enterFromClass:String,enterActiveClass:String,enterToClass:String,appearFromClass:String,appearActiveClass:String,appearToClass:String,leaveFromClass:String,leaveActiveClass:String,leaveToClass:String},Bc=Be({},$o,ti),qc=e=>(e.displayName="Transition",e.props=Bc,e),Uc=qc((e,{slots:t})=>Dc(Fu,Hc(e),t)),pn=(e,t=[])=>{fe(e)?e.forEach(n=>n(...t)):e&&e(...t)},ua=e=>e?fe(e)?e.some(t=>t.length>1):e.length>1:!1;function Hc(e){const t={};for(const P in e)P in ti||(t[P]=e[P]);if(e.css===!1)return t;const{name:n="v",type:r,duration:a,enterFromClass:o=`${n}-enter-from`,enterActiveClass:i=`${n}-enter-active`,enterToClass:c=`${n}-enter-to`,appearFromClass:f=o,appearActiveClass:v=i,appearToClass:h=c,leaveFromClass:y=`${n}-leave-from`,leaveActiveClass:b=`${n}-leave-active`,leaveToClass:m=`${n}-leave-to`}=e,M=Kc(a),_=M&&M[0],E=M&&M[1],{onBeforeEnter:T,onEnter:w,onEnterCancelled:x,onLeave:k,onLeaveCancelled:H,onBeforeAppear:ie=T,onAppear:q=w,onAppearCancelled:J=x}=t,Y=(P,N,ue,ge)=>{P._enterCancelled=ge,vn(P,N?h:c),vn(P,N?v:i),ue&&ue()},re=(P,N)=>{P._isLeaving=!1,vn(P,y),vn(P,m),vn(P,b),N&&N()},ne=P=>(N,ue)=>{const ge=P?q:w,me=()=>Y(N,P,ue);pn(ge,[N,me]),ca(()=>{vn(N,P?f:o),qt(N,P?h:c),ua(ge)||da(N,r,_,me)})};return Be(t,{onBeforeEnter(P){pn(T,[P]),qt(P,o),qt(P,i)},onBeforeAppear(P){pn(ie,[P]),qt(P,f),qt(P,v)},onEnter:ne(!1),onAppear:ne(!0),onLeave(P,N){P._isLeaving=!0;const ue=()=>re(P,N);qt(P,y),P._enterCancelled?(qt(P,b),va(P)):(va(P),qt(P,b)),ca(()=>{P._isLeaving&&(vn(P,y),qt(P,m),ua(k)||da(P,r,E,ue))}),pn(k,[P,ue])},onEnterCancelled(P){Y(P,!1,void 0,!0),pn(x,[P])},onAppearCancelled(P){Y(P,!0,void 0,!0),pn(J,[P])},onLeaveCancelled(P){re(P),pn(H,[P])}})}function Kc(e){if(e==null)return null;if(Ce(e))return[Ir(e.enter),Ir(e.leave)];{const t=Ir(e);return[t,t]}}function Ir(e){return Ki(e)}function qt(e,t){t.split(/\s+/).forEach(n=>n&&e.classList.add(n)),(e[us]||(e[us]=new Set)).add(t)}function vn(e,t){t.split(/\s+/).forEach(r=>r&&e.classList.remove(r));const n=e[us];n&&(n.delete(t),n.size||(e[us]=void 0))}function ca(e){requestAnimationFrame(()=>{requestAnimationFrame(e)})}let Gc=0;function da(e,t,n,r){const a=e._endId=++Gc,o=()=>{a===e._endId&&r()};if(n!=null)return setTimeout(o,n);const{type:i,timeout:c,propCount:f}=Wc(e,t);if(!i)return r();const v=i+"end";let h=0;const y=()=>{e.removeEventListener(v,b),o()},b=m=>{m.target===e&&++h>=f&&y()};setTimeout(()=>{h<f&&y()},c+1),e.addEventListener(v,b)}function Wc(e,t){const n=window.getComputedStyle(e),r=M=>(n[M]||"").split(", "),a=r(`${Qt}Delay`),o=r(`${Qt}Duration`),i=fa(a,o),c=r(`${Un}Delay`),f=r(`${Un}Duration`),v=fa(c,f);let h=null,y=0,b=0;t===Qt?i>0&&(h=Qt,y=i,b=o.length):t===Un?v>0&&(h=Un,y=v,b=f.length):(y=Math.max(i,v),h=y>0?i>v?Qt:Un:null,b=h?h===Qt?o.length:f.length:0);const m=h===Qt&&/\b(?:transform|all)(?:,|$)/.test(r(`${Qt}Property`).toString());return{type:h,timeout:y,propCount:b,hasTransform:m}}function fa(e,t){for(;e.length<t.length;)e=e.concat(e);return Math.max(...t.map((n,r)=>pa(n)+pa(e[r])))}function pa(e){return e==="auto"?0:Number(e.slice(0,-1).replace(",","."))*1e3}function va(e){return(e?e.ownerDocument:document).body.offsetHeight}function zc(e,t,n){const r=e[us];r&&(t=(t?[t,...r]:[...r]).join(" ")),t==null?e.removeAttribute("class"):n?e.setAttribute("class",t):e.className=t}const ha=Symbol("_vod"),Yc=Symbol("_vsh"),Jc=Symbol(""),Qc=/(?:^|;)\s*display\s*:/;function Zc(e,t,n){const r=e.style,a=Re(n);let o=!1;if(n&&!a){if(t)if(Re(t))for(const i of t.split(";")){const c=i.slice(0,i.indexOf(":")).trim();n[c]==null&&Gn(r,c,"")}else for(const i in t)n[i]==null&&Gn(r,i,"");for(const i in n){i==="display"&&(o=!0);const c=n[i];c!=null?ed(e,i,!Re(t)&&t?t[i]:void 0,c)||Gn(r,i,c):Gn(r,i,"")}}else if(a){if(t!==n){const i=r[Jc];i&&(n+=";"+i),r.cssText=n,o=Qc.test(n)}}else t&&e.removeAttribute("style");ha in e&&((!a||t!==n)&&(e[ha]=o?r.display:""),e[Yc]&&(r.display="none"))}const ws=/\s*!important$/;function Gn(e,t,n){if(fe(n))n.forEach(r=>Gn(e,t,r));else if(n==null&&(n=""),t.startsWith("--"))ws.test(n)?e.setProperty(t,n.replace(ws,""),"important"):e.setProperty(t,n);else{const r=Xc(e,t);ws.test(n)?e.setProperty(on(r),n.replace(ws,""),"important"):e[r]=n}}const ma=["Webkit","Moz","ms"],Ar={};function Xc(e,t){const n=Ar[t];if(n)return n;let r=kt(t);if(r!=="filter"&&r in e)return Ar[t]=r;r=Ka(r);for(let a=0;a<ma.length;a++){const o=ma[a]+r;if(o in e)return Ar[t]=o}return t}function ed(e,t,n,r){return e.tagName==="TEXTAREA"&&(t==="width"||t==="height")&&Re(r)&&n===r}const ga="http://www.w3.org/1999/xlink";function ya(e,t,n,r,a,o=Qi(t)){r&&t.startsWith("xlink:")?n==null?e.removeAttributeNS(ga,t.slice(6,t.length)):e.setAttributeNS(ga,t,n):n==null||o&&!Wa(n)?e.removeAttribute(t):e.setAttribute(t,o?"":$t(n)?String(n):n)}function ba(e,t,n,r,a){if(t==="innerHTML"||t==="textContent"){n!=null&&(e[t]=t==="innerHTML"?ei(n):n);return}const o=e.tagName;if(t==="value"&&o!=="PROGRESS"&&!o.includes("-")){const c=o==="OPTION"?e.getAttribute("value")||"":e.value,f=n==null?e.type==="checkbox"?"on":"":String(n);(c!==f||!("_value"in e))&&(e.value=f),n==null&&e.removeAttribute(t),e._value=n;return}let i=!1;if(n===""||n==null){const c=typeof e[t];c==="boolean"?n=Wa(n):n==null&&c==="string"?(n="",i=!0):c==="number"&&(n=0,i=!0)}try{e[t]=n}catch{}i&&e.removeAttribute(a||t)}function tn(e,t,n,r){e.addEventListener(t,n,r)}function td(e,t,n,r){e.removeEventListener(t,n,r)}const ka=Symbol("_vei");function nd(e,t,n,r,a=null){const o=e[ka]||(e[ka]={}),i=o[t];if(r&&i)i.value=r;else{const[c,f]=ld(t);if(r){const v=o[t]=id(r,a);tn(e,c,v,f)}else i&&(td(e,c,i,f),o[t]=void 0)}}const sd=/(Once|Passive|Capture)$/,rd=/^on:?(?:Once|Passive|Capture)$/;function ld(e){let t,n;for(;(n=e.match(sd))&&!rd.test(e);)t||(t={}),e=e.slice(0,e.length-n[1].length),t[n[1].toLowerCase()]=!0;return[e[2]===":"?e.slice(3):on(e.slice(2)),t]}let Pr=0;const ad=Promise.resolve(),od=()=>Pr||(ad.then(()=>Pr=0),Pr=Date.now());function id(e,t){const n=r=>{if(!r._vts)r._vts=Date.now();else if(r._vts<=n.attached)return;const a=n.value;if(fe(a)){const o=r.stopImmediatePropagation;r.stopImmediatePropagation=()=>{o.call(r),r._stopped=!0};const i=a.slice(),c=[r];for(let f=0;f<i.length&&!r._stopped;f++){const v=i[f];v&&vt(v,t,5,c)}}else vt(a,t,5,[r])};return n.value=e,n.attached=od(),n}const _a=e=>e.charCodeAt(0)===111&&e.charCodeAt(1)===110&&e.charCodeAt(2)>96&&e.charCodeAt(2)<123,ud=(e,t,n,r,a,o)=>{const i=a==="svg";t==="class"?zc(e,r,i):t==="style"?Zc(e,n,r):sr(t)?rr(t)||nd(e,t,n,r,o):(t[0]==="."?(t=t.slice(1),!0):t[0]==="^"?(t=t.slice(1),!1):cd(e,t,r,i))?(ba(e,t,r),!e.tagName.includes("-")&&(t==="value"||t==="checked"||t==="selected")&&ya(e,t,r,i,o,t!=="value")):e._isVueCE&&(dd(e,t)||e._def.__asyncLoader&&(/[A-Z]/.test(t)||!Re(r)))?ba(e,kt(t),r,o,t):(t==="true-value"?e._trueValue=r:t==="false-value"&&(e._falseValue=r),ya(e,t,r,i))};function cd(e,t,n,r){if(r)return!!(t==="innerHTML"||t==="textContent"||t in e&&_a(t)&&ke(n));if(t==="spellcheck"||t==="draggable"||t==="translate"||t==="autocorrect"||t==="sandbox"&&e.tagName==="IFRAME"||t==="form"||t==="list"&&e.tagName==="INPUT"||t==="type"&&e.tagName==="TEXTAREA")return!1;if(t==="width"||t==="height"){const a=e.tagName;if(a==="IMG"||a==="VIDEO"||a==="CANVAS"||a==="SOURCE")return!1}return _a(t)&&Re(n)?!1:t in e}function dd(e,t){const n=e._def.props;if(!n)return!1;const r=kt(t);return Array.isArray(n)?n.some(a=>kt(a)===r):Object.keys(n).some(a=>kt(a)===r)}const Nn=e=>{const t=e.props["onUpdate:modelValue"]||!1;return fe(t)?n=>Ls(t,n):t};function fd(e){e.target.composing=!0}function $a(e){const t=e.target;t.composing&&(t.composing=!1,t.dispatchEvent(new Event("input")))}const It=Symbol("_assign"),Es=Symbol("_initialValue");function Rr(e,t,n){return t&&(e=e.trim()),n&&(e=ms(e)),e}const Rt={created(e,{modifiers:{lazy:t,trim:n,number:r}},a){e.parentNode&&(e.type==="text"?e[Es]=e.defaultValue.replace(/[\r\n]/g,""):e.type==="textarea"&&(e[Es]=e.defaultValue.replace(/\r\n?/g,`
+`))),e[It]=Nn(a);const o=r||a.props&&a.props.type==="number";tn(e,t?"change":"input",i=>{i.target.composing||e[It](Rr(e.value,n,o))}),(n||o)&&tn(e,"change",()=>{e.value=Rr(e.value,n,o)}),t||(tn(e,"compositionstart",fd),tn(e,"compositionend",$a),tn(e,"change",$a))},mounted(e,{value:t,modifiers:{trim:n,number:r}}){const a=t??"",o=e[Es];delete e[Es],o!==void 0&&(e.type==="text"||e.type==="textarea")&&e.value!==o?e[It](Rr(e.value,n,r)):e.value=a},beforeUpdate(e,{value:t,oldValue:n,modifiers:{lazy:r,trim:a,number:o}},i){if(e[It]=Nn(i),e.composing)return;const c=(o||e.type==="number")&&!/^0\d/.test(e.value)?ms(e.value):e.value,f=t??"";if(c===f)return;const v=e.getRootNode();(v instanceof Document||v instanceof ShadowRoot)&&v.activeElement===e&&e.type!=="range"&&(r&&t===n||a&&e.value.trim()===f)||(e.value=f)}},pd={created(e,{value:t},n){e.checked=Ot(t,n.props.value),e[It]=Nn(n),tn(e,"change",()=>{e[It](cs(e))})},beforeUpdate(e,{value:t,oldValue:n},r){e[It]=Nn(r),t!==n&&(e.checked=Ot(t,r.props.value))}},Ss={deep:!0,created(e,{value:t,modifiers:{number:n}},r){e._modelValue=t,tn(e,"change",()=>{const a=Array.prototype.filter.call(e.options,f=>f.selected).map(f=>n?ms(cs(f)):cs(f)),o=e.multiple,i=o?xn(e._modelValue)?new Set(a):a:a[0],c=e._pendingValue=[o,o?fe(i)?a.slice():a:i];try{e[It](i)}finally{vo(()=>{e._pendingValue===c&&(e._pendingValue=void 0)})}}),e[It]=Nn(r)},mounted(e,{value:t,modifiers:{number:n}}){xa(e,t,n)},beforeUpdate(e,{value:t},n){e._modelValue=t,e[It]=Nn(n)},updated(e,{value:t,modifiers:{number:n}}){const r=e._pendingValue;e._pendingValue=void 0,(!r||r[0]!==e.multiple||!vd(t,r[1],r[0]))&&xa(e,t,n)}};function vd(e,t,n){if(!n||fe(e))return Ot(e,t);if(xn(e)){if(e.size!==t.length)return!1;for(const r of t)if(!e.has(r))return!1;return!0}return!1}function xa(e,t,n=!1){const r=e.multiple,a=fe(t);if(!(r&&!a&&!xn(t))){for(let o=0,i=e.options.length;o<i;o++){const c=e.options[o],f=cs(c);if(r)if(a){const v=typeof f;v==="string"||v==="number"?c.selected=t.some(h=>String(h)===String(f)):c.selected=eu(t,f)>-1}else c.selected=t.has(f)||n&&typeof f=="string"&&t.has(ms(f));else if(Ot(cs(c),t)){e.selectedIndex!==o&&(e.selectedIndex=o);return}}!r&&e.selectedIndex!==-1&&(e.selectedIndex=-1)}}function cs(e){return"_value"in e?e._value:e.value}const hd=["ctrl","shift","alt","meta"],md={stop:e=>e.stopPropagation(),prevent:e=>e.preventDefault(),self:e=>e.target!==e.currentTarget,ctrl:e=>!e.ctrlKey,shift:e=>!e.shiftKey,alt:e=>!e.altKey,meta:e=>!e.metaKey,left:e=>"button"in e&&e.button!==0,middle:e=>"button"in e&&e.button!==1,right:e=>"button"in e&&e.button!==2,exact:(e,t)=>hd.some(n=>e[`${n}Key`]&&!t.includes(n))},at=(e,t)=>{if(!e)return e;const n=e._withMods||(e._withMods={}),r=t.join(".");return n[r]||(n[r]=((a,...o)=>{for(let i=0;i<t.length;i++){const c=md[t[i]];if(c&&c(a,t))return}return e(a,...o)}))},gd={esc:"escape",space:" ",up:"arrow-up",left:"arrow-left",right:"arrow-right",down:"arrow-down",delete:"backspace"},Jr=(e,t)=>{const n=e._withKeys||(e._withKeys={}),r=t.join(".");return n[r]||(n[r]=(a=>{if(!("key"in a))return;const o=on(a.key);if(t.some(i=>i===o||gd[i]===o))return e(a)}))},yd=Be({patchProp:ud},jc);let Ma;function bd(){return Ma||(Ma=yc(yd))}const kd=((...e)=>{const t=bd().createApp(...e),{mount:n}=t;return t.mount=r=>{const a=$d(r);if(!a)return;const o=t._component;!ke(o)&&!o.render&&!o.template&&(o.template=a.innerHTML),a.nodeType===1&&(a.textContent="");const i=n(a,!1,_d(a));return a instanceof Element&&(a.removeAttribute("v-cloak"),a.setAttribute("data-v-app","")),i},t});function _d(e){if(e instanceof SVGElement)return"svg";if(typeof MathMLElement=="function"&&e instanceof MathMLElement)return"mathml"}function $d(e){return Re(e)?document.querySelector(e):e}const xd="./";function Ae(e){return xd+"art/"+e}const Ts=un({});function Ye(e){if(!e)return"no";const t=Ae(e),n=Ts[t];if(n)return n;Ts[t]="pending";const r=new Image;return r.onload=()=>{Ts[t]="ok"},r.onerror=()=>{Ts[t]="no"},r.src=t,"pending"}const Ue=[{id:"plain",name:"原味奶油蛋糕",month:0,diff:8,price:88,demand:7,desc:"店里的老方子。戚风胚，薄薄一层奶油。",colors:{sponge:"#F0D9AE",cream:"#FFF8EE",accent:"#E8B86D"}},{id:"strawberry",name:"草莓奶油蛋糕",month:0,diff:12,price:128,demand:6,desc:"整颗草莓夹在奶油里，切开时会掉下来两颗。",colors:{sponge:"#F4DDB6",cream:"#FFF8F2",accent:"#E05B66"}},{id:"chocolate",name:"巧克力蛋糕",month:0,diff:12,price:118,demand:5,desc:"可可粉筛三遍，吃起来不苦，回味有点厚。",colors:{sponge:"#8A5A3B",cream:"#C89B72",accent:"#5C3823"}},{id:"taro",name:"芋泥薄脆",month:3,diff:18,price:168,demand:5,desc:"林念的第一款新品。少一分糖，中间夹一层薄薄的芋泥。",colors:{sponge:"#E5D5E8",cream:"#FBF2FA",accent:"#B48FC0"}},{id:"matcha",name:"抹茶蛋糕",month:4,diff:12,price:148,demand:4,desc:"宇治抹茶配红豆。火候差一点就会发苦。",colors:{sponge:"#C9D8A8",cream:"#F6FAEE",accent:"#7E9B52"}},{id:"mango",name:"芒果慕斯",month:6,diff:18,price:178,demand:4,desc:"夏天限定。芒果要挑熟的，不然酸味会盖住奶香。",colors:{sponge:"#F7D98C",cream:"#FFF6E2",accent:"#E9A93C"}},{id:"tiramisu",name:"提拉米苏",month:8,diff:18,price:188,demand:4,desc:"手指饼干浸得刚好，多一秒就散。",colors:{sponge:"#D8B98E",cream:"#F3E6D3",accent:"#6B4A34"}},{id:"fig",name:"无花果奶油",month:10,diff:12,price:198,demand:3,desc:"白奶油，上面摆一层无花果。苏晴喜欢这个。",colors:{sponge:"#EFDCC0",cream:"#FFFAF4",accent:"#A5587B"}},{id:"seasonal",name:"季节水果蛋糕",month:12,diff:18,price:218,demand:3,desc:"每个月换一次水果。春天莓果，秋天梨和无花果。",colors:{sponge:"#F6E4C4",cream:"#FFFAF0",accent:"#D9736A"}},{id:"custom",name:"生日定制蛋糕",month:16,diff:22,price:288,demand:2,desc:"客人说什么就做什么。难的不是手艺，是听懂。",colors:{sponge:"#F3E2C6",cream:"#FFFCF7",accent:"#D98CA0"}},{id:"festival",name:"节日限定蛋糕",month:20,diff:22,price:328,demand:2,desc:"一年只做几次。包装盒是专门订的。",colors:{sponge:"#EADCCB",cream:"#FFFBF5",accent:"#C2554F"}},{id:"signature",name:"桂花栗子蛋糕",month:26,diff:22,price:398,demand:2,desc:"外婆旧配方与现代工艺的结晶。栗子甜则少放糖，桂花香淡则后撒。",colors:{sponge:"#EEDCBB",cream:"#FFFCF5",accent:"#C89B3C"}}];function De(e){return Ue.find(t=>t.id===e)||Ue[0]}const _l={taro:[["荔浦芋泥","焦糖杏仁薄脆"]],matcha:[["春日抹茶粉","蜜红豆"]],mango:[["台农芒果泥","轻盈慕斯"]],tiramisu:[["马斯卡彭","浓缩咖啡液"]],fig:[["波姬红无花果","轻奶油"]],seasonal:[["四季时令鲜果","定制夹心"]],custom:[["双层承重胚","手工定制裱花"]],festival:[["传统红曲","节庆装饰"],["栗蓉","节庆装饰"]],signature:[["高山秋栗","金桂冻","戚风胚"]]},ft=[{id:"base",name:"基础烘焙包",price:20,month:1},{id:"dairy",name:"乳制基底",price:10,month:1},{id:"decor",name:"裱花装饰料",price:5,month:1},{id:"strawberry",name:"鲜草莓",price:10,month:1},{id:"cocoa",name:"可可粉",price:10,month:1},{id:"taro",name:"荔浦芋泥",price:10,month:3},{id:"crisp",name:"焦糖杏仁薄脆",price:10,month:3},{id:"matcha",name:"春日抹茶粉",price:10,month:4},{id:"redbean",name:"蜜红豆",price:10,month:4},{id:"mango",name:"台农芒果泥",price:10,month:6},{id:"mascarpone",name:"马斯卡彭",price:10,month:8},{id:"coffee",name:"浓缩咖啡液",price:10,month:8},{id:"fig",name:"波姬红无花果",price:10,month:10},{id:"seasonal",name:"四季时令鲜果",price:10,month:12},{id:"filling",name:"定制夹心",price:10,month:12},{id:"redrice",name:"传统红曲",price:10,month:20},{id:"chestnut",name:"高山秋栗",price:10,month:20},{id:"osmanthus",name:"金桂冻",price:10,month:26}],cn={plain:{base:1,dairy:1},strawberry:{base:1,dairy:1,strawberry:1},chocolate:{base:1,dairy:1,cocoa:1},taro:{base:1,dairy:1,taro:1,crisp:1},matcha:{base:1,dairy:1,matcha:1,redbean:1},mango:{base:1,dairy:1,mango:1},tiramisu:{base:1,mascarpone:1,coffee:1},fig:{base:1,dairy:1,fig:1},seasonal:{base:1,dairy:1,seasonal:1,filling:1},custom:{base:2,dairy:1,filling:1,decor:1},festival:{base:1,dairy:1,chestnut:1,decor:1},signature:{base:1,dairy:1,chestnut:1,osmanthus:1}},$l=[{id:"greenery",name:"窗边绿植",category:"绿植",cost:600,shopLevel:1},{id:"lamp",name:"暖黄吊灯",category:"灯具",cost:1200,shopLevel:1},{id:"tables",name:"木桌与藤椅",category:"桌椅",cost:1800,shopLevel:2},{id:"festival",name:"节日花环",category:"节日摆件",cost:2500,shopLevel:3}],xl=[{id:"chen",name:"陈奶奶",month:2,day:2,product:"plain",preference:"每次都买原味奶油蛋糕，给小孙子也带一份。",stories:["“我家小孙子指定要吃你们家的味道。”陈奶奶说，家里三代人的生日蛋糕全是在林记订的。","她看着林念接过店，也和苏晴一起盼着林记的老味道走出栖云镇。"]},{id:"zhang",name:"张叔",month:28,day:4,product:"signature",preference:"桂花栗子蛋糕刚上架时，总会来买一块。",stories:["外婆留下的配方写着：“栗子甜则少放糖，桂花香淡则后撒。”","老街坊们怀念的，是秋天打开蛋糕盒时那股桂花与板栗香；如今，林念把它做成了招牌。"]}],Md={low:{label:"亲民",priceMul:.85,demandMul:1.35},std:{label:"标准",priceMul:1,demandMul:1},high:{label:"精品",priceMul:1.22,demandMul:.72}},Mn=[{id:"xiaoyu",name:"周雨桐",nick:"小雨",role:"烘焙学徒",joinMonth:8,color:"#C9A9C4",issue:"不敢相信自己的想法值得被认可",skillName:"烘焙"},{id:"zhiyao",name:"许知遥",nick:"知遥",role:"门店运营",joinMonth:14,color:"#A9C4C9",issue:"擅长沟通，但缺乏管理信心",skillName:"运营"},{id:"kexin",name:"唐鸢",nick:"阿鸢",role:"资深烘焙师",joinMonth:18,color:"#C9B58A",issue:"太追求标准化，差点丢掉研发的热情",skillName:"研发"},{id:"qinghe",name:"叶星河",nick:"星河",role:"品牌设计师",joinMonth:21,color:"#A8B99B",issue:"创意丰富，但不擅长商业设计",skillName:"设计"}];function Dn(e){return Mn.find(t=>t.id===e)}const Cn=[{id:"qiyun",name:"栖云镇",month:0,cost:0,rep:0,note:"初始门店。住了二十年的小镇。"},{id:"linjiang",name:"临江市",month:20,cost:12e3,rep:34,note:"开车四十分钟。第一家分店。"},{id:"hangzhou",name:"杭州",month:24,cost:26e3,rep:44,note:"第一家真正的外地店。"},{id:"shanghai",name:"上海",month:27,cost:42e3,rep:54,note:"房租很贵，客单价也高。"},{id:"nanjing",name:"南京",month:30,cost:58e3,rep:62,note:"老街上的店，保留木质结构。"},{id:"chengdu",name:"成都",month:32,cost:74e3,rep:70,note:"本地团队自己跑起来的。"},{id:"guangzhou",name:"广州",month:34,cost:92e3,rep:78,note:"第一次把季节水果换成热带水果。"},{id:"beijing",name:"北京",month:35,cost:12e4,rep:85,note:"旗舰店。开业那天是我生日。"}],ds=[{lv:1,name:"社区老店",ap:0,seats:2,cost:0,desc:"木地板，一个玻璃展示柜，两张旧木桌。手写价目牌。"},{lv:2,name:"精致烘焙店",ap:1,seats:6,cost:15e3,desc:"暖黄吊灯，三层展示柜，奶油白墙面，小方砖地面。"},{lv:3,name:"品牌旗舰店",ap:1,seats:12,cost:45e3,desc:"整面墙的木质货架，开放式厨房用玻璃隔断，有休息区。"},{lv:4,name:"高端主题门店",ap:1,seats:20,cost:9e4,desc:"拱形门洞，大理石台面，花艺布置，像走进一本绘本。"}];function Cd(e){return ds.find(t=>t.lv===e)||ds[0]}const Ml=[{id:"oven",name:"烤箱",note:"产能",desc:"好烤箱能一次进更多盘，出品也更稳。",tiers:[{cost:2500,value:40,text:"产能 +40"},{cost:7500,value:90,text:"产能 +90"},{cost:22e3,value:150,text:"产能 +150"}]},{id:"mixer",name:"搅拌机",note:"省力",desc:"奶油和面糊交给它，自己少使点劲。",tiers:[{cost:2e3,value:.1,text:"自付体力 -10%"},{cost:6500,value:.2,text:"自付体力 -20%"},{cost:19e3,value:.3,text:"自付体力 -30%"}]},{id:"fridge",name:"冷藏柜",note:"剩货",desc:"当天没卖完的，第二天还能打折卖掉一部分。",tiers:[{cost:1800,value:.1,text:"剩货回收 +10%"},{cost:5500,value:.18,text:"剩货回收 +18%"},{cost:16e3,value:.26,text:"剩货回收 +26%"}]},{id:"display",name:"展示柜",note:"客流",desc:"摆得好看，路过的人就更愿意进来。",tiers:[{cost:3e3,value:.06,text:"需求 +6%"},{cost:9e3,value:.13,text:"需求 +13%"},{cost:3e4,value:.2,text:"需求 +20%"}]},{id:"packing",name:"包装台",note:"定制",desc:"定制单拼的就是最后那一下体面。",tiers:[{cost:2600,value:.1,text:"定制收入 +10%"},{cost:7500,value:.22,text:"定制收入 +22%"},{cost:24e3,value:.35,text:"定制收入 +35%"}]},{id:"warehouse",name:"仓库",note:"采购",desc:"一次能囤更多原料，少跑几趟。",tiers:[{cost:1600,value:6,text:"单次采购 +6 份"},{cost:5e3,value:12,text:"单次采购 +12 份"},{cost:15e3,value:20,text:"单次采购 +20 份"}]},{id:"cashier",name:"收银系统",note:"售价",desc:"扫码点单，客单价能往上提一点。",tiers:[{cost:2400,value:.03,text:"售价 +3%"},{cost:7e3,value:.06,text:"售价 +6%"},{cost:26e3,value:.1,text:"售价 +10%"}]}];function Cl(e){return Ml.find(t=>t.id===e)}function Ca(e,t){return e.unlocked.filter(n=>(e.levels[n]||1)>=t).length}function wd(e){return e.unlocked.length?e.unlocked.reduce((t,n)=>t+(e.levels[n]||1),0)/e.unlocked.length:1}function Ed(e){return Math.max(0,...Object.values(e.partnerSkill))}function Sd(e,t){return Object.values(e.partnerTrust).filter(n=>n>=t).length}const Ln=[{id:1,from:1,to:6,name:"第一章 · 接手林记",need:2,goals:[{text:"口碑达到 25",check:e=>e.reputation>=25},{text:"解锁 2 款新品",check:e=>e.unlocked.length>=5},{text:"完成 2 笔定制订单",check:e=>e.customOrders>=2}],short:{key:"street_lamp",name:"短文结局 · 街角的灯",title:"一家小店，一种喜欢的生活",text:"林念发现自己其实很喜欢现在的生活。虽然没有做出惊人的成绩，但熟悉的顾客依然每天来买蛋糕。林暖看着忙碌的女儿，觉得她已经成长了不少。苏晴偶尔来店里，坐在窗边陪她聊天。"}},{id:2,from:7,to:12,name:"第二章 · 熟悉的味道",need:2,goals:[{text:"店铺升级到 LV2",check:e=>e.shopLevel>=2},{text:"累计完成 8 笔线上订单",check:e=>e.onlineOrders>=8},{text:"至少 3 款产品熟练度到 3 级",check:e=>Ca(e,3)>=3},{text:"完成 3 笔节日订单",check:e=>e.festivalOrders>=3}],short:{key:"familiar_taste",name:"短文结局 · 熟悉的味道",title:"没有成为大品牌，但林记依然是大家熟悉的林记",text:"一年过去，林记依然是栖云镇那家熟悉的老店。除夕夜，店里摆满提前预订的蛋糕。陈奶奶笑着说，还是你们家的蛋糕好吃，这么多年都没变。"}},{id:3,from:13,to:18,name:"第三章 · 让林记走得更远",need:2,goals:[{text:"产品平均熟练度达到 2.5 级",check:e=>wd(e)>=2.5},{text:"至少 3 款产品熟练度到 3 级",check:e=>Ca(e,3)>=3},{text:"口碑达到 45",check:e=>e.reputation>=45},{text:"有一名伙伴专业能力到 3 级",check:e=>Ed(e)>=3}],short:{key:"small_team",name:"短文结局 · 小小的团队",title:"有一群可靠的伙伴，有一家喜欢的店，就已经很好",text:"林念发现经营一家店已经占据了自己大部分精力。她决定暂时放弃扩张，继续和伙伴们经营好栖云镇的林记。她第一次明白，经营事业不一定要不断扩大规模。"}},{id:4,from:19,to:24,name:"第四章 · 从一家店到一支团队",need:2,needExpand:!0,goals:[{text:"成功开设第一家分店",check:e=>e.storeCount>=2,expand:!0},{text:"线上订单累计 25 笔",check:e=>e.onlineOrders>=25,expand:!0},{text:"口碑达到 55",check:e=>e.reputation>=55},{text:"两名伙伴信赖度达到 50",check:e=>Sd(e,50)>=2}],short:{key:"qiyun_sign",name:"短文结局 · 栖云镇的招牌",title:"没有走向全国，却成为一座小城里不可替代的存在",text:"林记逐渐成为栖云镇非常有名的烘焙店。林念尝试过扩张，但最终发现自己更喜欢现在的经营方式。苏晴拍下店铺最漂亮的照片，说，你已经把这里变成自己喜欢的样子了。"}},{id:5,from:25,to:30,name:"第五章 · 找回林记的味道",need:2,goals:[{text:"解锁「招牌 · 从一块开始」",check:e=>e.unlocked.includes("signature")},{text:"招牌蛋糕熟练度到 2 级",check:e=>(e.levels.signature||1)>=2},{text:"口碑达到 65",check:e=>e.reputation>=65},{text:"两名伙伴提供过专属协助",check:e=>e.helpers>=2}],short:{key:"osmanthus",name:"短文结局 · 桂香留在栖云",title:"有些味道，不需要传遍全国，也值得一直保留下去",text:"秋日文化节之后，桂花栗子蛋糕获得当地顾客的喜爱。林念发现团队还不适合大规模扩张，于是把它定为每年秋天的限定。伙伴们坐在店里，吃着最后一批。"}},{id:6,from:31,to:36,name:"第六章 · 把喜欢的味道带到全国",need:0,goals:[],final:!0}];function Td(e){return Ln.find(t=>e>=t.from&&e<=t.to)||Ln[0]}const ni={community:{name:"社区老店",title:"林记还是那条街上，那家一直亮着灯的店",text:"店铺规模不大，但拥有很高的顾客忠诚度。很多人从小在这里买蛋糕，现在带着孩子来。"},tradition:{name:"传统手作老字号",title:"有些味道，经过很多年依然不会忘记",text:"林记保留了外婆的经典配方，形成了自己的传统烘焙文化。桂花栗子蛋糕成了每年秋天的约定。"},creative:{name:"创意烘焙品牌",title:"把喜欢的东西，做成了别人也喜欢的样子",text:"林记以新品研发、季节限定和创意设计出名，吸引了很多年轻顾客。"},regional:{name:"区域连锁品牌",title:"这一片地方，都认识这家店",text:"林记在多个城市开设门店，有了成熟的团队和稳定的供应链。"},national:{name:"全国连锁品牌",title:"从一块蛋糕开始，慢慢成为更好的自己",text:"林记建立了完整的研发、生产、供应链和运营体系。高端主题旗舰店正式开业。"},transfer:{name:"转让",title:"招牌还挂在街口，只是不再由她掌舵",text:"林记的招牌依然会挂在各个城市的街口，经典配方的蛋糕依然每天出炉。苏晴在门口等她，接过她手里的纸箱。"}},Is={sq_visit:{title:"第一次探店",caption:"她站在门口拍了一张。这张她留了三年。",img:Ae("sq-friends.webp")},first_order:{title:"第一张顾客回图",caption:"蛋糕上插着蜡烛，一位头发花白的阿姨在笑。",img:null},sq_birthday:{title:"九月的生日",caption:"白奶油，一层无花果。她吹蜡烛的时候闭着眼。",img:null},community:{title:"夏日生活节",caption:"价目牌是手写的，字歪歪扭扭，但很好看。",img:Ae("shop-exterior.webp")},ln_birthday:{title:"十二月的雪",caption:"蛋糕很朴素，切开是三层不同的颜色。",img:Ae("nu-duo.webp")},ln_birthday_2:{title:"二十四岁",caption:"小雨做的蛋糕，抹面不平，草莓摆得有点挤。",img:null},sq_birthday_3:{title:"第三年的九月",caption:"关了灯的门店里，两份外卖和一个小蛋糕。",img:null},album:{title:"一本相册",caption:"最后一页是空的。她说留给我自己贴。",img:Ae("sq-friends.webp")},finale:{title:"三周年",caption:"三个人在后厨分了一个很小的蛋糕。",img:Ae("shop-exterior.webp")}},Id=["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"];function Or(e){return Id[(e-1)%12]}const Ad=`# 《林记烘焙》完整文游剧情文案 V5.0（橙光对话体标准版）\r
+\r
+## 序幕：回家\r
+\r
+**【场景：大学宿舍 / 栖云镇街道】**\r
+**【事件ID：EVT_PROLOGUE_01｜触发条件：新游戏开始】**\r
+**【CG：graduation-rejection】**\r
+**【初始状态：cash = 12000, actionPoints = 8, stamina = 100, shopLevel = 1 (shop-lv1)】**\r
+\r
+六月的阳光透过宿舍窗帘照在书桌上。\r
+林念坐在电脑前，刷新了一次邮箱页面。\r
+屏幕上跳出一封新的回复邮件——依然是熟悉的婉拒措辞。\r
+\r
+毕业前，她对未来充满期待，认真准备简历、参加招聘会、投递心仪的公司。\r
+然而现实并不顺利。\r
+简历大多石沉大海，几场面试也没有得到满意的结果。看着身边的同学陆续找到工作，林念逐渐陷入焦虑。\r
+又一次收到拒信后，她彻底破防。\r
+\r
+林念：大学四年，毕业即失业。我到底在干什么啊……\r
+\r
+桌上的手机震动了一下，是高中好友苏晴发来的消息。\r
+苏晴（手机消息）：念念，行李收拾得怎么样啦？我已经回栖云镇把摄影器材都安顿好了，等你到家我们去喝冰饮！\r
+林念看着屏幕，轻轻叹了口气，手指在屏幕上敲下回复。\r
+林念（手机消息）：明天回来，到时候见。\r
+无奈之下，她决定先回家。\r
+\r
+---\r
+\r
+**【场景：栖云镇·林记烘焙（shop-lv1）】**\r
+**【事件ID：EVT_PROLOGUE_02】**\r
+\r
+推开熟悉的木门，空气里飘着黄油与刚出炉戚风蛋糕的温热香气。\r
+母亲林暖经营着这家名为「林记烘焙」的老店，已经有三十多年的历史。店铺最初由外婆创立，后来交给林暖经营。\r
+木地板擦得干干净净，玻璃展示柜旁摆着两张旧木桌，墙上挂着手写的中文价目牌。\r
+林念从小在店里长大，耳濡目染，早已掌握不错的烘焙手艺。\r
+\r
+林暖看到女儿最近一直为求职发愁，便放下手中的烤盘，走到林念身边。\r
+林暖：既然一时半会儿找不到心仪的工作，不如先回来帮帮我？\r
+林念：妈，我又不是学烘焙专业的。\r
+林暖：你从小就在这里做蛋糕，手艺可不比别人差。再说了，我也没说让你一辈子待在这里。\r
+林暖：店里的事情，你其实也熟悉不少。从今天开始，日常经营交给你试试，我在旁边帮你把关。\r
+林念：啊？这么突然？\r
+林暖：怎么，不敢？\r
+林念：谁说的！\r
+\r
+旁白：就这样，林念正式接手林记烘焙的日常经营。\r
+旁白：最初，她只是打算暂时帮忙，没想到这次回来，会彻底改变自己未来三年的生活。\r
+\r
+---\r
+\r
+## 第一章：接手林记（第1—6个月）\r
+**章节主题：从毕业生到经营者**\r
+**本阶段登场人物：林念、林暖、苏晴、陈奶奶**\r
+\r
+### M1｜毕业后的新生活\r
+**【事件ID：EVT_M01_MAIN｜触发月份：M1第1个经营日】**\r
+**【状态变更：解锁初始产品——原味奶油蛋糕（\`cake-plain\`）、草莓奶油蛋糕（\`cake-strawberry\`）、巧克力蛋糕（\`cake-chocolate\`）】**\r
+\r
+清晨七点，栖云镇的青石板街刚刚热闹起来。\r
+林念系好围裙站在玻璃展示柜后，正在核对今天第一批上架的三款经典产品。\r
+林暖端着一盘刚切好的草莓奶油蛋糕从后厨走出来。\r
+\r
+林暖：咱们林记开了三十多年，街坊四邻认的就是这份实在。原味、草莓和巧克力是店里的老三样，今天做多少份、怎么定价，你说了算。\r
+林念：好！今天是第一个经营日，我先按老街坊平时的购买量备货，要是体力不够，还得请林老师搭把手。\r
+林暖笑着点了点头。\r
+林暖：放心，妈在后厨随时给你托底。\r
+\r
+店门上的风铃叮铃一响，背着相机的苏晴推门走了进来。\r
+苏晴：哟，这不是我们栖云镇新上任的林老板吗？\r
+林念：苏晴！你来得正好，快帮我看看今天展示柜的摆盘怎么样。\r
+苏晴趴在玻璃柜台前打量了一圈。\r
+苏晴：摆得很漂亮呀，就是我们林老板看起来比等待进烤箱的面糊还紧张。\r
+林念：毕竟是第一天正式管店嘛。以前放假回来只是帮妈打下手，现在从原料采购、定价到安排生产都要自己拿主意，感觉完全不一样。\r
+苏晴举起相机对准柜台后的林念。\r
+苏晴：来，林老板，看镜头！给你拍一张上任首日纪念照，以后等你成了大企业家，这就是珍贵的历史资料！\r
+林念：等一下，我围裙领子还没理好呢！\r
+\r
+旁白：清脆的快门声里，林念的三年经营生活正式拉开序幕。\r
+旁白：【系统提示：解锁基础经营系统（每日5个代表性经营日、8点行动力、100点体力）。解锁友情相册NO.04《新任林老板的第一天》。】\r
+\r
+---\r
+\r
+### M2｜熟悉的老顾客\r
+**【事件ID：EVT_M02_MAIN｜触发月份：M2第1个经营日】**\r
+**【状态变更：解锁「顾客忠诚度与熟客系统」】**\r
+\r
+午后营业时段，头发花白的陈奶奶笑呵呵地走进店里。\r
+苏晴恰好坐在靠窗的旧木桌旁挑照片，主动起身帮陈奶奶拉开了木门。\r
+\r
+苏晴：陈奶奶，您来买蛋糕啦？\r
+陈奶奶：是晴晴呀！我就说刚才隔着窗户看着眼熟。\r
+陈奶奶走到展示柜前，笑眯眯地看向林念。\r
+陈奶奶：念念呀，听你妈说你大学毕业回来接班啦？真好真好，今天给我拿一份原味奶油蛋糕，我家小孙子指定要吃你们家的味道。\r
+林念将打包好的蛋糕递过去。\r
+林念：陈奶奶您拿好！我还给小朋友多放了一块试吃装的巧克力小切块。\r
+陈奶奶：哎哟，还是你们贴心。我年轻那会儿，这店还是你外婆守着；后来是你妈妈，一晃眼几十个年头过去，我家三代人的生日蛋糕全是在林记订的。\r
+林念：谢谢陈奶奶一直惦记着我们。\r
+陈奶奶：咱们老街坊信得过林记，你们把老味道守住，以后生意准能越来越红火！\r
+\r
+送走陈奶奶后，林暖翻开记账本走到林念身边。\r
+林暖：念念，看到了吗？林记不需要从零开始，大家伙儿的信任就是咱们最大的底气。你之后也可以看看除了原来的种类以外，大家还期待什么新口味。\r
+苏晴在旁边举手。\r
+苏晴：这题我会！我平时去街上拍照，好多年轻人都念叨着想吃芋泥或者茶味的新式甜点呢！\r
+林念若有所思地点了点头。\r
+林念：好，那我这个月就开始琢磨第一款新品！\r
+\r
+---\r
+\r
+### M3｜自己的第一款新品：芋泥薄脆\r
+**【事件ID：EVT_M03_MAIN｜触发月份：M3第2个经营日】**\r
+**【状态变更：解锁「新品研发系统」，解锁新品——芋泥薄脆（\`cake-taro\`）】**\r
+\r
+晚上八点，店门已经挂上了「打烊」的木牌，后厨的灯却还亮着。\r
+操作台上摆着三碗不同奶香比例的荔浦芋泥，旁边是一盘刚出炉的焦糖杏仁薄脆。\r
+林暖端着一杯温牛奶走进后厨。\r
+\r
+林暖：这么晚还在试配方？这已经是今晚第三炉了吧。\r
+林念接过牛奶喝了一口。\r
+林念：妈，这几天放学路过的学生和年轻上班族，好几次问店里有没有芋泥类的甜点。我想在绵软的荔浦芋泥夹心中间，铺一层现烤的焦糖杏仁薄脆，让口感更有层次。\r
+林暖用小叉子尝了一块样品，思索片刻。\r
+林暖：味道确实很棒。不过念念，薄脆一旦夹进湿润的芋泥和奶油里，在冷藏柜放上三个小时就会受潮变软，而且单份成本也高了不少。\r
+林念愣了一下。\r
+林念：啊……我刚才光顾着调刚出炉的口感，忘了测试冷藏后的状态了。\r
+林暖温和地笑了笑。\r
+林暖：自己在家做点心，好吃就行；但作为店里正式售卖的产品，保存时间、成本和定价，每一样都得算清楚。\r
+林念低头看着烤盘，很快有了主意。\r
+林念：如果我在焦糖薄脆表面极薄地刷一层可可脂白巧用来隔绝水汽，再把切块规格微调成方形切件，是不是就能同时解决防潮和成本问题了？\r
+林暖欣慰地点了点头。\r
+林暖：试试看，妈陪你等这一炉的结果。\r
+\r
+第二天上午，「芋泥薄脆」正式摆上展示柜。\r
+苏晴第一个跑来买走两块，一边吃一边连连夸赞。\r
+苏晴：天呐念念，这个芋泥配咔嚓脆的夹心绝了！我今天去影棚干活儿就有动力了！\r
+林念看着下午四点前便销售一空的展示柜，第一次尝到了独立研发新品的成就感。\r
+\r
+---\r
+\r
+### M4｜好朋友的日常与抹茶新香\r
+**【事件ID：EVT_M04_MAIN｜触发月份：M4第3个经营日】**\r
+**【状态变更：解锁新品——抹茶蛋糕（\`cake-matcha\`），触发高一/高二友情回忆】**\r
+\r
+四月微风渐暖，林念研发了清新微苦的「抹茶蛋糕（\`cake-matcha\`）」，林暖尝过后也夸赞茶香清雅，特意让林念留出第一块等苏晴下班过来尝鲜。\r
+傍晚，苏晴带着刚修完照片的笔记本电脑来到店里，两人坐在旧木桌旁一边吃晚饭，一边吃着抹茶蛋糕聊天。\r
+\r
+苏晴：哇，这个抹茶配蜜红豆的微苦回甘太正了！比我大学城旁边那家网红店做得还好吃！\r
+林念：你喜欢就好！对了，我看你今天特地先发消息问我有没有空才过来，怎么突然这么客气？\r
+苏晴眨了眨眼。\r
+苏晴：还不是怕林大忙人在研发新品嘛。而且，先问清楚再行动，这可是我们高一同桌那年就立下的规矩呀。\r
+林念忍不住笑出声。\r
+林念：你还记着高一那件事呢！\r
+\r
+**【插入回忆片段 8.1：高一——成为真正的朋友】**\r
+**【事件ID：EVT_FLASHBACK_HS1】**\r
+\r
+高一时，林念和苏晴同班同桌，性格合拍的两人很快熟悉起来。\r
+某次班级活动需要制作宣传海报，林念觉得苏晴画画很好，没有提前询问就替她向班长答应了下来。\r
+放学后，苏晴整理好书包，认真地看向林念。\r
+\r
+苏晴：我不是不想帮忙，但你以后能不能先问问我？\r
+林念：啊？我以为你会喜欢。\r
+苏晴：你可以觉得我适合，但不要直接替我做决定。\r
+林念愣了一下，认真反思起来。\r
+林念：好像确实是我没考虑到。\r
+苏晴：我知道你没有恶意，所以我才直接告诉你。\r
+林念：那以后我们有什么不舒服的地方，都直接说出来吧。\r
+苏晴：嗯？\r
+林念：我觉得朋友之间就应该这样。小问题一直憋着，最后可能就变成大问题了。\r
+苏晴：那你也要接受我直接说你哦。\r
+林念：当然！\r
+\r
+旁白（林念视角）：\r
+那天之后，我觉得苏晴是一个很特别的人。\r
+她不会因为怕我不高兴，就把自己的想法藏起来。\r
+我突然觉得，能遇到一个愿意认真和自己沟通的人，是一件很幸运的事情。\r
+旁白：林念从这时开始，希望和苏晴做一辈子的好朋友。\r
+\r
+**【接续回忆片段 8.2：高二——隔壁班的好朋友】**\r
+高二选科分班后，两人去了隔壁班。\r
+但每到课间十分钟，林念总会出现在苏晴班级的后门；去食堂、分零食、换试卷吐槽错题、放学约着一起回家……\r
+两人之间多了一句心照不宣的口头禅：「下课来找我。」\r
+哪怕后来大学去了不同的城市，每个寒暑假回到栖云镇，她们依然是彼此最熟悉的陪伴。\r
+\r
+---\r
+\r
+### M5｜第一笔大型订单（含三向数值分支）\r
+**【事件ID：EVT_M05_MAIN｜触发月份：M5第2个经营日】**\r
+**【状态变更：解锁「定制订单系统」】**\r
+\r
+这天上午，一位老街坊带着女儿来到店里，希望为周末的家庭生日聚会预订一款特别的十寸双层生日蛋糕。\r
+\r
+顾客：念念，这是我们家今年最隆重的一次聚会，你现在是店里的主理人了，这款蛋糕的设计和口味，我们想听听你的建议！\r
+林暖在旁边向女儿投来鼓励的目光。\r
+林暖：念念，这笔大单由你独立接洽，按你的经营思路来定吧。\r
+\r
+> **【玩家选择节点 11.1（M5）：第一笔大型定制订单方案】**\r
+> - **选项A：采用传统奶油装饰**（\`traditionScore + 5\`，解锁传统产品路线）\r
+> - **选项B：尝试新的装饰方式**（\`innovationScore + 5\`，获得新品研发经验）\r
+> - **选项C：先询问顾客具体喜好**（\`communityScore + 5\`，顾客忠诚度增加）\r
+\r
+**【分支A：选择「采用传统奶油装饰」】**\r
+林念：阿姨，林记最拿手的就是手工打发的动物奶油裱花。我为您设计一款双层经典复古花边蛋糕，选用当季最饱满的红颜草莓做夹心，保证一家老小吃到的都是最纯正实在的林记老味道。\r
+顾客欣喜地点了点头。\r
+顾客：好！家里老人最认你们家的传统奶油，就按你说的办！\r
+林暖欣慰地笑了笑。\r
+林暖：稳扎稳打，把传统手艺做精，这可是咱们立店的根本。\r
+\r
+**【分支B：选择「尝试新的装饰方式」】**\r
+林念：我想为您尝试一款全新的森系撞色抹面与鲜果错落装饰，内层搭配我们新研发的芋泥薄脆与抹茶双拼夹心，拍照好看，口感也更有惊喜感！\r
+顾客身旁的年轻女孩眼睛一亮。\r
+顾客女儿：哇，这个搭配听起来太棒了！就选这个新设计！\r
+旁白：林念在制作过程中摸索出了双层异形承重的新技巧，研发经验大幅提升。\r
+\r
+**【分支C：选择「先询问顾客具体喜好」】**\r
+林念没有急着推销方案，而是倒了两杯温水递给母女俩。\r
+林念：阿姨，姐姐，家里长辈平时是不是偏爱少糖绵软的口感？小朋友有没有特别喜欢的水果或者过敏的食材？我们把家里每个人的口味都记下来，做成上下两层不同风味的专属定制款，好不好？\r
+顾客感动地握住杯子。\r
+顾客：念念真细心！连我们没想到的细节都替我们考虑到了，以后家里订蛋糕全找你！\r
+\r
+---\r
+\r
+### M6｜夏日生活节与第一阶段结算\r
+**【事件ID：EVT_M06_MAIN｜触发月份：M6第4个经营日】**\r
+**【状态变更：解锁新品——芒果慕斯（\`cake-mango\`），解锁「品牌宣传」】**\r
+\r
+盛夏六月，栖云镇文化广场即将举办一年一度的「夏日生活节」露天市集。\r
+活动前两天傍晚，苏晴踩点回来，满头大汗地推开店门。\r
+\r
+苏晴：念念，幸好我提前去广场看了一眼！这次摊位全在露天草坪上，下午温度超过三十度，普通奶油蛋糕摆出去不到半小时准会化边！\r
+林暖皱起眉走到柜台边。\r
+林暖：露天市集没有大冷柜，而且大热天逛市集的人走得口干舌燥，太厚重的奶油蛋糕大家也没胃口。\r
+林念看着果篮里金黄饱满的台农芒果，眼睛一亮。\r
+林念：那我们就专门为市集做一款冰凉清爽的「芒果慕斯（\`cake-mango\`）」！用新鲜芒果泥融合慕斯，装进带独立冰袋底座的透明方杯里，客人拿着小勺就能边走边吃，完全不怕热！\r
+林暖赞许地点头。\r
+林暖：这个主意好，今晚妈陪你一起把慕斯杯赶出来。\r
+\r
+周六清晨，林念和林暖推着保温箱来到广场草坪。\r
+看着隔壁装潢时髦的网红咖啡车，再看看自家的旧折叠木桌，林念心里有些打鼓。\r
+这时，苏晴抱来了一大箱布展道具，麻利地铺开米白亚麻桌布，摆上藤编托盘、小雏菊和暖黄色灯串，又立起一块手写小黑板——「林记烘焙：栖云镇三十年的老味道，也有夏天的第一口冰凉」。\r
+\r
+苏晴端起相机比了个大拇指。\r
+苏晴：看！暖奶油色系的展台配着金黄澄澈的芒果慕斯，在阳光下特别出片！\r
+林念惊喜地看着焕然一新的展台。\r
+林念：苏晴，太好看了！这下我彻底有底气了！\r
+\r
+开集后，一位年轻妈妈牵着因为天热哭闹的小女孩路过摊位。\r
+林念主动蹲下身，递过去一小杯试吃装的芒果慕斯。\r
+林念：小朋友，要不要尝一口冰冰凉凉的芒果小蛋糕呀？\r
+小女孩挖了一口放进嘴里，酸甜冰爽的果香化开，一下子破涕为笑。\r
+小女孩：妈妈，这个黄黄的小蛋糕好冰好甜呀！\r
+年轻妈妈尝了一口，也眼前一亮。\r
+年轻妈妈：真好吃，一点都不腻！老板，给我拿四杯芒果慕斯，再拿两盒芋泥薄脆！\r
+苏晴按下快门，笑眯眯地从随身打印机里抽出一张母女合影送给客人。\r
+苏晴：姐姐，今天在林记买甜点，免费送一张夏日市集纪念照哦！\r
+\r
+不到下午四点，两百杯芒果慕斯便被抢购一空。\r
+傍晚收摊时，晚霞铺满天际，林念看着苏晴相机里一张张年轻食客的笑脸，心里豁然开朗。\r
+林念：苏晴，今天真的多亏有你。我第一次真切地觉得，原来三十年的老店，也可以在年轻人的世界里拥有全新的品牌形象。\r
+苏晴笑着拍了拍她的肩膀。\r
+苏晴：这还只是刚刚开始呢，林老板！\r
+\r
+---\r
+\r
+### 【M6月末：第一阶段目标结算】\r
+**【检查条件（三项完成两项即可进入第二章）：1. 社区口碑≥25；2. 解锁至少2款新品；3. 完成至少2笔定制订单】**\r
+\r
+#### ▶ 分支一：阶段达标（进入第二章）\r
+**【状态变更：解锁 LV2 精致烘焙店（shop-lv2）筹备与展示柜扩容】**\r
+林暖看着账本上稳步增长的营收与市集带回来的满墙好评，欣慰地看向林念。\r
+林暖：短短半年，你不仅把老顾客照顾得妥妥帖帖，还带着林记走出了老街。妈攒了一笔装修基金，下个月咱们把展示柜升级成三层，再换上暖黄色的吊灯，让林记真正焕然一新！\r
+\r
+#### ▶ 分支二：阶段未达标 → 触发短线结局 10.1《街角的灯》\r
+**【事件ID：EVT_SHORT_END_01｜触发条件：M6结算完成目标数 < 2】**\r
+\r
+夏夜的晚风吹过栖云镇的街角，林记烘焙的木门轻轻合上。\r
+这半年里，林念并没有做出惊人的商业成绩，但在日复一日揉面、打发奶油的过程中，那些因为毕业求职失利而产生的焦虑，早已被烤箱里的香气抚平了。\r
+陈奶奶像往常一样在傍晚来买走最后一块原味蛋糕。\r
+\r
+陈奶奶：念念呀，现在每天路过林记，看到你在柜台后头笑眯眯的样子，奶奶心里就踏实。\r
+林暖端着刚泡好的菊花茶从后厨走出来。\r
+林暖：念念，这半年累坏了吧？妈看你现在做事越来越稳当，哪怕咱们不去外头争什么大名气，守着这家店也是稳稳当当的幸福。\r
+苏晴背着相机推门进来，熟稔地坐到靠窗的旧木桌旁。\r
+苏晴：念念，现在这样每天烤烤蛋糕、晒晒太阳，感觉怎么样？\r
+林念看着窗外暖黄的路灯，笑着舒了一口气。\r
+林念：以前我总怕自己落后别人一步。现在才发现，我其实很喜欢现在的生活。不用急着去追逐多么宏大的目标，先把眼前这间小店经营好，就已经很好了。\r
+\r
+旁白：一家小店，一盏街角的暖灯，一种自己喜欢的生活。\r
+旁白：【达成阶段短线结局：《街角的灯》】\r
+\r
+---\r
+\r
+## 第二章：熟悉的味道（第7—12个月）\r
+**章节主题：老店与新品牌**\r
+**本阶段登场人物：林念、林暖、苏晴、周雨桐（M8加入）、陈奶奶**\r
+\r
+### M7｜热闹的除夕\r
+**【事件ID：EVT_M07_MAIN｜触发月份：M7（除夕节日节点）】**\r
+**【状态变更：解锁「节日订单系统」】**\r
+\r
+进入第七个月，换上暖黄色吊灯、三层玻璃展示柜与奶油白墙面的林记（\`shop-lv2\`），在寒冬腊月里显得格外温暖明亮。\r
+除夕前夕，柜台上的红色预订本已经记了厚厚一沓。\r
+\r
+林暖将预订本递给林念。\r
+林暖：念念，往年除夕这三天的排产都是妈来排。今年整整六十多份团圆蛋糕，你来统筹试试？\r
+林念翻开预订本，认真核对起来。\r
+林念：妈，交给我吧！我把取货时间按早、中、晚分成三批，提前烤好戚风胚分批抹面，绝不耽误大家吃年夜饭。\r
+\r
+除夕当天下午，苏晴特意拎着一篮砂糖橘来店里探班，顺便帮母女俩给蛋糕盒系红丝带。\r
+苏晴：天呐，你们这后厨简直像过年迎财神一样热闹！我已经帮你们系了三十个蝴蝶结啦！\r
+直到傍晚六点，夜空升起第一簇除夕烟花，最后一份预订蛋糕顺利交到了客人手中。\r
+林暖端出三碗热腾腾的酒酿小圆子放到桌上。\r
+林暖：辛苦咱们的大掌柜和晴晴大功臣了！快趁热吃，吃了圆子，明年咱们林记更红火！\r
+林念捧着温热的瓷碗，看着窗外的烟花露出了灿烂的笑容。\r
+\r
+---\r
+\r
+### M8｜新的帮手：周雨桐加入（含培养方式分支）\r
+**【事件ID：EVT_M08_MAIN｜触发月份：M8第1个经营日】**\r
+**【状态变更：解锁「员工系统」，周雨桐加入，解锁新品——提拉米苏（\`cake-tiramisu\`）】**\r
+\r
+春节过后，随着新品「提拉米苏（\`cake-tiramisu\`）」上市，单靠林念和林暖两个人已经忙不过来日常生产。\r
+这天下午，苏晴正坐在吧台边试吃提拉米苏，门口走进来一个二十岁上下、扎着低马尾的女孩。\r
+她是中职烹饪相关专业毕业的周雨桐（小雨），双手局促地捏着帆布包带子。\r
+\r
+周雨桐：林、林店长您好……我叫周雨桐，大家可以叫我小雨。我之前学过西点基础，实习后发现自己真正喜欢的还是做蛋糕……请问这里还在招烘焙学徒吗？\r
+林念温和地请她在木桌旁坐下。\r
+林念：当然在招，别紧张，先喝口水。平时自己喜欢做哪些甜点呀？\r
+周雨桐从包里拿出一本贴着水果贴纸的笔记，声音轻轻的。\r
+周雨桐：我平时特别喜欢研究水果、奶油和不同夹心的搭配……不过我还没在这么好的店里正式工作过，我怕自己手脚不够快，会给店里添乱……\r
+林暖在旁边看了一眼小雨工整的笔记，笑着对林念点了点头。\r
+苏晴也友善地朝小雨眨眨眼。\r
+苏晴：小雨妹妹别怕，我们林老板可温柔啦，从来不凶人的！\r
+林念笑着合上笔记。\r
+林念：小雨，欢迎你加入林记。只要你真心喜欢做蛋糕，这里就有你的位置。\r
+\r
+在带教小雨处理水果与准备原料的第一周，林念选择了自己的指导方式：\r
+\r
+> **【玩家选择节点 7.2-1（M8）：对待学徒小雨的指导方式】**\r
+> - **选项A：耐心指导**（手把手带着她熟悉流程，小雨信赖度 +10）\r
+> - **选项B：鼓励尝试**（夸奖她的切果刀工，鼓励她大胆上手，小雨信赖度 +8，专业能力 +5）\r
+> - **选项C：严格要求**（明确每一项原料克重与卫生标准，小雨专业能力 +10，信赖度 +3）\r
+\r
+**【分支A：耐心指导】**\r
+林念：小雨，刚来不用急着求快，我先带你把店里常用的水果切配和奶油打发状态过一遍，有任何拿不准的随时问我。\r
+周雨桐感激地点了点头。\r
+周雨桐：谢谢念念姐！有你带着我，我心里踏实多了。\r
+\r
+**【分支B：鼓励尝试】**\r
+林念：小雨，你看你切出来的草莓厚薄几乎一模一样，基本功很扎实呀！下午这批杯子蛋糕的装饰你大胆试试，我相信你的审美！\r
+周雨桐眼睛微微亮起。\r
+周雨桐：真的吗？那、那我认真试试看！\r
+\r
+**【分支C：严格要求】**\r
+林念：小雨，林记的老顾客对口味非常敏感，所以不管是筛面粉还是称糖，每一克都不能马虎。我们从第一天起就把标准立好，好吗？\r
+周雨桐立刻挺直腰板。\r
+周雨桐：明白！我一定严格按照克重表操作，绝不偷懒！\r
+\r
+---\r
+\r
+### M9｜小雨的第一次独立制作 & 苏晴的生日\r
+**【事件ID：EVT_M09_MAIN｜触发月份：M9第3个经营日】**\r
+**【状态变更：解锁「员工培养与培训系统」】**\r
+\r
+来到林记满一个月后，林念让小雨尝试独立完成一只六寸草莓奶油蛋糕。\r
+小雨屏住呼吸转着裱花台，林暖在旁温和地指点她手腕发力的角度。\r
+当成品顺利放进展示柜并被顾客买走时，小雨激动得脸颊通红。\r
+\r
+周雨桐：念念姐，林阿姨，客人真的买走我做的蛋糕了！\r
+林暖笑着拍拍她的手背。\r
+林暖：咱们小雨手巧又用心，以后准能成大器。\r
+\r
+同月也是苏晴22岁的生日。\r
+林念和小雨一起挑了一整篮成熟度极佳的波姬红无花果，为苏晴烤制了一款专属的无花果奶油蛋糕。\r
+晚上打烊后，苏晴看着切面如繁花绽放的无花果蛋糕，惊喜得合不拢嘴。\r
+\r
+苏晴：哇！是我最爱的无花果！小雨切的无花果花瓣也太整齐了吧！\r
+周雨桐腼腆地笑了笑。\r
+周雨桐：祝苏晴姐生日快乐！这是念念姐专门按你的口味调的轻奶油配方呢。\r
+林念把第一块蛋糕递给苏晴。\r
+林念：祝我们的苏大摄影师二十二岁生日快乐，永远拍自己想拍的风景！\r
+\r
+---\r
+\r
+### M10｜开启线上销售与无花果奶油上市\r
+**【事件ID：EVT_M10_MAIN｜触发月份：M10第1个经营日】**\r
+**【状态变更：解锁「线上经营系统」，解锁新品——无花果奶油（\`cake-fig\`）】**\r
+\r
+苏晴把生日蛋糕照片发到网上后，引来许多本地年轻人的询问。\r
+第二天一早，苏晴便扛着影棚灯来到店里。\r
+\r
+苏晴：念念，好多上班族私信问能不能手机下单同城配送！咱们干脆把「无花果奶油（\`cake-fig\`）」正式上架，我今天帮店里所有蛋糕拍一套线上菜单写真！\r
+周雨桐抱着一摞加固纸盒从后厨跑出来。\r
+周雨桐：念念姐，我已经试好了带防滑底托的配送盒，骑手送货绝对不会蹭花奶油！\r
+林暖在旁笑呵呵地看着三个忙活的年轻人。\r
+林暖：线上这些新鲜玩意儿妈不懂，就全看你们年轻人的啦！\r
+林念欣喜地点头。\r
+林念：好！今天起，「林记烘焙线上小店」正式上线！\r
+\r
+---\r
+\r
+### M11｜藏起来的小本子（周雨桐核心成长事件）\r
+**【事件ID：EVT_M11_YUTONG_BOOK｜触发条件：M11—M13期间，小雨信赖度 ≥ 60 且完成至少2次员工互动】**\r
+\r
+这天打烊后，林念回后厨拿落下的钥匙，却看见小雨一个人坐在角落的工作台前，正对着一本旧本子写写画画。\r
+听到脚步声，小雨慌忙想把本子合上，林念温和地走过去。\r
+本子摊开的那一页上，画满了精致的蛋糕草图，记录着许多水果、奶油与夹心的搭配想法。\r
+\r
+周雨桐：我有时候会想一些蛋糕的搭配，但是一直没有机会真正做出来。\r
+林念：为什么不试试？\r
+周雨桐：我怕做得不好。\r
+林念：那就先做一小批，慢慢调整嘛。\r
+\r
+> **【玩家选择节点 7.2-2（M11）：回应小雨的创意本】**\r
+> - **选项A：支持她独立完成一次新品试制**（小雨信赖度 +15，专业能力 +10，\`innovationScore + 5\`）\r
+> - **选项B：与她一起研究配方**（小雨信赖度 +12，专业能力 +8，\`communityScore + 3\`）\r
+> - **选项C：鼓励她先整理思路，再安排试制**（小雨信赖度 +8，专业能力 +5，\`efficiencyScore + 3\`）\r
+\r
+**【分支A：选择「支持她独立完成一次新品试制」】**\r
+林念：小雨，后厨明天下午的烤炉和鲜果柜全归你调配！你就按本子上的想法，独立做一批试吃装出来，原料损耗全算店里的，放手去做！\r
+周雨桐怔怔地看着林念，眼眶微微泛红。\r
+周雨桐：念念姐……真的可以让我自己做主试一次吗？我一定全力以赴！\r
+\r
+**【分支B：选择「与她一起研究配方」】**\r
+林念：你对水果风味的直觉比我还敏锐，缺的只是一点量产配比的经验。明天下班后我留下来陪你，我们一起把你画的这款水果蛋糕变成真正的配方！\r
+周雨桐露出了安心的笑容。\r
+周雨桐：嗯！有念念姐陪着我，我就什么都不怕了！\r
+\r
+**【分支C：选择「鼓励她先整理思路，再安排试制」】**\r
+林念：这些点子都特别棒！小雨，你这周先把最想做的那款水果搭配整理成标准克重表，周五下午我们专门安排一次正式试制评审。\r
+周雨桐用力点了点头。\r
+周雨桐：好！我今晚就把克重和步骤整理得清清楚楚！\r
+\r
+**【主线汇合】**\r
+几天后，小雨的第一款原创创意水果蛋糕成功出炉。林暖尝了第一口便连声夸赞，苏晴更是专程赶来为小雨和她的作品拍下了专属纪念照。\r
+旁白：【系统提示：解锁小雨个人相册、小雨专属蛋糕与新品研发能力！】\r
+\r
+---\r
+\r
+### M12｜林记的三十多年与第二阶段结算\r
+**【事件ID：EVT_M12_MAIN｜触发月份：M12第3个经营日】**\r
+**【状态变更：解锁「配方笔记图鉴」，解锁新品——季节水果蛋糕（\`cake-seasonal\`）】**\r
+\r
+接手林记满一年的冬夜，结合小雨的果味灵感与外婆戚风底方的「季节水果蛋糕（\`cake-seasonal\`）」正式上架。\r
+打烊后，林暖捧出一个珍藏多年的铁皮盒，叫来林念、小雨和刚拍完照的苏晴一起围坐在木桌旁。\r
+盒子里是一叠泛黄的老照片，以及外婆留下的手写《配方笔记》。\r
+\r
+林暖轻声抚过照片上三十多年前的小铺子。\r
+林暖：念念，当年你外婆带着我守着一口老烤炉的时候，怎么也想不到，有一天她的外孙女会把林记的蛋糕卖到线上去，还带出了小雨这么有灵气的伙伴。\r
+周雨桐双手捧着热茶，眼神里满是憧憬。\r
+周雨桐：外婆的字写得好工整呀，每一页都记着当年的食材脾气。\r
+苏晴举起相机拍下桌上的旧配方本。\r
+苏晴：这就是三代人的接力棒呀！念念，往后的页数就该你和小雨一起写啦。\r
+林念握紧手中的钢笔，重重地点了点头。\r
+林念：妈，这本笔记我会一页一页继续往下写的。\r
+\r
+---\r
+\r
+### 【M12月末：第二阶段目标结算】\r
+**【检查条件（四项完成两项即可进入第三章）：1. 店铺升级至LV2；2. 累计完成8笔线上订单；3. 研发至少3款新品；4. 完成年度节日订单目标】**\r
+\r
+#### ▶ 分支一：阶段达标（进入第三章）\r
+林记烘焙成功建立起稳定的线上预订渠道与丰富的时令产品线，小雨也正式转为全职烘焙师。面对不断增长的订单，林念准备迎接新的伙伴与更大的舞台。\r
+\r
+#### ▶ 分支二：阶段未达标 → 触发短线结局 10.2《熟悉的味道》\r
+**【事件ID：EVT_SHORT_END_02｜触发条件：M12结算完成目标数 < 2】**\r
+\r
+一年过去，林记依然是栖云镇那家熟悉的老店。\r
+又逢除夕夜，店里的长桌上摆满了提前预订的蛋糕。\r
+陈奶奶提着红色的蛋糕盒，笑眯眯地看向柜台后的林念、林暖和小雨。\r
+\r
+陈奶奶：还是你们家的蛋糕好吃，这么多年都没变。只要林记还开在街口，咱们镇上的年味儿就还在。\r
+周雨桐开心地替陈奶奶掀开门帘。\r
+周雨桐：陈奶奶您慢走，明年我们还给您留最甜的草莓！\r
+苏晴坐在吧台边晃着相机，笑吟吟地看向林念。\r
+苏晴：林老板，虽然咱们没搞什么线上大扩张，但你看店里热热闹闹的，多好呀。\r
+林暖温和地替女儿拂去围裙上的面粉。\r
+林暖：是啊，一步一个脚印守着大家熟悉的味道，妈觉得比什么都强。\r
+林念看着忙碌的母亲、认真的小雨和熟悉的街坊，心里无比踏实。\r
+林念：嗯，这样就已经很好了。\r
+\r
+旁白：没有成为大品牌，但林记依然是大家熟悉的林记。\r
+旁白：【达成阶段短线结局：《熟悉的味道》】\r
+\r
+---\r
+\r
+## 第三章：让林记走得更远（第13—18个月）\r
+**章节主题：品牌升级与团队磨合**\r
+**本阶段登场人物：林念、林暖、苏晴、周雨桐、许知遥（M14加入）、唐鸢（M18加入）**\r
+\r
+### M13｜产品标准化（含三向数值分支）\r
+**【事件ID：EVT_M13_MAIN｜触发月份：M13第2个经营日】**\r
+**【状态变更：解锁「配方标准化系统」】**\r
+\r
+进入第二年，随着每日出货量翻倍，林念和周雨桐在核对线上评价时发现：不同批次的产品偶尔会出现细微的口味差异。\r
+林暖也建议林念趁着团队扩大前，把店里的配方规矩立起来。\r
+\r
+周雨桐拿着记录本问林念。\r
+周雨桐：念念姐，那我们要把所有配方都改成精确到克和秒的标准手册吗？\r
+\r
+> **【玩家选择节点 11.2（M13）：产品标准化的方向】**\r
+> - **选项A：坚持手工制作**（\`traditionScore + 8\`，产品特色更强，熟客满意度提升）\r
+> - **选项B：引入统一制作流程**（\`efficiencyScore + 8\`，制作体力消耗降低，后续更容易发展多门店）\r
+> - **选项C：保留核心手工步骤，其他流程标准化**（\`traditionScore + 4, efficiencyScore + 4\`，获得平衡路线奖励）\r
+\r
+**【分支A：选择「坚持手工制作」】**\r
+林念：林记的灵魂就在于手工打发和根据每日鲜果状态微调的细腻感。我们统一原料品质标准，但保留烘焙师手工操作与现制装饰的传统。\r
+林暖赞许地点头。\r
+林暖：没错，老顾客吃的就是这份手工的鲜活气儿。\r
+\r
+**【分支B：选择「引入统一制作流程」】**\r
+林念：要想让每一位客人吃到的每一块蛋糕都毫无落差，我们必须把所有原料克重、搅拌时间、烤箱温区全部量化成标准作业表！\r
+周雨桐认真地记在笔记本上。\r
+周雨桐：好！我这就把后厨的电子秤和计时器全部重新校准一遍！\r
+\r
+**【分支C：选择「保留核心手工步骤，其他流程标准化」】**\r
+林念：我们把前面的原料称配、蛋糕胚烘烤全部做成标准流程，提高效率；而最关键的果酱熬制和奶油裱花依然保留手工微调，兼顾稳定与温度。\r
+周雨桐眼睛一亮。\r
+周雨桐：这样既不会出错，又能保留每一批水果最好的味道！\r
+\r
+---\r
+\r
+### M14｜许知遥加入\r
+**【事件ID：EVT_M14_MAIN｜触发月份：M14第1个经营日】**\r
+**【状态变更：解锁「订单运营系统」，许知遥加入】**\r
+\r
+随着线上预订和日常客流同步增长，前厅接待急需专人负责。\r
+这天上午，曾有咖啡店和零售服务经验的23岁女孩许知遥来到林记应聘门店运营。\r
+\r
+许知遥：林店长你好！我叫许知遥。我最擅长的就是跟客人打交道，只要来过店里两次的熟客，他们的口味偏好我基本都能记住！\r
+林念微笑着伸出手。\r
+林念：太好了，我们现在最缺的就是能把前厅和订单沟通撑起来的伙伴，欢迎你加入林记！\r
+\r
+知遥入职后的第一周，把前厅招呼得热火朝天，连来串门的苏晴都夸她嘴甜。\r
+但到了周五傍晚核对周末定制单时，知遥却拿着两张撞期的取货单，急得红了脸。\r
+许知遥：念念、小雨……对不起！今天下午客人太多，我光顾着跟熟客聊天，顺手接了线上两笔加急单，忘了看后厨明早的烤炉上限……\r
+周雨桐温声安慰她。\r
+周雨桐：知遥姐别急，明早我和念念姐早点来烤胚，还赶得上！\r
+许知遥垂下脑袋，有些泄气。\r
+许知遥：我以前只管前台点单，从来没管过这么复杂的排期，我是不是管不好订单运营呀……\r
+林念把一张画好格子的表格放到她面前。\r
+林念：怎么会呢？你能把熟客喜好全记住，这是谁都比不了的本事。从今天起，我们用这张「时段排期核对表」配合你的熟客笔记，每接一单划掉一格，肯定不会再乱了。\r
+许知遥重拾信心，用力点了点头。\r
+许知遥：好！谢谢念念和小雨，我一定把表格用熟！\r
+\r
+---\r
+\r
+### M15｜跨界合作 & 小雨的职业理想 & 苏晴的作品展\r
+**【事件ID：EVT_M15_MAIN｜触发月份：M15第3个经营日】**\r
+**【状态变更：解锁「商业合作玩法」】**\r
+\r
+三月春暖，林记与当地精品咖啡馆合作推出下午茶联名套餐，由许知遥负责对接配送，小雨负责制作茶味切块，苏晴负责拍摄联名海报。\r
+拍摄间隙，苏晴兴奋地打开平板电脑递给林念、小雨和知遥看。\r
+\r
+苏晴：给大家宣布个好消息！我独立拍摄的《小镇手艺人》摄影集，下个月就要在省城青年摄影展上展出了！\r
+林念由衷地抱了抱好友。\r
+林念：苏晴，太为你骄傲了！等展览开幕，我们全店去给你捧场！\r
+许知遥拍手笑道。\r
+许知遥：到时候我们林记给你包一个庆功甜品台！\r
+\r
+傍晚回到后厨，正在整理配方的周雨桐也轻轻叫住了林念。\r
+周雨桐：念念姐，看着苏晴姐和你都有了自己热爱的事业，我也想清楚了。我以前只想找份稳定的工作，但现在，我想把烘焙当成自己一辈子的事业来做。\r
+林念温和地拍了拍她的肩膀。\r
+林念：小雨，不必急着证明自己，按照你的步调继续尝试，我们一起走下去。\r
+\r
+---\r
+\r
+### M16｜婚礼甜品台与定制升级\r
+**【事件ID：EVT_M16_MAIN｜触发月份：M16第2个经营日】**\r
+**【状态变更：解锁「大型活动订单」，解锁新品——生日定制蛋糕（\`cake-custom\`）】**\r
+\r
+四月中旬，林记接到了第一笔百人份户外草坪婚礼甜品台订单，同时正式解锁「生日定制蛋糕（\`cake-custom\`）」。\r
+出餐前夜，林暖特意来后厨帮林念和小雨检查双层翻糖与动物奶油的承重支架。\r
+\r
+林暖：户外草坪风大温度高，支架卡扣一定要锁紧。\r
+周雨桐认真地核对着慕斯杯托盘。\r
+周雨桐：林阿姨放心，两百份鲜果慕斯杯我都加了吉列丁稳固层！\r
+许知遥拿着对讲机和流程表走进来。\r
+许知遥：冷链车和婚礼督导我已经对接过三遍了，明天现场动线包在我身上！\r
+\r
+婚礼当天，布置在草坪上的甜品台惊艳全场，连受邀担任婚礼跟拍的苏晴都忍不住给林记团队拍了一张工作合影。\r
+看着独当一面的小雨和井井有条的知遥，林念第一次体会到团队并肩作战的踏实感。\r
+\r
+---\r
+\r
+### M17｜临江市考察\r
+**【事件ID：EVT_M17_MAIN｜触发月份：M17第3个经营日】**\r
+**【状态变更：解锁「外出考察行动」】**\r
+\r
+周末，林念准备前往邻近的临江市考察商圈市场。\r
+出发前，伙伴们纷纷在店里帮她出谋划策。\r
+\r
+林暖递给女儿一只装满试吃切块的保温袋。\r
+林暖：去大城市看铺子别心急，多看看那边的街坊和年轻人平时都爱逛哪儿。\r
+许知遥递上一张手绘地图。\r
+许知遥：念念，我以前在临江市的咖啡店兼职过，这几个写字楼商圈下午茶需求特别大，我都给你标出来啦！\r
+苏晴背起相机包走过来。\r
+苏晴：今天我正好去临江市冲印胶片，陪你一起去踩点！\r
+\r
+在临江市考察的两天里，林念详细记录下不同商圈的消费习惯与经营成本，开设第一家分店的蓝图在心中渐渐清晰。\r
+\r
+---\r
+\r
+### M18｜唐鸢加入与第三阶段结算\r
+**【事件ID：EVT_M18_MAIN｜触发月份：M18第1个经营日】**\r
+**【状态变更：解锁「专业生产管理」，唐鸢加入】**\r
+\r
+为了筹备分店与生产升级，曾在大型连锁烘焙品牌工作的27岁资深烘焙师唐鸢正式加入林记。\r
+入职第三天，唐鸢便拿着秒表和损耗记录板召集了后厨会议。\r
+\r
+唐鸢：林店长，我观察了三天后厨。林记的味道很好，但制作流程太依赖个人手感了。小雨切水果讲究造型，但耗时偏长；烤炉排班也没有精确到分钟。如果要开分店，这样的效率是不够的。\r
+周雨桐紧张地低下头。\r
+周雨桐：对不起鸢姐，我以后一定加快速度……\r
+许知遥在旁小声打圆场。\r
+许知遥：鸢姐，小雨切的水果造型客人们可喜欢了，每次发到网上都有人夸呢。\r
+林念平静地接过唐鸢的记录板。\r
+林念：鸢姐，你指出的效率问题非常专业，这也是我请你来的原因。但林记立足三十年靠的是手工的温度，我们不能为了快而牺牲品质。接下来，由你负责建立标准化备料流程，小雨负责保留核心风味与装饰灵气，我们一起磨合出属于林记的标准，好吗？\r
+唐鸢推了推眼镜，看向林念认真而坚定的眼神，点了点头。\r
+唐鸢：好，那就用这个月的出品数据说话。\r
+\r
+---\r
+\r
+### 【M18月末：第三阶段目标结算】\r
+**【检查条件（四项完成两项即可进入第四章）：1. 产品平均品质≥3级；2. 完成至少3款标准化配方；3. 店铺口碑≥45；4. 至少一名员工专业能力≥3级】**\r
+\r
+#### ▶ 分支一：阶段达标（进入第四章）\r
+经过一个月的磨合，唐鸢的严谨标准与小雨的灵气、知遥的周到逐渐融为一体。林记烘焙正式解锁「分店筹备与多渠道拓展系统」！\r
+\r
+#### ▶ 分支二：阶段未达标 → 触发短线结局 10.3《小小的团队》\r
+**【事件ID：EVT_SHORT_END_03｜触发条件：M18结算完成目标数 < 2】**\r
+\r
+一年半的时间匆匆而过。\r
+在尝试推进标准化与团队磨合的过程中，林念发现，经营好栖云镇的这一家店，其实已经占据了自己大部分精力。\r
+这天傍晚打烊后，林念把大家召集到木桌旁，端出了刚烤好的提拉米苏。\r
+\r
+林念：这段时间为了追赶扩张指标，大家都绷得太紧了。我想好了，我们暂时不去外地开分店了，就留在栖云镇，把我们这家店经营好。\r
+周雨桐松了一口气，露出甜甜的笑容。\r
+周雨桐：真的吗？其实我最喜欢每天在老店后厨和大家一起研究新口味了！\r
+许知遥笑着举起果汁杯。\r
+许知遥：不管开不开分店，只要跟大家在一起工作，我每天都超开心！\r
+唐鸢神色柔和下来，轻轻推了推眼镜。\r
+唐鸢：虽然规模不大，但能把每一块蛋糕做到极致，也是一种专业。\r
+林暖和背着相机进门的苏晴相视一笑。\r
+苏晴：太好啦！那我的镜头就继续锁定我们栖云镇最快乐的烘焙小分队咯！\r
+\r
+旁白：林念第一次明白，经营事业不一定要不断扩大规模。有一群可靠的伙伴，有一家喜欢的店，就已经很好。\r
+旁白：【达成阶段短线结局：《小小的团队》】\r
+\r
+---\r
+\r
+## 第四章：从一家店到一支团队（第19—24个月）\r
+**章节主题：信任与责任**\r
+**本阶段登场人物：林念、林暖、苏晴、周雨桐、许知遥、唐鸢、叶星河（M21加入）**\r
+\r
+### M19｜分店筹备与知遥的管理理想（含三向路线分支）\r
+**【事件ID：EVT_M19_MAIN｜触发月份：M19第1个经营日】**\r
+**【状态变更：解锁「分店系统」与知遥个人剧情】**\r
+\r
+进入第四章，林记烘焙正式站在了业务扩张的十字路口。\r
+这天打烊后，林暖、周雨桐和唐鸢在后厨盘点设备，许知遥拿着一摞装订整齐的报表走进办公室，神情既认真又有些紧张。\r
+\r
+**【若许知遥信赖度 ≥ 60，额外触发个人交心剧情 \`EVT_M19_ZHIYAO_DREAM\`】**：\r
+林念翻看着条理清晰的《跨渠道订单与熟客复购分析方案》，惊讶地抬起头。\r
+林念：知遥，这份订单分流和预约预警机制全是你自己利用下班时间设计的？\r
+许知遥不好意思地挠了挠头。\r
+许知遥：念念，以前我在咖啡店打工的时候，店长总说我只会跟客人热络聊天，管不好账目和库存。但来到林记这一年，每次我疏忽了，你和小雨、鸢姐都手把手教我用表格和制度去补救……\r
+许知遥深吸了一口气，眼睛亮晶晶地看着林念。\r
+许知遥：其实我心里一直藏着一个目标——我希望有一天，自己也能成为一名真正独当一面的店长，独立负责一家门店！\r
+林念笑着合上文件夹，郑重地递还到她手里。\r
+林念：知遥，你的沟通天赋加上现在的管理条理，早就具备店长的实力了。机会已经来了，我们一起把新业务做起来！\r
+\r
+林念召集林暖、小雨、知遥、阿鸢一起商议扩张方案，并叫来刚拍完外景的苏晴听听年轻消费者的看法：\r
+\r
+> **【玩家选择节点 11.3（M19）：业务扩张路线】**\r
+> - **选项A：立即筹备实体分店**（投入资金较大，扩张速度快，\`efficiencyScore + 8\`）\r
+> - **选项B：先发展线上销售**（投入较低，解锁线上品牌深度路线，\`innovationScore + 6\`）\r
+> - **选项C：与其他店铺合作**（解锁商业联名与专柜合作路线，\`communityScore + 6\`）\r
+\r
+**【分支A：选择「立即筹备实体分店」】**\r
+林念：我们正式在临江市筹备第一家实体直营分店！知遥，新店的前厅筹建和开业活动交给你来挑大梁；鸢姐和小雨负责两家店的统一生产配比！\r
+许知遥激动地站起身。\r
+许知遥：保证完成任务！我一定把临江分店管得妥妥帖帖！\r
+唐鸢点了点头。\r
+唐鸢：后厨的跨店备料标准我已经拟好初稿了，随时可以启动。\r
+\r
+**【分支B：选择「先发展线上销售」】**\r
+林念：我们先全面升级线上商城与冷链包装，开通临江市与周边城镇的「次日达鲜作蛋糕专线」！知遥，线上运营中心和客服团队就由你来担任负责人！\r
+周雨桐举起手。\r
+周雨桐：那我和鸢姐一起优化适合冷链运输的慕斯夹心结构！\r
+\r
+**【分支C：选择「与其他店铺合作」】**\r
+林念：我们与临江市及周边的十家独立咖啡馆、人文书店建立每日鲜配甜品专柜！知遥，各合作门店的每日配送对接与驻店展陈就交给你统筹了！\r
+苏晴笑着鼓掌。\r
+苏晴：那些独立书店和咖啡馆我都熟，宣传照包在我身上！\r
+\r
+---\r
+\r
+### M20｜业务落地与节日限定发布\r
+**【事件ID：EVT_M20_MAIN｜触发月份：M20第2个经营日】**\r
+**【状态变更：解锁「多渠道/分店经营」，解锁新品——节日限定蛋糕（\`cake-festival\`），解锁LV3品牌旗舰店（shop-lv3）升级权限】**\r
+\r
+经过一个月的紧张筹备，临江分店（或跨城线上中心/城市合作专柜）正式落地运营。\r
+开业当天清晨，林念带着林暖、小雨、阿鸢和苏晴一起来到现场支持许知遥。\r
+只见知遥身穿整洁的店长制服，手里拿着运营核对板，从容不迫地安排着试吃引导、收银打包与冷链交接。\r
+\r
+许知遥擦了擦额角的汗，兴奋地跑向大家。\r
+许知遥：念念、林阿姨，你们看！今天一上午三百多单开业礼盒，零差错、零漏单！\r
+林暖欣慰地拍了拍知遥的手。\r
+林暖：知遥这丫头现在管起店来，真是一点都不含糊。\r
+周雨桐端出一盘融合传统红曲与绵密栗蓉的新品切块。\r
+周雨桐：鸢姐带我烤的「节日限定蛋糕（\`cake-festival\`）」也出炉啦，试吃的客人都说特别有节庆气氛！\r
+苏晴举起相机对准众人。\r
+苏晴：来，庆祝我们知遥店长正式上任，也庆祝栖云镇老店升级成LV3品牌旗舰店，大家看镜头笑一个！\r
+\r
+---\r
+\r
+### M21｜叶星河加入品牌视觉合作 & 唐鸢的尘封配方\r
+**【事件ID：EVT_M21_MAIN｜触发月份：M21第2个经营日】**\r
+**【状态变更：解锁「品牌视觉系统」，叶星河开始合作】**\r
+\r
+**【第一幕：理想主义设计师的碰撞】**\r
+随着林记走入更多年轻人的视野，原有的普通纸盒已经跟不上品牌的升级步伐。\r
+经苏晴引荐，22岁的自由插画师、品牌设计师叶星河背着画夹来到了林记。\r
+她一进门，就兴冲冲地在木桌上铺开了自己设计的包装初稿。\r
+\r
+叶星河：林店长、苏晴姐，快看！这是我为林记设计的「云端花语」立体折纸蛋糕盒！客人解开丝带的时候，四个盒角会像花瓣一样层层展开，每一面都有我手绘的水彩插画！\r
+周雨桐凑过去看，忍不住发出赞叹。\r
+周雨桐：哇……上面的草莓和桂花画得好温柔呀，像童话书一样！\r
+旁边的唐鸢拿起打样纸盒试折了一下，眉头却立刻皱了起来。\r
+唐鸢：叶设计师，你这个盒子折一个需要整整两分半钟，而且顶部全是镂空花瓣，根本没有支撑力。两个盒子一叠放，里面的奶油蛋糕当场就会被压塌。\r
+叶星河脸上的笑容一下子僵住了，有些委屈地抱紧画夹。\r
+叶星河：可是……如果做成那种四四方方、硬邦邦的普通盒子，我的插画不就变成流水线印刷品了吗？那样还有什么艺术感呀……\r
+许知遥见气氛有些僵，连忙端来一杯热花茶打圆场。\r
+许知遥：星河妹妹先喝口茶，鸢姐也是担心配送路上蛋糕被压坏了客人会心疼嘛。\r
+林念温和地接过画稿，拿起铅笔在草图纸边轻轻画了一个结构。\r
+林念：星河，你的水彩笔触特别温暖，一下子就抓住了林记的气质。但商业包装首先要保护好里面的蛋糕，还要让店员十秒内能折好。\r
+林念指了指纸上的草图。\r
+林念：你看，如果我们把盒体改成鸢姐要求的五层加厚卡扣方盒，保证承重稳固；但在盒子外面加一层你设计的「镂空水彩抽拉腰封」，客人抽开腰封的瞬间，就像拉开画卷一样看到里面的蛋糕——这样是不是既保住了你的艺术巧思，又解决了后厨的实用难题？\r
+叶星河怔怔地看着草图，眼睛一下子亮了起来。\r
+叶星河：抽拉画卷腰封！对呀，我怎么没想到！原来好的商业设计不是自顾自地画画，而是用更巧妙的结构去帮产品说话！林店长，鸢姐，我这就回去改版！\r
+\r
+**【第二幕：唐鸢尘封的心愿（若唐鸢信赖度 ≥ 60 触发 \`EVT_M21_KEXIN_RECIPE\`）】**\r
+这天深夜，林念巡店经过研发室时，发现唐鸢还留在操作台前，正看着一页写满批注的手写配方稿出神。\r
+\r
+林念轻声走过去。\r
+林念：鸢姐，这么晚还没回去？\r
+唐鸢合上笔记本，难得露出一丝柔和而怀念的神情。\r
+唐鸢：林念，今天看你引导叶星河的样子，让我突然想起了几年前的自己。\r
+林念：几年前？\r
+唐鸢指了指那页手稿。\r
+唐鸢：其实我刚入行的时候，最喜欢的是研发新口味。这是我三年前设计的「焦糖海盐伯爵茶千层」。当时连锁总部觉得工序比普通款多两道、利润率不够极致，直接否决了。从那以后，我就逼着自己只看效率和数字……直到来到林记，看到你和小雨对蛋糕的热情。\r
+林念拿起那页保存得干干净净的手稿，认真地看向唐鸢。\r
+林念：鸢姐，在林记，好味道永远不会被冰冷的数字否定。下周的研发排期，我们一起把你这款伯爵茶千层做出来！\r
+唐鸢怔了一下，镜片后的眼眶微微发热，嘴角扬起一抹久违的笑容。\r
+唐鸢：好。那我可要把压箱底的本事拿出来了。\r
+*（支持唐鸢重新研发后，唐鸢信赖度 +15，专业能力 +10，解锁阿鸢专属研发加成）*\r
+\r
+---\r
+\r
+### M22｜多门店与多渠道业务磨合\r
+**【事件ID：EVT_M22_MAIN｜触发月份：M22第3个经营日】**\r
+**【状态变更：解锁「统一库存管理系统」】**\r
+\r
+双线业务运营满两个月后，栖云镇老店与新渠道之间的销量结构差异显现出来。\r
+林念召集全员开了一场跨店协调会。\r
+\r
+许知遥指着统计表汇报道。\r
+许知遥：念念，老店的街坊们偏爱八寸整只的传统奶油蛋糕，但新店这边的年轻白领下午三点就把切块蛋糕买光了，两边按一样的比例备货，损耗有点高。\r
+唐鸢翻开生产日志。\r
+唐鸢：如果两边后厨各自临时加单，原料库存很容易乱套。\r
+周雨桐小声提出建议。\r
+周雨桐：那我可以把戚风胚和基础奶油做成统一标准批次，早上先发往两边，到了店里再根据知遥姐的预订表做成整寸或者切块！\r
+叶星河也举起手里的设计板。\r
+叶星河：我刚画好了切块专用的手提三角盒和整寸礼盒的通用丝带，两边可以随时切换包装！\r
+林念欣喜地看着默契配合的众人。\r
+林念：太棒了！那我们今天就正式上线「统一库存与差异化备货系统」！\r
+\r
+---\r
+\r
+### M23｜与苏晴的小矛盾（含三向沟通分支，无友情BE）\r
+**【事件ID：EVT_M23_MAIN｜触发月份：M23第3个经营日】**\r
+\r
+这段时间，林念全部身心都扑在跨店管理与新视觉落地中，连续两次因为临时处理店务推迟了和苏晴的约饭。\r
+到了第三次约好的周末下午，林念处理完一笔紧急库存调拨赶到餐厅时，苏晴已经等了大半个小时。\r
+苏晴面前的柠檬水已经化完了冰块。\r
+\r
+苏晴看着风尘仆仆坐下的林念，认真地放下了水杯。\r
+苏晴：念念，我不是不能理解你忙。我只是希望你能提前告诉我，而不是让我一直等。\r
+\r
+> **【玩家选择节点 11.4（M23）：回应苏晴的坦诚】**\r
+> - **选项A：认真解释并道歉**\r
+> - **选项B：承认最近确实有些忽略朋友**\r
+> - **选项C：主动约定以后提前安排时间**\r
+> *（注：三种选择均能圆满解决矛盾，友情不产生BE，解锁不同温情对白）*\r
+\r
+**【分支A：选择「认真解释并道歉」】**\r
+林念诚恳地握住苏晴的手。\r
+林念：苏晴，对不起。刚才分店冷链车临时故障，我急着调度就忘了先给你发消息。不管什么原因，让你白白等这么久都是我的不对。\r
+苏晴神色缓和下来。\r
+苏晴：我不是怪你忙工作，只是怕你什么事都自己扛着，连跟我说一声的时间都没有。\r
+\r
+**【分支B：选择「承认最近确实有些忽略朋友」】**\r
+林念愧疚地低下头。\r
+林念：对不起苏晴……这段时间我满脑子都是报表和库存，下意识觉得你最懂我，就把你的时间排在了最后，确实忽略了你的感受。\r
+苏晴轻轻叹了口气，替她理了理碎发。\r
+苏晴：正因为我们是最好的朋友，有什么不舒服才更要直接说出来呀。还记得我们高一的约定吗？\r
+\r
+**【分支C：选择「主动约定以后提前安排时间」】**\r
+林念认真地拿出随身日程本。\r
+林念：苏晴，对不起！从今天起，我们每周三晚上的饭局我直接写进店长固定日程表里，天塌下来也提前半天跟你说，要是临时有急事，我就带着新烤的小蛋糕去你工作室赔罪！\r
+苏晴噗嗤一声笑了出来。\r
+苏晴：这还差不多！那我可记下了，林大店长不许再赖账！\r
+\r
+**【主线汇合】**\r
+两人相视一笑，就像高一那年放学后的走廊一样，所有的芥蒂都在坦诚的沟通中烟消云散。\r
+\r
+---\r
+\r
+### M24｜二十四岁生日与第四阶段结算\r
+**【事件ID：EVT_M24_MAIN｜触发月份：M24第5个经营日】**\r
+**【状态变更：解锁友情相册NO.10《二十四岁的烛光》】**\r
+\r
+接手林记满两周年的这天，也是林念24岁的生日。\r
+忙完一天的工作后，林念推开栖云镇老店的木门，屋里忽然亮起了温暖的串灯。\r
+林暖、苏晴、周雨桐、许知遥、唐鸢和叶星河围站在长桌旁，桌上摆着一只由大家偷偷合作完成的双层手作生日蛋糕。\r
+\r
+众人：祝念念（林店长）二十四岁生日快乐！\r
+周雨桐指着蛋糕夹心笑道。\r
+周雨桐：念念姐，上层是我调的百香果芒果冻，下层是鸢姐烤的伯爵茶千层底！\r
+叶星河指了指蛋糕顶上的水彩人物插牌。\r
+叶星河：还有我画的Q版林店长！\r
+许知遥递上一张写满全员留言的贺卡。\r
+许知遥：这是我们大家偷偷写的祝福，林店长不许看哭哦！\r
+苏晴最后递过来一只厚实的牛皮纸信封。\r
+苏晴：打开看看，这是我送你的二十四岁礼物——这两年来林记每一步成长的纪实照片。\r
+林暖站在女儿身边，温柔地揽住她的肩膀。\r
+林暖：我们念念满二十四岁了，现在身后有一整支这么棒的队伍陪着你呢。\r
+林念眼眶微湿，看着身边的家人、好友与伙伴。\r
+林念：两年前刚毕业的时候，我还觉得自己什么都做不好。谢谢你们……让我知道，我已经不再是一个人经营一家店了。\r
+\r
+---\r
+\r
+### 【M24月末：第四阶段目标结算】\r
+**【检查条件（四项完成两项，且至少包含第1或第2项业务扩张目标）：1. 成功开设第一家分店；2. 建立稳定的线上或商业合作渠道；3. 建立统一库存系统；4. 至少两名伙伴信赖度达到50】**\r
+\r
+#### ▶ 分支一：阶段达标（进入第五章）\r
+林记烘焙成功迈出跨区域发展的关键一步，正式进入第五章「区域品牌发展与品牌灵魂重塑」阶段！\r
+\r
+#### ▶ 分支二：阶段未达标 → 触发短线结局 10.4《栖云镇的招牌》\r
+**【事件ID：EVT_SHORT_END_04｜触发条件：M24结算未满足扩张达标要求】**\r
+\r
+两年的经营时光里，林记烘焙逐渐成为了栖云镇家喻户晓的金字招牌。\r
+林念尝试过向外扩张，但最终发现，比起在陌生城市里奔波应付复杂的报表，自己更喜欢守在熟悉的街巷里，把眼前的这家店做到极致。\r
+她将栖云镇的门店重新装修了一番，增加了更多宽敞的座位，叶星河为墙面绘上了温馨的壁画，小雨和阿鸢在后厨从容地研发着时令点心，知遥在前厅笑吟吟地招呼着陈奶奶等老熟客。\r
+\r
+在一个阳光明媚的午后，苏晴站在店门外，拍下了林记最漂亮的一张照片。\r
+林念靠在门框边，看着照片笑了笑。\r
+林念：其实我们也没有走得很远嘛。\r
+苏晴放下相机，眉眼弯弯地看向她。\r
+苏晴：但是你已经把这里变成自己喜欢的样子了呀。\r
+\r
+旁白：没有走向全国，却成为一座小城里不可替代的存在。\r
+旁白：【达成阶段短线结局：《栖云镇的招牌》】\r
+\r
+---\r
+\r
+## 第五章：找回林记的味道（第25—30个月）\r
+**章节主题：传承、友情与团队（全篇最核心剧情章节）**\r
+**本阶段登场人物：林念、林暖、苏晴、周雨桐、许知遥、唐鸢、叶星河、陈奶奶**\r
+\r
+### M25｜进入周边城市市场 & 叶星河的作品展筹备\r
+**【事件ID：EVT_M25_MAIN｜触发月份：M25第1个经营日】**\r
+**【状态变更：解锁「周边城市品牌扩张」】**\r
+\r
+进入第三年，林记烘焙开始进入周边城市市场，并收到了省城年度盛会「江南秋日文化节」的正式参展邀请。\r
+这天下午，叶星河抱着一摞画册来到店里，有些紧张地找到林念和苏晴（若叶星河信赖度 ≥ 60，触发星河个人剧情）。\r
+\r
+叶星河：林店长，苏晴姐，下个月青年艺术中心有个青年设计联展，我想报名参加个人作品展示，但不知道怎么把纯插画和商业包装结合起来展示，你们能帮我参谋一下吗？\r
+\r
+> **【玩家选择节点 7.5（M25）：帮助叶星河准备个人作品展】**\r
+> - **选项A：帮助她整理作品脉络**（星河信赖度 +15，专业能力 +8）\r
+> - **选项B：联系苏晴一起帮她拍摄实物产品照片**（星河信赖度 +12，专业能力 +10，\`innovationScore + 5\`）\r
+> - **选项C：从经营者角度提供商业反馈**（星河信赖度 +10，专业能力 +12，\`efficiencyScore + 5\`）\r
+\r
+**【分支A】**\r
+林念：星河，我们把你最开始的手绘原稿和最终落地的林记抽拉礼盒并排陈列，让观众一眼看到一幅插画是怎么变成温暖商品的。\r
+叶星河眼睛一亮。\r
+叶星河：这个展陈脉络太清晰了，谢谢林店长！\r
+\r
+**【分支B】**\r
+林念：实物展示交给我们！我让小雨烤好全套样品，再请苏晴帮你拍一组光影质感拉满的包装实景照挂在展位上。\r
+苏晴拍了拍相机包。\r
+苏晴：包在我身上，保证把星河的设计拍得像艺术品一样！\r
+\r
+**【分支C】**\r
+林念：商业设计展的评委很看重落地效果。我让知遥和鸢姐帮你整理一份新包装上线后的复购提升与损耗下降数据，附在你的设计说明旁。\r
+叶星河感激地点了点头。\r
+叶星河：有真实经营数据做支撑，我的方案一定能脱颖而出！\r
+\r
+---\r
+\r
+### M26｜外婆的旧配方：桂花栗子蛋糕\r
+**【事件ID：EVT_M26_MAIN｜触发月份：M26第2个经营日】**\r
+**【状态变更：解锁招牌研发，解锁新品——桂花栗子蛋糕（\`cake-signature\`）】**\r
+**【CG：osmanthus】**\r
+\r
+为了筹备两个月后的「江南秋日文化节」，林念把全员召集到店里开选品会。\r
+桌面上摆着好几款时下流行的新式甜点样品，但大家尝过一圈后，总觉得差了一点意思。\r
+\r
+周雨桐放下小勺，有些犹豫地开口。\r
+周雨桐：念念姐，这几款伯爵茶慕斯和栗子蒙布朗虽然好看，但总觉得别的网红店也能做，好像少了一点一眼就能认出是「林记」的独特记忆。\r
+叶星河托着腮帮子点了点头。\r
+叶星河：我画秋日文化节的海报草图时也有这种感觉，总觉得缺一个有故事的核心意象。\r
+唐鸢翻看着市场调研报告。\r
+唐鸢：这次秋日文化节有几十家省内知名品牌参展，如果只是拿常规款去比拼，很难真正立住林记的品牌招牌。\r
+\r
+就在众人陷入沉思时，林暖从里屋走了出来，手里捧着那本边角泛黄的外婆旧配方本。\r
+她轻轻翻到中间夹着一枚干桂花书签的一页，推到林念面前。\r
+\r
+林暖：念念，既然是江南的秋日文化节，不如看看你外婆当年最拿手的这款——「桂花栗子蛋糕」？\r
+林念凑过去，只见泛黄的纸页上用毛笔小楷写着「金桂秋栗糕」几个字。\r
+林念：桂花栗子蛋糕？妈，我小时候好像只在秋天吃过几次，后来怎么一直没见店里做过了？\r
+苏晴在旁边听得眼睛一亮。\r
+苏晴：我也记得！读小学那会儿，每次秋天路过你们家后巷，隔着老远都能闻到炒板栗混着桂花蜜的甜香！\r
+林暖怀念地笑了笑。\r
+林暖：这款蛋糕以前在栖云镇可受欢迎了，每到八月桂花一开，街坊们排队来买。但后来镇外高山油栗的进货渠道断了，再加上传统做法要手工慢火炒制栗子泥、用鲜桂花一层层窨制糖浆，太费工夫，保鲜期又短，妈一个人忙不过来，就停做了十几年。\r
+\r
+林念轻轻抚摸着外婆留下的字迹，心头涌起一股滚烫的冲动。\r
+林念：高山秋栗的绵密醇厚，配上江南八月金桂的清雅幽香……没有什么比这款承载了林记两代人记忆的蛋糕，更适合作为我们秋日文化节的招牌主推款了！\r
+许知遥兴奋地拍手。\r
+许知遥：要是把这款停做了十几年的老招牌重新带回来，不仅镇上的老熟客会开心坏了，新城市的客人也能尝到我们林记压箱底的手艺！\r
+唐鸢推了推眼镜，认真地看向配方。\r
+唐鸢：如果能把传统风味用现在的烘焙工艺重新呈现，确实很有竞争力。我们先做小批量试制看看。\r
+\r
+接下来的五天里，林念带着周雨桐和唐鸢一头扎进后厨，林暖也在旁指导栗子去衣与炒制的火候。\r
+当第一炉小批量试制的「桂花栗子蛋糕（\`cake-signature\`）」走出烤箱、抹上清香的桂花动物奶油时，整个后厨都弥漫着令人沉醉的秋日甜香。\r
+苏晴拍下试制样品发上活动预热主页，许知遥开启了线上线下联合预售通道——短短三天时间，预售订单便突破了八百份，创下了林记成立以来的最高纪录！\r
+\r
+---\r
+\r
+### M27｜桂花栗子蛋糕危机（含三向决策分支 & 第十二章伙伴专属协助）\r
+**【事件ID：EVT_M27_MAIN｜触发月份：M27｜连续剧情事件】**\r
+\r
+**【第一幕：突如其来的批量测试危机】**\r
+距离秋日文化节开幕只剩下一个多月。\r
+为了应对突破八百份的庞大预售订单，林记正式启动了第一次大批量生产与跨城冷链运输模拟测试。\r
+然而，测试结束的当天傍晚，研发室里的气氛却降到了冰点。\r
+\r
+唐鸢拿着刚刚出炉的批次抽检报告走进来，脸色十分凝重。\r
+唐鸢：林念，批量生产测试出大问题了。我们在小炉试制时没暴露的隐患，一放大到十倍产能，全炸开了。\r
+林念心里一紧，连忙站起身。\r
+林念：鸢姐，具体是哪些环节出了问题？\r
+\r
+周雨桐端着三盘颜色和质地截然不同的栗子泥走进来，急得眼圈都红了。\r
+周雨桐：念念姐，你尝尝看……我们大批量采购的五百斤高山板栗，因为来自不同山头和采摘批次，本身的甜度和含水量差异特别大！按照外婆配方里的固定克重放糖和牛奶，第一批炒出来甜得发腻，第三批却淡得没有栗子香，而且水分太多，夹心根本立不住！\r
+林念尝了一口，眉头紧紧锁起。\r
+林念：怎么会差这么多……那桂花奶油呢？\r
+唐鸢指着冷藏柜里存放了二十四小时的样品。\r
+唐鸢：更棘手的就是桂花香。小批量现做现吃的时候香气很足，但一旦进入大批量烘烤和二十四小时冷链保存，天然桂花的挥发精油流失得极快，第二天拿出来，几乎只剩下普通奶油味，完全吃不出桂花香了。\r
+\r
+话音未落，许知遥和叶星河也满头大汗地从冷链测试车那边跑了回来，手里拎着几只变形的样品盒。\r
+许知遥声音发颤地打开盒子。\r
+许知遥：念念，冷链运输测试也出状况了！模拟两小时跨城车程颠簸之后，十盒蛋糕里有六盒的传统奶油裱花都出现了塌陷和移位……\r
+叶星河看着自己设计的礼盒，自责得咬紧嘴唇。\r
+叶星河：都怪我……我只顾着外盒腰封好看，内衬底托还是用了普通的平底卡纸，根本卡不住这么重的手工栗子夹心蛋糕！\r
+\r
+四个致命问题在同一天集中爆发，而后台的预售订单提示音还在不断响起。\r
+距离秋日文化节只剩三十几天，如果不能按时交付出合格的产品，林记三十年来攒下的口碑将在一夕之间崩塌。\r
+\r
+**【第二幕：林念的焦虑与唐鸢的提醒】**\r
+接下来的整整三天，林念陷入了接手林记以来最深的焦虑。\r
+她又犯了遇到压力就想「一个人扛下所有事」的老毛病——白天应付前厅与供应商，深夜把所有人都劝回家，自己一个人留在后厨，对着一盆盆板栗泥和桂花糖浆一遍遍重做实验。\r
+直到第四天清晨六点，唐鸢和周雨桐提前到店里时，看到的是满地报废的试验品，以及趴在操作台边眼底布满血丝、手指还被烤盘烫出一道红印的林念。\r
+\r
+周雨桐心疼得眼泪直打转。\r
+周雨桐：念念姐！你昨晚又一宿没睡吗？你的手都烫伤了……\r
+林念揉了揉发胀的太阳穴，声音沙哑而慌乱。\r
+林念：我没事……只要我今天再试二十组配比，把每一袋栗子都由我亲自尝一遍，一定能赶在文化节前调出来的……\r
+唐鸢快步走上前，一把按住了林念还在发抖的打蛋器。\r
+唐鸢：林念，你清醒一点！\r
+林念怔怔地抬起头。\r
+唐鸢看着她，语气严肃却带着掩饰不住的关心。\r
+唐鸢：八百份预售订单，上千斤板栗，这不是靠你一个人熬夜多烤十炉蛋糕就能解决的问题！你现在是林记的主理人，不是当年那个遇到难题只能自己躲在厨房哭的小姑娘了。看看你身后，我们所有人都在等你下指令，你为什么要把我们挡在外面？\r
+\r
+许知遥和叶星河也推门走了进来，看着憔悴的林念，眼眶通红。\r
+许知遥：是啊念念，哪怕天塌下来，也是我们大家一起顶着！\r
+林念看着眼前四个焦急而真挚的伙伴，紧绷了几天的弦终于松动下来，深吸了一口气，逼迫自己冷静下来做出总体决策：\r
+\r
+> **【玩家选择节点 11.5（M27）：应对新品危机的总体决策】**\r
+> - **选项A：坚持原计划，大规模生产**（资金压力较大，需要较强团队能力支撑，成功则品牌影响力大幅飞跃）\r
+> - **选项B：缩减预售数量，优先保证品质**（风险较低，活动直接收益减少，但稳守口碑，\`traditionScore + 5\`）\r
+> - **选项C：延后部分订单，重新优化配方**（主动与顾客沟通分批交付，获得额外研发时间，\`communityScore + 5\`）\r
+\r
+**【分支A：选择「坚持原计划，大规模生产」】**\r
+林念擦干脸上的疲惫，眼神重新变得坚定。\r
+林念：鸢姐说得对，是我太钻牛角尖了。每一位预订的客人都是因为信任林记才下单的，我们不砍单！从今天起，调集店里所有备用资金，我把难题拆解给你们每一个人，我们全员联手，在文化节开幕前把这四座大山全部拿下！\r
+\r
+**【分支B：选择「缩减预售数量，优先保证品质」】**\r
+林念果断地合上记录本。\r
+林念：品质是林记三十年的命根子，我们绝不能为了冲销量把不成熟的产品交出去。知遥，立刻锁住预售上限，暂停跨城远途新单；剩下的核心订单，我们全员集中全部精力把配方和包装打磨到极致！\r
+\r
+**【分支C：选择「延后部分订单，重新优化配方」】**\r
+林念沉稳地做出安排。\r
+林念：我们坦诚地跟顾客沟通。知遥，把外地配送订单的客人逐一联系一遍，诚恳说明我们正在升级锁香工艺，申请延后一周分批发货，并随盒赠送一份手工伴手礼表达歉意。我们用争取来的时间，全员合力把配方彻底攻克！\r
+\r
+---\r
+\r
+#### 【第十二章机制：伙伴专属协助判定（根据前期养成自动触发对应分支）】\r
+\r
+在林念确立总体方案后，团队成员纷纷站出来主动分担难题：\r
+\r
+**1. 周雨桐（小雨）的协助：**\r
+- **【高养成解锁分支：小雨信赖度 ≥ 70 且已完成M11创意研发剧情】**\r
+  第二天清早，周雨桐捧着三盘标好记号的栗子泥和一碗晶莹剔透的琥珀色冻块跑进研发室，眼睛亮晶晶的。\r
+  周雨桐：念念姐，鸢姐，你们快看！我昨晚把仓库里五批栗子全部测了一遍水分和糖度，按甜度分成了A、B、C三级！以后进货先做小样分级，就再也不怕甜度乱跑了！\r
+  林念惊喜地看向她手里的琥珀色冻块。\r
+  林念：小雨，那这一碗是什么？\r
+  周雨桐脸颊微红，却自信地挺起胸膛。\r
+  周雨桐：这是我翻以前那个创意小本子想到的办法！既然桂花烤过容易散香，我就用低温冷萃的桂花蜜做成「微凝桂花冻」，直接嵌在绵密的栗子泥夹心中间，再用轻乳酪奶油代替容易化边的传统高耸裱花——你们快尝尝，这样不仅运输不会塌，桂花香还能锁在夹心里整整三天不散！\r
+  林念尝了一小口，清冽的桂花幽香在舌尖瞬间绽放，她激动地握住小雨的手。\r
+  林念：小雨！这个桂花冻夹心太绝了！你真的帮了林记天大的忙！\r
+  周雨桐开心地笑弯了眉眼。\r
+  周雨桐：以前都是念念姐保护我、鼓励我，现在我也终于能替念念姐撑起一片天啦！\r
+- **【普通保底分支：未满足高养成条件】**\r
+  林念带领小雨耗费数个经营日，在后厨反复进行常规批次抽检与糖量微调，逐步摸索出稳定的栗子泥处理方案。\r
+\r
+**2. 唐鸢的协助：**\r
+- **【高养成解锁分支：阿鸢信赖度 ≥ 70 且已完成原创配方研发剧情】**\r
+  唐鸢将一份连夜赶制出来的《桂花栗子动态标准化生产流程图》铺在操作台上。\r
+  唐鸢：小雨解决了风味载体，批量生产的损耗和温控就交给我。我结合之前做伯爵茶千层时的分段萃香经验，把传统炒栗工序拆解成了「低温预烘脱水+分段控糖搅拌」两个标准模块。\r
+  林念仔细看着流程图上的参数，赞叹不已。\r
+  林念：鸢姐，这样一来，哪怕两家店的后厨同时开火，也能做出完全一样醇厚的焦香栗子泥了！\r
+  唐鸢微笑着推了推眼镜。\r
+  唐鸢：是你让我明白，标准化的真正意义，就是帮好手艺插上翅膀。\r
+- **【普通保底分支：未满足高养成条件】**\r
+  唐鸢按照常规连锁排产经验，协助后厨重新排定了加班烘烤班次，保障基础产能。\r
+\r
+**3. 许知遥的协助：**\r
+- **【高养成解锁分支：知遥信赖度 ≥ 70 且已完成M19订单管理系统剧情】**\r
+  许知遥拿着平板电脑，精神抖擞地走进办公室。\r
+  许知遥：念念，前厅和线上预订的八百多位客人，我已经全部按「文化节现场自提」「栖云镇老店自提」「跨城冷链专送」做好三级分流表了！所有需要微调取货时段的熟客我也逐一电话联系完毕，陈奶奶和几十位老街坊不仅没有一句怨言，还在群里给我们全员加油呢！\r
+  林念长长地舒了一口气。\r
+  林念：有知遥坐镇前厅和大后方，我心里的大石头彻底落下一半了。\r
+- **【普通保底分支：未满足高养成条件】**\r
+  林念与知遥一起花费额外行动力，逐一处理顾客咨询与订单排期调整。\r
+\r
+**4. 叶星河的协助：**\r
+- **【高养成解锁分支：星河信赖度 ≥ 70 且已完成M25个人作品展剧情】**\r
+  叶星河气喘吁吁地从包材厂赶回来，手里拎着一只结构精巧的打样礼盒。\r
+  叶星河：林店长，鸢姐，你们看！我把礼盒内部改成了双层十字卡扣加厚防震底托，外盒保留「秋山桂雨」抽拉画卷腰封。刚才我抱着装好蛋糕的样品盒，坐城际公交颠簸了一个来回，打开看里面纹丝不动！\r
+  唐鸢亲自上手晃了晃盒子，打开检查后，难得地向叶星河竖起了大拇指。\r
+  唐鸢：十秒成型，承重满分。叶设计师，这次是真正合格的商业作品了。\r
+  叶星河开心地欢呼起来。\r
+- **【普通保底分支：未满足高养成条件】**\r
+  团队采购了通用型加固冷链包装盒，通过增加冰袋与防撞棉解决基础运输问题。\r
+\r
+---\r
+\r
+### M28｜找回记忆：外婆的十二字批注\r
+**【事件ID：EVT_M28_MAIN｜触发月份：M28｜连续剧情事件】**\r
+\r
+虽然技术与包装难关在伙伴们的协力下逐一突破，但林念站在操作台前看着样品，心里依然有一丝解不开的困惑——\r
+改用了分级配比、微凝桂花冻与现代稳固造型之后，这款桂花栗子蛋糕，还算得上是外婆传下来的「林记老味道」吗？\r
+\r
+苏晴来找林念送内存卡时，一眼就看出了好友眉宇间的犹豫。\r
+苏晴：念念，所有技术问题不是都快解决了吗？怎么还皱着眉头呀？\r
+林念低头看着手里的样品。\r
+林念：苏晴，为了适应现在的批量生产和运输，我们调整了糖量配比，也改了桂花入料的方式和造型。我一直在想……这样做出来的蛋糕，老街坊们吃了，会不会觉得我们已经把外婆的味道弄丢了？\r
+苏晴看着林念认真的侧脸，温和地笑了笑，背起自己的相机包。\r
+苏晴：关于「什么是林记真正的味道」，我们坐在这儿猜可没用。等我三天，我帮你去找答案。\r
+\r
+接下来的三天里，苏晴借着自己拍摄《栖云镇人物志》摄影项目的机会，扛着相机和录音笔走遍了青石板街，拜访了陈奶奶等十几位光顾林记二三十年的老顾客。\r
+三天后的傍晚，苏晴把林念、林暖、小雨、知遥、阿鸢和星河全都叫到了店里，在投影布上放出了她拍下的一张张老街坊访谈照，并按下了录音笔的播放键。\r
+\r
+录音笔里传来了陈奶奶熟悉的笑声和街坊们温热的话语：\r
+陈奶奶（录音）：晴晴问我记不记得林老太太当年的桂花栗子蛋糕呀？怎么不记得哟！那时候哪有什么死板的标准，有一年秋天雨水多，山上的栗子没那么甜，林老太太就在夹心里多加一勺桂花蜜；有一年霜降早，桂花香淡了，她就在装盒前现撒一把金桂干花。\r
+老街坊张叔（录音）：我们老街坊惦记林记的桂花栗子蛋糕，哪是在意上面的奶油花挤成什么形状呀？我们怀念的，是每年秋风一起，全家人围在八仙桌边，打开林记的盒子闻到那股热乎乎、实打实的桂花板栗香！\r
+\r
+后厨里安安静静的，所有人都被录音里朴实的话语打动了。\r
+林暖看着投影幕布上老街坊们的笑脸，眼眶微微泛红，忽然像是想起了什么，快步走到桌边翻开外婆那本旧配方本的封底夹页。\r
+在泛黄纸页的最角落，留着一行极小却苍劲有力的铅笔备注。\r
+林暖轻轻念了出来：\r
+**「栗子甜则少放糖，桂花香淡则后撒。」**\r
+\r
+林暖转过头，慈爱而笃定地看向林念。\r
+林暖：念念，妈全想起来了。你外婆当年在世的时候常跟我说，食材是活的，人是活的，方子也得是活的。她从来没有要求后人每年做出一模一样的死板数字，而是要顺应每一季食材的脾气，把最新鲜、最妥帖的味道送到客人嘴里。\r
+周雨桐恍然大悟地轻声惊呼。\r
+周雨桐：栗子甜则少放糖，桂花香淡则后撒……原来我们做原料甜度分级和后置桂花冻锁香，刚好和外婆几十年前的想法一模一样！\r
+唐鸢也露出了由衷的敬佩之色。\r
+唐鸢：用现代科学的方法，去实现老一辈手艺人的智慧——林念，这就是最好的传承。\r
+\r
+林念看着那十二个字，又看向身边微笑着的苏晴、母亲与全体伙伴，心头最后一层迷雾彻底散去。\r
+林念：我终于明白了。传承从来不是一成不变地复刻过去，而是带着外婆和妈妈的心意，用我们这一代人的方式，把林记的味道继续传下去！\r
+林念拿起抹刀，声音清亮而充满力量。\r
+林念：伙伴们，全员开工——让我们把林记真正的招牌，带去秋日文化节！\r
+\r
+---\r
+\r
+### M29｜秋日文化节 & 友情线最高潮（含高三完整回忆）\r
+**【事件ID：EVT_M29_MAIN｜触发月份：M29｜强制连续主线剧情】**\r
+**【状态变更：friendshipMemories 全解锁】**\r
+\r
+**【第一幕：秋日文化节的盛况】**\r
+十月中旬，省城会展中心迎来了万众瞩目的「江南秋日文化节」。\r
+由叶星河设计的林记烘焙主题展位宛如一座微缩的江南秋日庭院，右侧的一面木质展墙上，挂满了苏晴拍摄的《栖云镇老街坊与林记的三十年》纪实摄影照，引得无数游客驻足细看。\r
+\r
+展台前，许知遥带着店员们热情地引导着排成一条长龙的顾客。\r
+许知遥：线上预售自提的客人请往左边通道走，现场购买和试吃的客人请排右边，今天每一份礼盒都配有我们星河设计师手绘的秋山桂雨书签哦！\r
+开放式操作台后，唐鸢与周雨桐配合得行云流水，一盒盒刚刚完成最后一道金桂点缀的桂花栗子蛋糕被端上展台。\r
+周雨桐将切好的试吃小块递给围观的食客。\r
+周雨桐：大家请尝尝看，这是我们林记传承了三代人的桂花栗子蛋糕！\r
+一位年轻美食博主尝了一口，眼睛瞬间亮了起来。\r
+年轻食客：哇！一打开叶星河设计的那个抽拉腰封，桂花香就扑鼻而来！里面的栗子泥绵密得像云朵一样，中间那层冰凉清润的桂花冻更是神来之笔，完全不腻！我要再买两盒带回家给爸妈尝尝！\r
+\r
+林暖陪着专程坐大巴车赶来捧场的陈奶奶站在展位旁，看着被人群簇拥的林念和年轻伙伴们，笑得合不拢嘴。\r
+陈奶奶：林大姐，你看念念和这群姑娘们多能干！咱们栖云镇的老味道，如今真是走到大城里发光发热咯！\r
+林暖欣慰地点了点头。\r
+林暖：是啊，从今往后，这林记的大旗，我是彻彻底底可以交给念念了。\r
+\r
+连续三天的秋日文化节，林记烘焙不仅圆满交付了全部预售订单，现场加售的五百盒礼盒也全部售罄，更收到了省内外多家商业中心与媒体的合作邀约。\r
+\r
+**【第二幕：暮色展馆与高三回忆】**\r
+文化节最后一天傍晚，喧嚣的人群渐渐散去。\r
+林暖先带着小雨、知遥、阿鸢和星河去装车清点物料，偌大的展馆角落里，只剩下林念和正在低头拆卸三脚架的苏晴。\r
+金红色的晚霞透过高大的玻璃穹顶倾泻而下，落在那面挂满三年记忆的照片墙上。\r
+\r
+林念静静地看着照片墙上老街坊的笑脸，又看向从大一、大四一直陪自己走到今天的苏晴，胸口涌起一股无法用言语形容的暖流。\r
+如果没有苏晴在第一个月第一天推门进来给她拍下第一张照片，没有苏晴在夏日市集帮她搭起展台，没有苏晴在自己最迷茫的危机时刻跑遍全镇找回外婆的味道……她或许很难走到今天。\r
+\r
+林念快步走过去，在苏晴直起身的那一刻，一下子上前紧紧抱住了苏晴。\r
+**【CG：festival】**\r
+林念：呜呜呜，你真好！\r
+林念：我们要做一辈子的好朋友！\r
+\r
+苏晴愣了一下，随后轻轻弯起了嘴角。\r
+苏晴没有马上回答。\r
+她想起了几年前那个晚自习的夜晚。\r
+\r
+---\r
+\r
+**【插入完整回忆 8.3：高三——苏晴认定一辈子的朋友】**\r
+**【CG：memory】**\r
+**【事件ID：EVT_FLASHBACK_HS3_FULL】**\r
+\r
+高三时，苏晴换了一位新同桌，名叫沈妍。\r
+两人刚开始相处正常，但此前沈妍曾与其他同学发生过冲突。\r
+某天，同学许佳宁小声提醒苏晴：\r
+\r
+许佳宁：苏晴，你最近和新同桌相处得还好吗？\r
+苏晴：挺好的呀，怎么了？\r
+许佳宁：她之前和同学发生过一些冲突，最近状态好像也不太稳定。我也不清楚具体情况，只是觉得你们现在是同桌，还是稍微留意一下比较好。\r
+苏晴：啊？这样吗。谢谢你的提醒。\r
+\r
+之后，沈妍与苏晴相处一直比较正常，苏晴也没有太在意这件事。\r
+某节晚自习下课，林念照常来到苏晴班级找她。\r
+\r
+林念：我给你带了妈妈做的小面包！\r
+苏晴：哇！谢谢你！\r
+苏晴咬了一口。\r
+苏晴：真好吃！\r
+苏晴：对了，我跟你讲，我上周看到一本小说……\r
+\r
+两个人正聊着天，沈妍突然从教室前门冲了进来。\r
+她误以为苏晴向老师透露了自己的事情，情绪激动，手里还拿着一把长柄伞。\r
+随后，她突然挥动雨伞，冲向苏晴。\r
+苏晴完全没有反应过来。\r
+林念第一时间冲上前，试图将两人分开，同时大声呼喊老师。\r
+周围同学被突发情况吓住，班长赶紧跑去找值班老师。\r
+短暂的混乱后，老师赶到现场，制止了冲突。\r
+苏晴受了伤，随后由老师陪同处理。学校联系了双方家长，后续也安排了相应的沟通和处理。\r
+\r
+事情发生后，苏晴被老师叫去询问经过。\r
+她一直表现得很冷静，能够清楚地回答老师的问题。\r
+直到她走出办公室。\r
+她看到了刚从办公室回来的林念。\r
+林念的眼睛红红的。\r
+一见到苏晴，她就走上前，紧紧抱住了她。\r
+\r
+林念：你吓死我了……\r
+林念：有没有哪里不舒服？\r
+\r
+苏晴已经记不清林念具体说了什么。\r
+她只记得那个拥抱。\r
+刚刚还能冷静回答老师问题的她，在看到林念的那一刻，突然忍不住了。\r
+那些被压下去的惊吓和委屈一下子涌了上来。\r
+她抱着林念哭了出来。\r
+\r
+旁白（苏晴视角）：\r
+刚刚在教室里的时候，我好像什么感觉都没有。\r
+老师问我事情经过，我可以很平静地回答。\r
+可是看到林念的那一刻，我突然就忍不住了。\r
+我想起高一的时候，我们约定过，有什么事情都要直接告诉对方。\r
+我也想起高二的时候，每次一下课，她总会出现在我们班后门。\r
+原来有一个人会这样在意自己，是一件很幸福的事情。\r
+**苏晴想：我想和这个人做一辈子的好朋友。**\r
+\r
+---\r
+\r
+**【回到现在：秋日文化节现场】**\r
+展馆里的晚霞温柔地笼罩着相拥的两人。\r
+苏晴伸出手，轻轻拍了拍林念的后背，声音轻柔而笃定。\r
+\r
+苏晴：傻瓜，怎么还哭鼻子了？一会儿小雨她们回来看到林大店长哭成小花猫，我可得抓拍下来。\r
+林念把脸埋在她肩头，瓮声瓮气地笑骂了一句。\r
+林念：你敢拍我就没收你的无花果蛋糕！\r
+苏晴弯起嘴角，眼底满是温柔的笑意。\r
+\r
+旁白（苏晴视角）：\r
+其实，早在几年前，我就已经下定决心了。\r
+我要和你做一辈子的好朋友。\r
+\r
+---\r
+\r
+### M30｜第五阶段总结与结算\r
+**【事件ID：EVT_M30_MAIN｜触发月份：M30第5个经营日】**\r
+**【注意：系统规则强制要求先完整播放完桂花栗子蛋糕主线与M29友情高潮后，再进行第五阶段目标检查】**\r
+**【检查条件（四项完成两项即可进入第六章）：1. 成功研发桂花栗子蛋糕；2. 完成生产和运输测试；3. 完成秋日文化节；4. 至少两位伙伴提供专属协助】**\r
+\r
+#### ▶ 分支一：阶段达标（进入第六章）\r
+秋日文化节之后，林记烘焙的名声响彻省内外。林暖正式将代表林记最高经营权的印章交给女儿，小雨、知遥、阿鸢、星河与苏晴围在林念身边，共同开启最后半年的「全国布局与高端旗舰店」新征程！\r
+\r
+#### ▶ 分支二：阶段未达标 → 触发短线结局 10.5《桂香留在栖云》\r
+**【事件ID：EVT_SHORT_END_05｜触发条件：M30结算完成目标数 < 2】**\r
+\r
+秋日文化节结束后，林记重新研发的桂花栗子蛋糕获得了当地顾客的由衷喜爱。\r
+但经过这次高强度的活动筹备，林念也清醒地发现，团队目前的步调还不适合强行进行大规模的全国扩张。\r
+这天午后，门前的金桂树落了一地碎金，林念把所有伙伴叫到小院里，分吃着今年秋天的最后一批桂花栗子蛋糕。\r
+\r
+林念：这段时间大家都辛苦了。我想了想，我们不急着去外省开连锁了，就把这款桂花栗子蛋糕定为我们林记每年秋天的限定招牌，守好我们现在的门店。\r
+唐鸢端着咖啡，赞同地点了点头。\r
+唐鸢：量力而行、守住品质，本来就是最成熟的经营决策。\r
+周雨桐开心地捧着小盘子。\r
+周雨桐：那我明年秋天还可以继续给街坊们做桂花冻夹心！\r
+许知遥和叶星河笑作一团。\r
+许知遥：陈奶奶今天早上还专门问我，明年秋天能不能提前半年预订呢！\r
+叶星河：那明年的秋山桂雨礼盒，我再给大家画一版新插画！\r
+苏晴将这段时间拍摄的活动照片整理成册，放到桌子中央。\r
+苏晴：来，看镜头——把今年秋天的桂花香，留在我们的相册里吧！\r
+\r
+旁白：有些味道，不需要传遍全国，也值得一直保留下去。\r
+旁白：【达成阶段短线结局：《桂香留在栖云》】\r
+\r
+---\r
+\r
+## 第六章：把喜欢的味道带到全国（第31—36个月）\r
+**章节主题：品牌扩张与新的开始（本章不设普通失败结局）**\r
+**本阶段登场人物：林念、林暖、苏晴、周雨桐、许知遥、唐鸢、叶星河、陈奶奶**\r
+\r
+### M31｜建立统一供应链\r
+**【事件ID：EVT_M31_MAIN｜触发月份：M31第1个经营日】**\r
+**【状态变更：解锁「供应链系统」】**\r
+\r
+进入第三年的最后半年，为了支撑跨城市门店的稳定出品，林念与团队正式建立了统一原料采购、生产与配送体系。\r
+\r
+唐鸢拿着最新的供应链排期表走进办公室。\r
+唐鸢：林念，广西荔浦芋头、高山油栗和牧场鲜奶油的直采冷链已经全部打通了。从这个月起，中央厨房的标准化预处理由我全面负责，你可以从一线制作里彻底抽身，专注整体经营了。\r
+周雨桐也拿着新编好的《四季鲜果验收图谱》走过来。\r
+周雨桐：念念姐，各分店学徒的水果切配培训手册我也做好了！\r
+林暖泡了一壶热茶端进办公室，笑眯眯地看着大家。\r
+林暖：现在后厨有阿鸢和小雨，前厅有知遥，包装有星河，妈算是彻底成清闲老太太咯！\r
+\r
+---\r
+\r
+### M32｜点亮城市地图 & 商业收购邀约（可选分支）\r
+**【事件ID：EVT_M32_MAIN｜触发月份：M32第2个经营日】**\r
+**【状态变更：解锁「城市地图系统」（杭州、上海、南京、成都、广州、北京）】**\r
+\r
+随着供应链运转成熟，林记烘焙开始在更多城市开设门店（\`city-linjiang\`, \`city-hangzhou\`, \`city-shanghai\`, \`city-nanjing\`, \`city-chengdu\`, \`city-guangzhou\`, \`city-beijing\`）。\r
+许知遥每天在办公桌前调度着各城市的店长晨会，叶星河则为每座新城市设计了融入当地风物的城市限定腰封，苏晴也常跟着林念出差，记录下一家家新店亮起招牌的瞬间。\r
+\r
+**【独立可选分支事件：资本收购邀约 \`EVT_M32_ACQUISITION_OFFER\`】**\r
+这天下午，一家大型餐饮投资集团正式向林念发出全资收购「林记烘焙」品牌与门店的邀请。\r
+\r
+> **【玩家选择节点 13.6（M32/M35）：面对品牌收购邀约】**\r
+> - **选项A：婉拒收购，坚持自主经营林记**（继续正常推进第六章主线，走向最终结局13.1—13.5）\r
+> - **选项B：接受收购邀约，卸下经营重担**（将在结算时进入独立选择型遗憾结局 13.6《转让》）\r
+\r
+---\r
+\r
+### M33｜旗舰店设计（含四向风格分支）\r
+**【事件ID：EVT_M33_MAIN｜触发月份：M33第3个经营日】**\r
+**【状态变更：解锁 LV4 高端主题门店（shop-lv4）】**\r
+**【CG：flagship】**\r
+\r
+第三年的春天，林念决定建设林记烘焙的最高等级门店——LV4 高端主题旗舰店（配备拱形门洞、大理石台面、精致花艺与独立旗舰产品展示空间）。\r
+筹备会上，全员齐聚一堂。\r
+\r
+叶星河铺开一整套完整的品牌视觉与空间设计蓝图。\r
+叶星河：林店长，这是我结合这三年林记的成长历程，为大家准备的四套旗舰店终极视觉方案！\r
+唐鸢与周雨桐也端出了专为旗舰店研发的首发限定系列。\r
+唐鸢：不论选哪一套空间风格，我和小雨都已经配好了对应的主题甜点展陈。\r
+苏晴调试着新入手的专业全画幅相机。\r
+苏晴：等旗舰店落成那天，我带工作室全套灯光来给咱们拍一套镇店宣传大片！\r
+\r
+> **【玩家选择节点 11.6（M33）：旗舰店设计风格】**\r
+> - **选项A：传统复古风格**（\`traditionScore + 10\`，雕花木窗与岁月铜牌，深受长辈与文化食客喜爱）\r
+> - **选项B：现代简约风格**（\`efficiencyScore + 10\`，极简奶油白与通透玻璃动线，出餐与展示效率拉满）\r
+> - **选项C：高端主题风格**（\`innovationScore + 10\`，艺术策展式甜品空间，品牌影响力大幅提升）\r
+> - **选项D：自然温馨风格**（\`communityScore + 10\`，原木花艺与阳光庭院座位，顾客停留意愿与舒适度最高）\r
+\r
+---\r
+\r
+### M34｜全国门店管理体系\r
+**【事件ID：EVT_M34_MAIN｜触发月份：M34第2个经营日】**\r
+\r
+随着旗舰店正式投入运营，林记烘焙逐渐形成跨城市门店网络。\r
+这天下午的月度总结会上，林念看着围坐在会议桌旁的伙伴们，心中满是欣慰。\r
+\r
+许知遥合上运营报表。\r
+许知遥：目前各城市门店的店长排班与熟客档案已经全部实现云端同步，顾客满意度连续三个月保持在98%以上！\r
+周雨桐笑着接话。\r
+周雨桐：今年新招的八名烘焙学徒都已经通过我的抹面和水果搭配考核，下周就能正式上岗了！\r
+唐鸢点了点头。\r
+唐鸢：中央研发实验室和培训体系运转一切正常，下一季度的全国新品配方已经定稿。\r
+叶星河晃了晃手里的画笔。\r
+叶星河：三周年店庆的全国统一伴手礼视觉也已经送印啦！\r
+林念看着这支能够独立运作的成熟团队，真正完成了从「会做蛋糕的毕业生」到「品牌创始人」的蜕变。\r
+\r
+---\r
+\r
+### M35｜整理三年摄影作品：完整相册\r
+**【事件ID：EVT_M35_MAIN｜触发月份：M35第4个经营日】**\r
+**【CG：album】**\r
+\r
+三周年庆典前夕的一个傍晚，苏晴来到栖云镇的林记老店找林念。\r
+林暖、小雨、知遥、阿鸢和星河也好奇地围了过来。\r
+苏晴从包里拿出一本装帧考究的亚麻布面手工相册，递到林念手中——封面上印着一行烫金小字：《林记与我们的三年》。\r
+\r
+苏晴：念念，这三年来我给你和林记拍了快两千张照片，最近我把它们全部整理了出来，编成了这本相册。\r
+林念一页页轻轻翻开：\r
+里面有高一教室的素描与高二二班的后门，有林念刚接手林记时紧张的模样，有陈奶奶慈祥的笑脸，有小雨、知遥、阿鸢、星河刚加入时的青涩瞬间，有临江分店、秋日文化节，也有崭新的旗舰店。\r
+周雨桐指着自己刚入职时的照片羞红了脸。\r
+周雨桐：天呐，我那时候拿抹刀的样子好呆呀！\r
+许知遥哈哈大笑。\r
+许知遥：你看我那张，手里还攥着写错的预约单呢！\r
+林念翻到相册的最后一页，发现上面贴着四个透明相角，中间却留着空白。\r
+苏晴笑吟吟地晃了晃手里的相机。\r
+苏晴：最后一页我是故意空出来的——留给明天的三周年庆典，我们两个人的合影！\r
+\r
+---\r
+\r
+### M36｜林记三周年活动（终局盛典）\r
+**【事件ID：EVT_M36_MAIN｜触发月份：M36第5个经营日】**\r
+\r
+三十六个月的时光，在面粉、奶油与四季更迭的香气中悄然走过。\r
+林记烘焙迎来了盛大的三周年店庆。\r
+林暖、苏晴、周雨桐、许知遥、唐鸢、叶星河，还有以陈奶奶为代表的老顾客们齐聚一堂。\r
+系统根据玩家三年来的综合经营成绩、长期经营偏好与伙伴培养进度，正式进入最终结局篇章——\r
+\r
+---\r
+\r
+## 附篇一：四大经营风格专属解锁剧情文案（第6.5节）\r
+*（触发条件：某项风格数值 ≥ 60，且领先其他三项风格至少 15 点时解锁对应专属剧情）*\r
+\r
+### 1. 传统手作派专属剧情：《三代人的老木模》\r
+**【触发条件：\`traditionScore ≥ 60\` 且领先 ≥ 15｜事件ID：EVT_STYLE_TRADITION】**\r
+\r
+这天整理老店阁楼时，林暖带着林念从一只樟木箱底找出了外婆当年创业时亲手雕刻的传统糕点木模。\r
+周雨桐捧着木模，小心翼翼地擦拭着上面的雕花纹路。\r
+\r
+周雨桐：林阿姨，念念姐，这木模上的桂花和福字刻得好细致呀，摸起来还有木头的温润感。\r
+林暖眼底满是怀念。\r
+林暖：这是你外婆年轻时请老木匠用梨木雕的。那时候每逢中秋和重阳，店里都要用它印传统蜜糕。\r
+林念接过木模，心里一动。\r
+林念：妈，小雨，不如我们用外婆的老木模，结合现在的低糖栗蓉和桂花奶黄，复原一套「岁月传承传统节日礼盒」吧！\r
+叶星河立刻举手赞同。\r
+叶星河：那我用棉宣纸和红绳来设计这套礼盒的外包装，把老字号的韵味做足！\r
+\r
+礼盒推出当天，陈奶奶尝了第一口便红了眼眶。\r
+陈奶奶：就是这个味儿！跟三十年前林老太太做的一模一样，连花纹都没变！\r
+苏晴用镜头记录下老街坊们排队的画面，当地非遗文化栏目也闻讯赶来，为林记三代女性守护传统手艺的故事拍摄了专题纪录片。\r
+\r
+---\r
+\r
+### 2. 创意新品派专属剧情：《四季灵感发布会》\r
+**【触发条件：\`innovationScore ≥ 60\` 且领先 ≥ 15｜事件ID：EVT_STYLE_INNOVATION】**\r
+\r
+周末午后，林记烘焙举办了一场别开生面的「江南四时风物·创意甜点品鉴会」。\r
+长桌上摆满了周雨桐与林念共同研发的节气限定甜点，每一款都配有叶星河手绘的节气诗词透卡。\r
+\r
+周雨桐站在展台前，自信地向来宾介绍自己的作品。\r
+周雨桐：这款「春山碧螺春」用了明前绿茶慕斯配青梅果冻，而「夏荷荔枝」则用玫瑰露做出了荷花瓣的清透感！\r
+叶星河晃了晃手里的节气透卡。\r
+叶星河：大家拿着透卡对准蛋糕拍照，就能把江南的诗词和甜点拍进同一个画面里哦！\r
+唐鸢在后厨稳稳把控着每一道分子慕斯的出品温度。\r
+唐鸢：所有创意款的甜度和温度都已经校准完毕，随时可以补货。\r
+许知遥看着手机上不断飙升的同城热搜话题，兴奋地喊道。\r
+许知遥：念念！苏晴姐拍的九宫格新品图在小红书上爆了，现在预约已经排到下个月啦！\r
+\r
+---\r
+\r
+### 3. 高效连锁派专属剧情：《晨光里的零误差》\r
+**【触发条件：\`efficiencyScore ≥ 60\` 且领先 ≥ 15｜事件ID：EVT_STYLE_EFFICIENCY】**\r
+\r
+清晨五点，天还没亮，唐鸢与许知遥带着林念来到新建成的中央标准化配料中心。\r
+恒温车间内灯火通明，电子看板上实时跳动着各家门店的预订库存与冷链分拨进度。\r
+\r
+唐鸢指着大屏幕上的数据汇报。\r
+唐鸢：林念，你看。早上五点半鲜果完成三级质检，六点整恒温冷链车出发，七点整所有门店的展示柜同时摆上温度、甜度、光泽分毫不差的鲜作蛋糕。\r
+许知遥翻开平板上的月度汇总表。\r
+许知遥：自从跑通了这套零误差标准体系，我们各家分店的原料报损率降到了历史最低，出餐速度提升了整整一倍！\r
+苏晴举着相机拍下晨光中整装待发的冷链车队。\r
+苏晴：以前觉得标准化听起来冷冰冰的，今天亲眼看到才明白，把每一份热乎乎的新鲜蛋糕准时送到客人手里，本身就是一件超酷的事！\r
+\r
+---\r
+\r
+### 4. 社区温情派专属剧情：《长街百家甜》\r
+**【触发条件：\`communityScore ≥ 60\` 且领先 ≥ 15｜事件ID：EVT_STYLE_COMMUNITY】**\r
+\r
+在这个春风和煦的周末，林记联合栖云老街的咖啡馆、花店与书店，共同发起了一场「老街邻里公益烘焙体验日」。\r
+青石板街边的梧桐树下摆开了长桌，林念、林暖和小雨免费准备了上百份戚风小胚和动物奶油，教社区的孩子们和老人们一起动手装饰杯子蛋糕。\r
+\r
+陈奶奶系着小围裙，和孙子一起笨拙地挤出一朵歪歪扭扭的奶油花。\r
+陈奶奶：哎哟，平时光看念念和林大姐挤花那么轻松，自己一上手怎么跟画毛毛虫似的！\r
+许知遥笑得前仰后合，连忙递上几颗大草莓帮祖孙俩救场。\r
+许知遥：陈奶奶，咱们往顶上放一颗大草莓，这叫写意派艺术蛋糕！\r
+苏晴穿梭在人群中，快门声响个不停。\r
+苏晴：念念，你看整条栖云老街的人今天都聚在咱们门口了，林记简直成了全镇最温暖的客厅！\r
+林念看着满街的欢声笑语，心里满是柔和的暖意。\r
+\r
+---\r
+\r
+## 附篇二：林念与苏晴36个月专属友情互动剧情（第8.6节｜M1—M36逐月不同剧情）\r
+\r
+*（设计说明：玩家在36个月的任意月份消耗1点行动力点击「与苏晴互动」时，将根据当前所在月份 M1—M36 触发当月专属的唯一剧情，确保36个月每月互动皆不重复，完整串联起两人从刚毕业回乡到三年后的成长轨迹。每个月只能互动一次。）*\r
+\r
+**第一章互动：接手初期的陪伴与打气（M1—M6）**\r
+\r
+### M1｜第一份试吃员聘书\r
+**【事件ID：EVT_FRIEND_M01｜互动类型：支持与调侃】**\r
+\r
+傍晚打烊后，林念趴在收银台前对着第一周的原料进货单按计算器，眉头皱成了小山。\r
+苏晴背着相机包推门进来，神神秘秘地从包里抽出一张自己用彩纸打印的卡片，啪地拍在柜台上。\r
+\r
+苏晴：林老板，请签收你的第一份人事文件！\r
+林念拿起卡片一看，上面印着「林记烘焙首席试吃官兼御用摄影师聘书——持有人：苏晴，薪酬：每日边角料蛋糕一份」。\r
+林念扑哧一声笑了出来，刚才算账的烦躁一扫而空。\r
+林念：苏大摄影师，你这聘书怎么还是自己给自己发的呀？\r
+苏晴理直气壮地拉过吧台椅坐下。\r
+苏晴：我怕你刚当老板不好意思开口请我帮忙嘛！来，先把今天切下来的原味蛋糕边角料交出来，本试吃官要开始履行职责了！\r
+林念转身从冷藏柜里端出一整块完好的草莓奶油蛋糕放到她面前。\r
+林念：哪能让我们的首席摄影师吃边角料呀，给，最大颗草莓的归你！\r
+\r
+### M2｜老街修图夜与热可可\r
+**【事件ID：EVT_FRIEND_M02｜互动类型：认真听苏晴讲工作】**\r
+\r
+夜里九点，苏晴抱着笔记本电脑来到店里，一进门就毫无形象地瘫在旧木桌旁叹气。\r
+林念端来一杯刚冲好的热可可和一块巧克力蛋糕放到她手边。\r
+\r
+林念：怎么啦？我们苏大摄影师今天外拍不顺利？\r
+苏晴喝了一大口热可可，委屈地指着电脑屏幕。\r
+苏晴：念念，我今天接了个散客写真，明明说好是拍栖云镇的水乡老街胶片感，结果客人刚才非让我把后面的青石板路P成欧洲大教堂！我都快把鼠标抠烂了！\r
+林念凑过去看了一眼那张违和感满满的合成图，忍不住笑出声。\r
+林念：哈哈，青瓦白墙配哥特教堂，这也太超前了！\r
+苏晴用叉子戳了戳巧克力蛋糕，闷闷不乐。\r
+苏晴：有时候真怀疑自己回栖云镇做独立摄影是不是太理想化了……\r
+林念拉过椅子坐在她身边，温和而认真地看着她。\r
+林念：才刚刚第二个月呢，就像我每天也在摸索怎么跟老街坊和年轻客人打交道一样。你的镜头拍出的老街最有灵气了，懂你作品的人一定会越来越多，我永远是你的头号粉丝！\r
+苏晴心情瞬间多云转晴，舀起一大勺巧克力蛋糕塞进嘴里。\r
+苏晴：还是我们念念最懂我！来，再给我续半杯热可可，我今晚跟这张图拼了！\r
+\r
+### M3｜芋泥味的砂锅米线\r
+**【事件ID：EVT_FRIEND_M03｜互动类型：邀请苏晴吃饭】**\r
+\r
+研发「芋泥薄脆」的这周，林念连续三天都在后厨试吃不同甜度的芋泥。\r
+到了周五傍晚，林念解下围裙，第一时间冲到苏晴工作室门口敲门。\r
+\r
+林念：苏晴！快救命！带我去吃顿咸的、辣的！\r
+苏晴打开门，闻到林念身上浓浓的奶香与芋头香，顿时乐了。\r
+苏晴：怎么，我们林老板终于被自己的芋泥淹没啦？\r
+林念苦着脸点头。\r
+林念：我现在连打个嗝都是荔浦芋头味！今天说什么也不聊蛋糕了，我们去吃一中校门口那家麻辣砂锅米线！\r
+苏晴立刻关掉修图灯，抓起钥匙挽住林念的胳膊。\r
+苏晴：走走走！我要加双份腐竹、卤蛋和撒尿牛丸！还记得高二那年晚自习课间，我们俩隔着校门铁栏杆买米线，差点被年级主任抓包吗？\r
+林念笑着跟她并肩跑进暮色里。\r
+林念：怎么不记得，当时还是你跑得快，把米线桶藏在校服外套里带回二班后门的！\r
+\r
+### M4｜压箱底的高二传纸条本\r
+**【事件ID：EVT_FRIEND_M04｜互动类型：高中回忆与分享】**\r
+\r
+周末下午，苏晴抱着一个落满灰尘的铁皮文具盒跑进店里，神秘兮兮地朝林念招手。\r
+林念端着两碟新烤的抹茶蛋糕走过来坐下。\r
+\r
+林念：这是什么呀？看着好眼熟！\r
+苏晴打开文具盒，里面整整齐齐码着一沓叠成方块的格子纸和一本交换日记。\r
+苏晴：我妈昨天收拾旧书柜翻出来的！全是我们高一当同桌、高二隔着走廊传纸条攒下的黑历史！\r
+林念好奇地展开一张纸条，念出上面的字。\r
+林念：「苏晴，第四节课下课速来一班后门，我妈今天烤了蜂蜜小蛋糕，晚一秒就被我同桌抢光了！」\r
+苏晴也拆开一张，笑得直拍桌子。\r
+苏晴：哈哈哈哈你看这张你写的！「数学最后一道大题算不出，要是毕业找不到工作我就回家卖一辈子小蛋糕」——林老板，你高二的时候原来是个预言家呀！\r
+林念羞得伸手去抢纸条，两人在木桌旁笑闹成一团。\r
+\r
+### M5｜反光板下的救场模特\r
+**【事件ID：EVT_FRIEND_M05｜互动类型：支持她的摄影项目】**\r
+\r
+这天下午店里休息，林念烤了一篮色泽金黄的法式可颂和水果挞，送到苏晴正在取景的河畔公园。\r
+苏晴正对着空荡荡的野餐垫发愁，见到林念如同见到了救星。\r
+\r
+苏晴：念念！你来得太及时了！今天约好的甜品道具商临时放鸽子，正主模特也堵在半路上了！\r
+林念把装满可颂的藤编篮摆到野餐垫上。\r
+林念：道具这不就来了吗？我刚烤好的，还热乎着呢！\r
+苏晴眼睛一亮，拉住林念的手腕把她按在野餐垫边坐下。\r
+苏晴：光有可颂不够，趁现在阳光正好，林老板先给我当十分钟试光模特！把这块草莓挞举到嘴边，回头看我——\r
+林念有些害羞地举起草莓挞。\r
+林念：我又不会摆姿势，拍出来僵硬可别怪我啊。\r
+苏晴透过取景框看着沐浴在春光里的好友，嘴角轻轻扬起。\r
+苏晴：不用摆姿势，你看着我的时候，本来就是最自然的。\r
+\r
+### M6｜市集前夜的冰镇西瓜\r
+**【事件ID：EVT_FRIEND_M06｜互动类型：主动分享烦恼】**\r
+\r
+夏日生活节开幕前一天晚上，两人把市集要用的亚麻桌布、灯串和保温箱全部清点完毕。\r
+后院的竹椅上摆着半个刚从井水里捞出来的冰镇西瓜，林念拿着勺子挖下最中间的一块递给苏晴。\r
+\r
+苏晴咬了一大口西瓜，舒爽地叹了口气。\r
+苏晴：啊——活过来了！明天就是林记第一次出摊的大日子，林老板紧不紧张？\r
+林念捧着西瓜皮，看着夜空里的星星轻声开口。\r
+林念：说不紧张是假的。半年前刚回家的时候，我连站柜台都怕算错账，没想到明天就要带着自己研发的芒果慕斯去广场摆摊了。\r
+苏晴晃着脚丫子，笑眯眯地撞了撞她的膝盖。\r
+苏晴：你就放心吧！明天我就守在你的摊位旁边，谁敢说咱们林记不好，我就拿长焦镜头怼他！更何况，你的芒果慕斯那么好吃，肯定大卖！\r
+林念被她逗笑，心底最后一点忐忑也化作了期待。\r
+\r
+**第二章互动：步入正轨的默契与回忆（M7—M12）**\r
+\r
+### M7｜除夕夜的仙女棒\r
+**【事件ID：EVT_FRIEND_M07｜互动类型：节日陪伴】**\r
+\r
+除夕夜八点，送走最后一位取团圆蛋糕的顾客，林念刚准备锁上后厨的小门，手机就收到了一条只有五个字的消息：\r
+苏晴（手机消息）：下课来找我。\r
+林念愣了一下，笑着推开后门——只见苏晴裹着厚厚的红围巾站在巷口路灯下，手里攥着两把长长的仙女棒。\r
+\r
+苏晴：林大掌柜，忙完别人家的团圆，该轮到我们放寒假了吧！\r
+林念快步跑过去，接过她递来的仙女棒。\r
+林念：你怎么知道我刚好忙完？\r
+苏晴掏出打火机点亮两根仙女棒，璀璨的金色星火在冬夜里噼啪跳跃起来。\r
+苏晴：高二那会儿每次晚自习拖堂，我不也是算准了时间在走廊等你嘛！来，许个新年愿望！\r
+林念举着跳跃的星火，认真地闭上眼睛。\r
+林念：希望新的一年，林记的生意越来越好，我们苏晴的摄影室也客似云来！\r
+\r
+### M8｜神秘的「二老板」\r
+**【事件ID：EVT_FRIEND_M08｜互动类型：日常趣事】**\r
+\r
+周雨桐入职的第二周，苏晴像往常一样端着相机走进店里，熟门熟路地自己去吧台倒柠檬水、拿试吃小切块。\r
+刚来不久的小雨看在眼里，偷偷把林念拉到后厨角落，小声询问。\r
+\r
+周雨桐：念念姐……外面那位拿相机的姐姐每天都来巡店，她是不是咱们林记深藏不露的二股东呀？\r
+站在门帘后的苏晴正好听见，噗嗤一声笑弯了腰，掀帘走进来。\r
+苏晴：小雨妹妹，你太有眼光了！我就是林记负责吃垮林老板的最大债主！\r
+林念哭笑不得地拍了苏晴一下，向脸红的小雨解释。\r
+林念：小雨你别听她胡说，这是我从高一就坐一桌的好朋友苏晴。以后她来讨蛋糕吃，超过一块你就直接拿擀面杖赶她走！\r
+苏晴夸张地捂住胸口。\r
+苏晴：好哇林念，有了可爱的学徒妹妹，连一块小蛋糕都不舍得给我吃啦！\r
+\r
+### M9｜大学异地的旧车票\r
+**【事件ID：EVT_FRIEND_M09｜互动类型：大学回忆与分享】**\r
+\r
+苏晴生日前夕，林念帮苏晴整理摄影工作室的展示架，偶然在抽屉里看到一叠保存完好的蓝色高铁票根。\r
+每一张票根背面，都用铅笔写着日期和天气，往返于两人当年读大学的两座城市之间。\r
+\r
+林念拿起最上面的一张票根，眼眸微暖。\r
+林念：苏晴，这十几张车票你居然全都留着呢？\r
+苏晴走过来，指着其中一张盖着雪花印章的车票。\r
+苏晴：当然留着啦。你看这张，是大二那年冬天你期末考失利，我在电话里听你声音不对，买最晚一班高铁去你们学校找你。结果那天北方下暴雪，列车晚点两个小时，我一出站就看见你裹成个球，怀里还揣着两杯热奶茶在出站口跺脚。\r
+林念笑着靠在展示架边。\r
+林念：那时候虽然隔着几百公里，但每次只要看到你背着相机走出闸机，我就觉得什么难过都过去了。\r
+苏晴挽住她的手臂。\r
+苏晴：现在更好啦，不用买火车票，抬脚走五分钟就能见着你！\r
+\r
+### M10｜画册上的咖啡印\r
+**【事件ID：EVT_FRIEND_M10｜互动类型：直接表达自己的不满】**\r
+\r
+线上小店筹备期间，苏晴连续熬了两个通宵帮林记修菜单精修图。\r
+这天上午，苏晴把借去参考构图的《法式甜点装盘画册》还给林念，林念翻开封底，发现角落沾了一圈浅褐色的咖啡渍。\r
+\r
+林念没有憋在心里，而是直接指了指那个角落看向苏晴。\r
+林念：苏晴，这本画册的封底是不是你修图喝冰美式的时候不小心蹭到啦？\r
+苏晴一看，顿时懊恼地双手合十。\r
+苏晴：啊！对不起对不起！前天半夜调无花果那张图的色温，手一抖碰倒了杯子，我当时擦干了以为没留印子，正准备在网上给你重新买一本赔罪呢！\r
+林念拿起一张透明磨砂书皮，耐心地帮画册包上边角。\r
+林念：不用买新的，包上书皮就看不出来啦。我们高一就约定过嘛，看到不妥的地方直接说出来，不自己生闷气，也不让你猜。\r
+苏晴抱住林念的肩膀晃了晃。\r
+苏晴：遵命！下次我在修图桌旁边绝对不放不带盖的咖啡杯了！\r
+\r
+### M11｜秋雨夜的热姜茶\r
+**【事件ID：EVT_FRIEND_M11｜互动类型：认真听苏晴讲工作】**\r
+\r
+十一月下起了冷雨，苏晴去古镇拍老手艺人外景，傍晚回来时淋了一身湿气，连打了两个喷嚏。\r
+林念得知后，立刻在后厨煮了一壶红糖姜枣茶装进保温桶，撑着伞送去了苏晴的工作室。\r
+\r
+苏晴裹着毛毯捧着热腾腾的姜茶，感动得直吸鼻子。\r
+苏晴：念念，你简直是我的救命菩萨！今天在古镇蹲了四个小时拍竹编老爷爷，脚都快冻麻了。\r
+林念拿吹风机帮她吹着半干的发尾。\r
+林念：拍手艺人专题这么辛苦，今天拍到满意的镜头了吗？\r
+苏晴提到摄影，眼睛立刻亮了起来，指着显示器上的原片。\r
+苏晴：拍到了！你看这张，雨停那一下正好有一束光打在老爷爷满是老茧的手上。念念，我想把咱们栖云镇这些快要被人遗忘的老手艺全都拍下来，办一场真正的纪实展！\r
+林念看着屏幕里充满生命力的画面，温和地笑了笑。\r
+林念：一定能办成的。不管你拍到多晚，我的热姜茶和烤面包随时给你备着。\r
+\r
+### M12｜一周年与真皮相机带\r
+**【事件ID：EVT_FRIEND_M12｜互动类型：支持她的摄影项目】**\r
+\r
+接手林记满一周年的这天，林念用自己攒下的第一笔年终分红，定制了一条刻着「SQ」缩写的手工焦糖色真皮相机背带，送给苏晴。\r
+\r
+苏晴摸着温润厚实的皮质背带，惊喜得睁大了眼睛。\r
+苏晴：天呐！我原来的尼龙背带磨脖子好久了，一直舍不得换，你怎么连这都看出来啦？\r
+林念帮她把新背带换到相机上，系好安全扣。\r
+林念：每次看你拍完菜单图揉肩膀就知道啦。这一年林记能顺顺利利走到今天，有一半功劳都在你这台相机上呢。\r
+苏晴背上换好新背带的相机，原地转了一圈，举起镜头对准林念。\r
+苏晴：那这第二年的第一张照片，还是得由我们林老板来开光！\r
+\r
+**第三章互动：各自成长的并肩同行（M13—M18）**\r
+\r
+### M13｜盲测十碗奶油的代价\r
+**【事件ID：EVT_FRIEND_M13｜互动类型：主动分享烦恼】**\r
+\r
+为了推进产品标准化，林念在后厨一字排开十碗不同打发转速与糖量配比的动物奶油，把苏晴拉来当「铁面裁判」。\r
+\r
+苏晴吃到第七碗的时候，放下小勺连连摆手。\r
+苏晴：林老板，饶命啊！我就算再爱吃奶油，连尝七碗也要算工伤了！\r
+林念递过一杯解腻的温柠檬水，有些苦恼地看着记录表。\r
+林念：我试了一下午，数字最标准的是第四碗，但总觉得吃起来少了一点以前的手工感。\r
+苏晴漱了漱口，指了指排在第六号的小瓷碗。\r
+苏晴：选六号！四号虽然挺括，但吃起来像酒店自助餐里的标准奶油；六号是九分发转慢速收尾的对不对？入口那一下最像林阿姨和你平时亲手打出来的绵密感！\r
+林念核对了一下底标，惊喜地拍手。\r
+林念：苏晴，你的舌头比我的电子秤还准！真不愧是从小吃林记长大的首席试吃官！\r
+\r
+### M14｜两个社牛的交锋\r
+**【事件ID：EVT_FRIEND_M14｜互动类型：日常趣事】**\r
+\r
+许知遥入职后的第二周，苏晴来店里送修好的宣传照，两个同样开朗健谈的姑娘在吧台前一见如故，从穿搭、胶片机一直聊到镇上的美食八卦。\r
+林念端着刚烤好的抹茶切块走出后厨，见苏晴聊得连蛋糕都忘了吃，故意板起脸敲了敲桌面。\r
+\r
+林念：咳咳，某人今天来林记到底是看老同桌的，还是来跟我们的新店员联谊的呀？\r
+许知遥吐了吐舌头，笑着躲到收银台后去整理单据。\r
+苏晴笑嘻嘻地凑到林念身边，挽住她的胳膊晃了晃。\r
+苏晴：哟，我们林大店长吃醋啦？我是替你考察一下新伙伴嘛！知遥性格又好又爽快，有她在前厅帮你挡着，你就不用每天说得嗓子冒烟了！\r
+林念忍不住笑了出来，把抹茶蛋糕塞进她手里。\r
+林念：算你有理，快吃你的蛋糕吧！\r
+\r
+### M15｜省城展厅的布展义工\r
+**【事件ID：EVT_FRIEND_M15｜互动类型：支持她的摄影项目】**\r
+\r
+苏晴的《小镇手艺人》摄影作品入选省城青年摄影展后，布展那天正好是周末。\r
+林念把店里的事务托付给林暖、小雨和知遥，自己拎着两大盒手作曲奇，一大早坐城际列车赶去省城展厅帮苏晴布展。\r
+\r
+空旷的艺术馆展厅里，苏晴正站在梯子上比划画框高度，林念在下面帮她看着水平线。\r
+林念：往左偏一点点——好，再往上两厘米，正了！\r
+苏晴从梯子上跳下来，擦了擦额头的汗，看着整面墙挂好的二十幅纪实摄影作品，眼圈微微发红。\r
+苏晴：念念，这是我人生中第一个正式展位。刚才站在梯子上的时候我还在想，幸好今天有你在下面帮我扶着梯子。\r
+林念打开曲奇盒递给她一块黄油曲奇，并肩站在作品墙前。\r
+林念：以后不管你的作品挂到多大的美术馆去，只要你需要，我随时来给你扶梯子。\r
+\r
+### M16｜草坪婚礼后的高跟鞋\r
+**【事件ID：EVT_FRIEND_M16｜互动类型：认真听苏晴讲工作】**\r
+\r
+四月的那场大型户外草坪婚礼，林记负责全场甜品台，而新娘请来的首席跟拍摄影师恰好也是苏晴。\r
+直到婚礼晚宴开席，两人终于完成了各自的任务，一前一后躲到草坪边的长椅上，默契地踢掉了磨脚的鞋子。\r
+\r
+苏晴揉着小腿肚长舒一口气。\r
+苏晴：天呐，背着两台单反跟拍了八个小时，我的腿已经不是我自己的了！\r
+林念从随身小包里摸出两片创可帮她贴在脚后跟上，又递过去一只预留的奶油泡芙。\r
+林念：我今天在后厨盯那座三层翻糖主蛋糕的时候，手心也全是汗，生怕路上颠歪了一点点。\r
+苏晴咬了一口泡芙，看着不远处灯火辉煌的草坪婚礼现场，感慨地笑了笑。\r
+苏晴：念念，你还记得大一暑假我们俩去兼职发传单，一天才赚六十块钱吗？结果今天，你是这场婚礼的甜品主理人，我是首席摄影师——我们俩居然真的在顶峰会师啦！\r
+林念靠在苏晴肩头，笑着碰了碰她手里的泡芙。\r
+林念：这还只是半山腰呢，苏大摄影师，山顶还在前头等着我们呢！\r
+\r
+### M17｜临江老街的生煎包\r
+**【事件ID：EVT_FRIEND_M17｜互动类型：邀请苏晴吃饭】**\r
+\r
+陪林念去临江市考察商圈的那天傍晚，两人走得饥肠辘辘。\r
+苏晴收起相机，熟门熟路地拽着林念拐进了一条充满烟火气的老巷子。\r
+\r
+林念惊讶地看着巷口排着队的生煎铺。\r
+林念：苏晴，你对临江市的小巷子怎么比本地人还熟呀？\r
+苏晴得意地晃了晃脑袋。\r
+苏晴：我上个月来临江拍城市人文专题，早就把这边的宝藏小店摸透了！这家阿婆生煎开了二十五年，底壳脆得像你的芋泥薄脆一样！\r
+两人端着刚出锅的生煎包坐在巷口小马扎上，苏晴指了指不远处亮起灯光的文创街区。\r
+苏晴：念念，你看那边下班走出来的年轻白领，手里大多拎着咖啡或者轻食，却很少见到一家有温度的现烤手工蛋糕店。要是林记能开在这条街转角，下班路过闻见香味，准能走不动道！\r
+林念一边记下位置，一边夹起一只生煎包喂到苏晴嘴边。\r
+林念：带苏晴来考察真是赚翻了，既管饱肚子，还送商圈选址顾问服务！\r
+\r
+### M18｜严肃主管的破冰秘籍\r
+**【事件ID：EVT_FRIEND_M18｜互动类型：主动分享烦恼】**\r
+\r
+唐鸢刚入职的第一周，因为严格推行量化标准，后厨气氛一度有些紧绷。\r
+晚上打烊后，林念独自坐在店门外的台阶上托着腮发愁，苏晴骑着小电驴送相片过来，一眼就看穿了她的心事。\r
+\r
+苏晴在林念身边坐下，戳了戳她的脸颊。\r
+苏晴：怎么啦？我们林店长搞不定新来的连锁大神？\r
+林念轻轻叹了口气。\r
+林念：阿鸢姐技术特别好，人也很敬业，但她太严肃了，每次一拿秒表出来，小雨吓得连切草莓都不敢大喘气。我夹在中间，真怕团队磨合不好。\r
+苏晴眨了眨眼睛，狡黠地一笑。\r
+苏晴：念念，我今天在后厨抓拍工作照的时候仔细观察过了——唐鸢虽然嘴上硬邦邦的，但小雨切果丁不小心滑刀的时候，她的手第一时间就护过去了。这种面冷心热的实力派，最吃「真诚请教+投喂夜宵」这一套了！\r
+林念眼睛一亮。\r
+林念：还是你观察得细！那我明天留下来跟她一起核对烘烤曲线，再给她煮碗酒酿圆子试试！\r
+\r
+**第四章互动：忙碌岁月里的真心守候（M19—M24）**\r
+\r
+### M19｜空铺子里的第一张合影\r
+**【事件ID：EVT_FRIEND_M19｜互动类型：支持她的摄影项目】**\r
+\r
+分店（或新渠道中心）刚签下场地合同的那天下午，屋里还是一片空荡荡的水泥毛坯。\r
+苏晴背着三脚架跟林念一起走进空旷的铺面，阳光从还没挂窗帘的落地窗斜斜地照进来。\r
+\r
+苏晴把三脚架立在屋子正中央，朝林念招了招手。\r
+苏晴：念念，快过来站在这束光里！\r
+林念看着满地灰尘的毛坯房，有些不好意思地笑了。\r
+林念：这里现在连一面墙都没刷呢，拍出来能好看吗？\r
+苏晴认真地调试着镜头焦距。\r
+苏晴：我正在筹备一组叫《生长的空间》的纪实摄影。越是空无一物的起点，等将来摆满鲜花和蛋糕的时候，对比起来才越震撼。来，林老板，张开双臂，比划一下未来展示柜摆在哪儿！\r
+林念笑着张开双手，在空旷的房间里比划出梦想的轮廓，快门声在空屋里回荡得格外清晰。\r
+\r
+### M20｜双城奔波的冰糖雪梨\r
+**【事件ID：EVT_FRIEND_M20｜互动类型：主动分享烦恼】**\r
+\r
+新业务刚落地的第一个月，林念每天在栖云镇和临江市之间两头奔波，连续说了几天话，嗓子变得有些干涩沙哑。\r
+这天傍晚林念刚下城际大巴走回老店门口，就看见苏晴抱着一只大号闷烧罐靠在门框上等她。\r
+\r
+林念惊讶地走上前，声音还有些哑。\r
+林念：苏晴？你怎么站在门口吹冷风呀？\r
+苏晴听见她沙哑的嗓音，眉头立刻拧了起来，不由分说地拧开闷烧罐盖子，盛出一碗温热的川贝冰糖雪梨水塞进她手里。\r
+苏晴：我就知道你这个拼命三娘肯定顾不上喝水！快，当着我的面把这一碗全喝光，一口都不许剩！\r
+林念小口喝着清甜温润的雪梨水，心里暖洋洋的。\r
+林念：知遥和小雨她们今天也劝我少跑两趟，其实交给她们我已经放心多了，就是习惯了什么都去盯一眼。\r
+苏晴替她把围巾往上拢了拢。\r
+苏晴：学会偷懒也是当大老板的必修课！今晚不许再看报表了，乖乖回家睡觉！\r
+\r
+### M21｜给小设计师搭桥\r
+**【事件ID：EVT_FRIEND_M21｜互动类型：认真听苏晴讲工作】**\r
+\r
+引荐叶星河来林记合作的那周周末，林念和苏晴在咖啡馆里聊起这位才华横溢却有些理想主义的小姑娘。\r
+\r
+苏晴搅动着杯子里的拿铁，笑着回忆。\r
+苏晴：其实我上个月在青年美展上第一次看到叶星河的水彩画时，她在展位前站了一整天都没卖出几张明信片，因为她画的尺寸太奇怪了，根本塞不进市面上的标准相框里。\r
+林念忍不住笑了出来。\r
+林念：难怪她第一天来林记，就设计了一个要折两分半钟的立体花瓣盒！不过她改版后的抽拉腰封真的特别惊艳。\r
+苏晴托着腮看向窗外，眼神温和。\r
+苏晴：因为我刚毕业回栖云镇拍照片的时候，也跟她一样，总怕向商业妥协就会弄丢自己的心气儿。念念，谢谢你愿意耐心地保留她的画，帮她找到艺术和实用的平衡点。\r
+林念笑着举起咖啡杯碰了碰她的杯沿。\r
+林念：这还不是跟我们苏老师学的？尊重每个人的棱角，才能拍出最好看的照片，也才能做出最好吃的蛋糕呀。\r
+\r
+### M22｜差点错过的晚场电影\r
+**【事件ID：EVT_FRIEND_M22｜互动类型：直接表达自己的不满】**\r
+\r
+这天周五晚上，苏晴提前买好了两张八点场的经典修复版老电影票。\r
+然而七点四十的时候，林念还在办公室里和唐鸢核对两店的冷链损耗表，直到苏晴直接推开办公室的门。\r
+\r
+苏晴晃了晃手里的两张电影票，微微挑眉。\r
+苏晴：林大店长，现在是晚上七点四十二分，距离电影开场还有十八分钟。你不会又要把我一个人扔在电影院吧？\r
+林念猛地看了一眼挂钟，顿时倒吸一口凉气，手忙脚乱地关上电脑。\r
+林念：天呐！我看报表看入迷了！阿鸢姐，剩下的明天再对，我先走一步！\r
+跑出老街的路上，苏晴一边拉着她小跑，一边认真地叮嘱。\r
+苏晴：念念，今天幸好电影院离得近。我知道两家店磨合事情多，但要是哪天实在抽不开身，你一定要提前跟我说一声，别一个人硬撑着两头赶，听见没？\r
+林念气喘吁吁地握紧苏晴的手。\r
+林念：听见啦！今晚的爆米花和可乐全算我的！\r
+\r
+### M23｜周三晚上的专属席位\r
+**【事件ID：EVT_FRIEND_M23｜互动类型：邀请苏晴吃饭】**\r
+\r
+那次迟到的小矛盾说开之后，迎来了两人约定好的第一个「周三固定约饭夜」。\r
+下午五点半，林念准时把店务交接给许知遥，提前二十分钟赶到了老街转角的私房菜馆，点好了苏晴最喜欢的糖醋排骨和桂花山药。\r
+\r
+六点整，苏晴推门走进包厢，看到桌上已经冒着热气的糖醋排骨和正笑眯眯等着她的林念，愣了一下。\r
+苏晴：哇，林大忙人今天居然比我还早到二十分钟！\r
+林念拉开身旁的椅子，拍了拍椅垫。\r
+林念：那当然，每周三晚上的苏晴专属席位，我现在可是设了三个闹钟提醒自己呢！快坐下尝尝，刚出锅的排骨！\r
+苏晴坐下来夹了一块排骨，眉眼弯弯。\r
+苏晴：这还差不多。其实我也不是非要你每次都提前到，只要知道你心里一直记着我们的约定，我就很开心啦。\r
+\r
+### M24｜红光暗房里的两周年\r
+**【事件ID：EVT_FRIEND_M24｜互动类型：支持她的摄影项目】**\r
+\r
+二十四岁生日过后的周末，苏晴神秘兮兮地把林念带进了自己工作室新搭建的传统胶片暗房。\r
+暗房里亮着幽暗柔和的安全红灯，水槽里盛着显影液。\r
+\r
+苏晴递给林念一把塑料夹子，指了指显影盘里的相纸。\r
+苏晴：念念，盯紧这张相纸哦，见证奇迹的时刻到了！\r
+林念屏住呼吸凑近水面——随着苏晴轻轻晃动托盘，原本洁白的相纸上，一点点浮现出清晰的黑白影调：那是两年前林念刚接手林记的第一天，系着围裙站在柜台后紧张又青涩的笑脸，与昨天24岁生日会上被全体伙伴簇拥着的从容模样拼在一起的双联画。\r
+林念看着水波下渐渐定格的画面，眼眶微微湿润。\r
+林念：苏晴……原来在你的镜头里，这二十四个月我是这样一点点长大的。\r
+苏晴用夹子夹起相纸挂在晾干绳上，侧头对她一笑。\r
+苏晴：对呀，别人只看到林老板现在能管两家店有多风光，但我的暗房里，留着你走过的每一步脚印。\r
+\r
+**第五章互动：风雨同舟的灵魂挚友（M25—M30）**\r
+\r
+### M25｜秋山采风的野板栗\r
+**【事件ID：EVT_FRIEND_M25｜互动类型：认真听苏晴讲工作】**\r
+\r
+九月初秋，苏晴受省城旅游画报邀请，去栖云镇外的高山古村落拍了一周秋景。\r
+回来那天，她连摄影包都没来得及放，就拎着一只沾着露水和泥土气的竹篓冲进了林记后厨。\r
+\r
+苏晴把竹篓往操作台上一放，擦了擦额头的汗。\r
+苏晴：念念！快看我从山里老农家给你背回来的宝贝！\r
+林念打开竹篓一看，里面全是刚裂开刺球、色泽油亮饱满的高山野板栗，最上面还放着几片压平的火红枫叶。\r
+林念惊喜地捡起一颗栗子。\r
+林念：这么新鲜的高山油栗！你去山上拍片子，怎么还背了这么重一篓栗子回来？\r
+苏晴笑着拿起一片红枫叶夹进林念的笔记本里。\r
+苏晴：我在山上拍古村晒秋的时候，闻见老乡家里炒栗子的香味，第一个想到的就是你！你不是在愁下个月秋日文化节做什么主题吗？你看这秋栗配金桂，多有咱们江南秋天的味道呀！\r
+\r
+### M26｜后巷石阶上的童年味\r
+**【事件ID：EVT_FRIEND_M26｜互动类型：童年与高中回忆】**\r
+\r
+桂花栗子蛋糕第一炉小样试制成功的那个傍晚，林念偷偷留出了两块温热的蛋糕角，拉着苏晴坐到了林记后厨门外的青石板台阶上。\r
+晚风吹过头顶的老桂花树，细碎的金桂花瓣落了两人一肩。\r
+\r
+苏晴捧着纸盘吃了一大口，幸福地眯起眼睛。\r
+苏晴：就是这个味道！念念，你还记不记得高一那年秋天，林阿姨难得做了一次桂花栗子糕，你下晚自习揣在怀里带给我吃，结果我们俩坐在操场看台上吃得满手都是栗子碎！\r
+林念笑着拂去苏晴头发上的一片桂花。\r
+林念：怎么不记得，那天你还信誓旦旦地说，以后等我继承了林记，你要包下店里所有的桂花栗子蛋糕。\r
+苏晴得意地晃了晃手中的小叉子。\r
+苏晴：你看，我现在不就吃上林念主理人亲手复原的第一炉桂花栗子蛋糕了吗？愿望成真！\r
+\r
+### M27｜深夜后厨的烫伤膏\r
+**【事件ID：EVT_FRIEND_M27｜互动类型：主动分享烦恼】**\r
+\r
+桂花栗子蛋糕批量测试出现危机的那几天，林念每晚都在后厨熬夜重做实验。\r
+这天夜里十一点，后厨的门被轻轻推开，苏晴没有带相机，只拎着一只保温砂锅和一支烫伤药膏走了进来。\r
+\r
+苏晴一句话也没多问，先把砂锅里的皮蛋瘦肉粥盛出来晾着，然后拉过林念的右手，看着她食指关节上被烤盘边缘烫出的红印，心疼地叹了口气。\r
+苏晴：我就知道，每次你遇到大难关，准会开启不吭声硬扛模式。手伸出来，不许动。\r
+林念看着苏晴低头认真帮自己涂药膏、轻轻吹气的样子，紧绷了一整天的眼眶忽然有些发酸。\r
+林念：苏晴……要是这次文化节我搞砸了，把外婆和妈妈攒了三十年的招牌弄丢了怎么办？\r
+苏晴合上药膏盖子，抬起头，眼神笃定而温柔地看着她。\r
+苏晴：不会搞砸的。而且就算天塌下来，林阿姨、小雨、阿鸢、知遥、星河，还有我，我们七个人一起顶着，怕什么？来，先把粥喝了，明天我帮你去找破局的办法！\r
+\r
+### M28｜跑旧的帆布鞋与小面包\r
+**【事件ID：EVT_FRIEND_M28｜互动类型：支持她的摄影项目 / 双向奔赴】**\r
+\r
+为了帮林念找回老街坊记忆里的桂花栗子蛋糕，苏晴连续三天扛着设备走遍了栖云镇的大街小巷，采访了十几位老顾客。\r
+把录音笔和照片交给林念的那天晚上，苏晴累得坐在吧台椅上直打哈欠，帆布鞋的鞋边都磨起了一层毛边。\r
+\r
+林念没有说话，转身走进后厨，端出一盘刚刚出炉、散发着浓郁奶香的妈妈牌原味小面包，塞进苏晴怀里。\r
+苏晴闻着熟悉的面包香，愣了一下，随即笑弯了眼睛。\r
+苏晴：哇！是林阿姨配方的热乎小面包！\r
+林念拉过椅子坐在她对面，轻声开口。\r
+林念：高三那年晚自习，我给你带小面包的时候，从来没想过有一天你会为了帮我守住这家店，跑遍整座栖云镇。苏晴，谢谢你。\r
+苏晴咬了一大口松软温热的小面包，含糊不清地笑道。\r
+苏晴：跟本首席摄影师客气什么！只要林老板一辈子给我烤小面包，我跑断腿也乐意！\r
+\r
+### M29｜秋日江畔的晚风\r
+**【事件ID：EVT_FRIEND_M29｜互动类型：邀请苏晴吃饭 / 高潮余韵】**\r
+\r
+秋日文化节大获全胜当晚，热闹的团队庆功宴结束后，林念和苏晴偷偷溜出餐厅，并肩沿着省城的临江步道慢慢散步。\r
+江风微凉，吹散了两个多月来的所有疲惫。\r
+\r
+林念看着江面上倒映的霓虹灯火，轻声笑了笑。\r
+林念：今天下午在展馆里抱住你哭的时候，其实我脑子里一下子闪过了好多以前的事。\r
+苏晴双手背在身后，倒退着走了两步，笑吟吟地看着林念。\r
+苏晴：巧了，我当时脑子里也在放电影呢。念念，高三那年走出老师办公室看到你红着眼睛抱住我的时候，我就在心里偷偷发过誓了——这辈子不管发生什么事，我都绝对不会丢下林念一个人。\r
+林念停下脚步，看着月光下挚友清澈的眉眼，伸手勾住了她的小指。\r
+林念：拉钩。下个三年，下下个三年，等我们变成陈奶奶那样满头白发的老太太，还要一起在店门口晒太阳吃蛋糕。\r
+苏晴用力勾住她的手指晃了晃。\r
+苏晴：拉钩，一百年不许变！\r
+\r
+### M30｜苏晴工作室的新招牌\r
+**【事件ID：EVT_FRIEND_M30｜互动类型：支持她的摄影项目】**\r
+\r
+凭借在秋日文化节上展出的《栖云镇的秋日甜味记忆》纪实摄影系列，苏晴在省内摄影界一举成名，接到了源源不断的商业约拍与展览邀请。\r
+第三十个月中旬，苏晴的独立摄影工作室正式扩建重装开业。\r
+林念带着小雨、知遥、阿鸢和星河，推着一座精心打造的「胶片相机造型翻糖奶油甜品台」前去贺喜。\r
+\r
+苏晴看着那只连镜头刻度都用巧克力精细还原的相机蛋糕，惊喜得原地跳了起来。\r
+苏晴：天呐！这相机蛋糕也太逼真了吧！我都舍不得切了！\r
+林念笑着帮苏晴把新工作室的木质招牌挂正。\r
+林念：刚毕业那年，我们俩一个怕找不到工作，一个怕接不到单子。现在你看，林记走出了栖云镇，我们的苏晴也成了真正的大摄影师了！\r
+苏晴挽住林念的胳膊，对着工作室门前的落地镜拍下一张合照。\r
+苏晴：那是因为我们俩是最佳拍档呀，谁都不许掉队！\r
+\r
+**第六章互动：走向远方的盛大并肩（M31—M36）**\r
+\r
+### M31｜林总与苏老师的下午茶\r
+**【事件ID：EVT_FRIEND_M31｜互动类型：认真听苏晴讲工作】**\r
+\r
+建立起标准化供应链后，林念终于不用每天清晨五点去后厨打蛋了；而苏晴的工作室也招了两位年轻的摄影助理。\r
+这天下午，难得清闲的两人坐在栖云镇老店的阳光房里，分吃着一碗双皮奶。\r
+\r
+苏晴端起红茶杯，故意捏着嗓子敬了林念一杯。\r
+苏晴：哎呀，现在跟我们林总喝下午茶，都不用听后厨的计时器滴滴响了，真是不习惯呢！\r
+林念好笑地白了她一眼，也学着她助理的语气回敬。\r
+林念：彼此彼此呀，我刚才去你工作室门口，听到两个小助理一口一个「苏老师」地叫着，派头可比我足多了！\r
+苏晴哈哈大笑，放下茶杯伸了个懒腰。\r
+苏晴：不管外人叫我们林总还是苏老师，反正关起门来，我永远是那个去一班后门蹭小面包的苏晴，你也永远是我的同桌林念！\r
+\r
+### M32｜出差高铁上的半副耳机\r
+**【事件ID：EVT_FRIEND_M32｜互动类型：邀请苏晴吃饭 / 同行】**\r
+\r
+为了考察外省新城市的门店选址，林念与受邀拍摄城市风物宣传片的苏晴一起踏上了跨省高铁。\r
+列车飞驰在江南的田野间，林念从包里拿出一盒切好的无花果奶油小方，苏晴则递过来一只蓝牙耳机。\r
+\r
+苏晴把右耳的耳机塞进林念耳朵里，点开手机里熟悉的歌单。\r
+苏晴：听听看，是不是我们高二午休时最常拿MP3偷偷听的那首老歌？\r
+熟悉的旋律在耳畔响起，林念看着窗外飞速掠过的风景，仿佛又回到了十七岁那年并肩坐在学校大巴车上的午后。\r
+林念靠在苏晴肩头，轻声开口。\r
+林念：高二春游那次，我们俩也是这样分着一副耳机，当时觉得去一趟邻市就好远好远。没想到现在，我们已经一起坐着高铁，把喜欢的事业带去全国各地了。\r
+\r
+### M33｜旗舰店的第一束晨光\r
+**【事件ID：EVT_FRIEND_M33｜互动类型：支持她的摄影项目】**\r
+\r
+LV4 高端主题旗舰店正式开业前一天清晨六点，整座门店已经布置完毕，还没有迎来第一位顾客。\r
+苏晴带着相机提前来到店里采光，晨曦刚好穿过优雅的拱形门洞，在光洁的大理石台面与繁花之间投下一道金色的光柱。\r
+\r
+苏晴放下相机，忽然向站在光柱里的林念伸出右手，微微欠身行了个俏皮的礼。\r
+苏晴：美丽的林创始人，在你的旗舰店迎接全城客人之前，不知道本摄影师有没有荣幸，请你跳支舞呀？\r
+林念忍俊不禁，把手搭在苏晴掌心里。\r
+林念：我们俩谁会跳交际舞呀？\r
+苏晴拉着她在洒满晨光的大厅里欢快地转了两个圈，裙摆与笑声一同飞扬起来。\r
+苏晴：管它会不会呢，开心就行！来，保持这个笑容，我用遥控快门抓拍了哦！\r
+\r
+### M34｜不许偷看的机密工程\r
+**【事件ID：EVT_FRIEND_M34｜互动类型：直接表达自己的不满 / 趣味互动】**\r
+\r
+距离三周年店庆只剩两个月，林念这天下午端着新烤的芋泥薄脆去苏晴工作室串门，一推门，却见苏晴手忙脚乱地把电脑屏幕上的排版软件最小化，还用身体挡住了桌上一摞刚冲印出来的老照片。\r
+\r
+林念眯起眼睛走过去，叉着腰看向她。\r
+林念：苏晴同志，你背着我搞什么秘密工程呢？连我都不能看？\r
+苏晴护着桌上的照片袋，一脸傲娇地摇了摇头。\r
+苏晴：绝对机密！这是本大师耗时三年打造的镇店之宝，不到第三十五个月最后一天，就算林老板拿十个草莓蛋糕来贿赂我，我也绝不剧透半个字！\r
+林念看着桌角露出的一张高二教学楼速写，心里已然猜到了七八分，眉眼间染上温暖的笑意。\r
+林念：好，那我就乖乖等着苏大师揭晓惊喜的那天！\r
+\r
+### M35｜重返二班后门的合照\r
+**【事件ID：EVT_FRIEND_M35｜互动类型：高中回忆与分享】**\r
+\r
+苏晴将《林记与我们的三年》相册交给林念后的那个周日，两人趁着三周年庆典前的最后一天假期，一起回了趟栖云一中。\r
+站在当年高二（2）班熟悉的教室后门走廊上，午后的阳光依旧像六年前一样穿过梧桐树叶落在窗台上。\r
+\r
+林念站在后门外，像当年一样探出半个脑袋，轻轻敲了两下门框。\r
+林念：苏晴同学，下课啦，去不去食堂抢糖醋排骨？\r
+站在门内的苏晴转过身，看着门外已经褪去青涩、眼神明亮从容的林念，眼眶微热，却笑得比阳光还灿烂。\r
+苏晴：来啦！哪怕再过三十年，只要你敲门喊我，我永远都在！\r
+\r
+### M36｜翻开下一本三年相册\r
+**【事件ID：EVT_FRIEND_M36｜互动类型：三周年终局温情互动】**\r
+\r
+三周年盛典圆满落幕的夜晚，喧嚣散去，两人回到了栖云镇老店最熟悉的小院里。\r
+桌上摆着已经贴上三周年全家福、彻底圆满的《林记与我们的三年》纪念相册。\r
+苏晴从背包里又拿出一本一模一样的亚麻布面空白新相册，推到林念面前，封面上写着——《林记与我们的第二个三年》。\r
+\r
+林念看着那本崭新的相册，惊喜地看向苏晴。\r
+林念：你怎么连第二本都准备好啦？\r
+苏晴托着腮帮子，笑吟吟地看着她。\r
+苏晴：因为林记的故事不会在第三十六个月结束，我们两个人的故事更是一辈子的连载呀！林老板，接下来的日子，我的镜头可还继续归你承包咯？\r
+林念翻开新相册的第一页，握紧苏晴的手，笑容温暖而坚定。\r
+林念：一言为定，一辈子都不解约！\r
+\r
+## 第十三章：最终结局与伙伴个人结局完整文案\r
+\r
+### 13.1 最终结局一：社区老店结局\r
+**【触发条件：完成36个月经营，经营规模适中，\`communityScore\` 较高】**\r
+**【事件ID：EVT_FINAL_END_COMMUNITY】**\r
+\r
+三周年的阳光温暖地洒在栖云镇的青石板街上。\r
+走过三十六个月的四季流转，林念最终选择把全部的心血留在这座熟悉的小城，继续经营栖云镇的林记烘焙。\r
+店铺规模不算庞大，却被大家打理得无比温馨——窗边插着星河挑的鲜花，展示柜里摆着小雨和阿鸢做的时令蛋糕，每一位老街坊进门都不需要报出菜单。\r
+\r
+清晨的风铃声响起，陈奶奶牵着小孙子走进店里。\r
+陈奶奶：知遥丫头，念念，今天我们还是老样子！\r
+许知遥笑吟吟地把早就留好的少糖原味奶油蛋糕递过去。\r
+许知遥：早就给您留着第一炉最松软的啦，陈奶奶快去窗边坐！\r
+周雨桐端着一盘刚出炉的小曲奇从后厨走出来，放到陈奶奶桌前。\r
+周雨桐：这是我和鸢姐今天新烤的黄油曲奇，送给小朋友尝尝！\r
+唐鸢站在开放式玻璃窗后擦拭着烤盘，嘴角带着温和的笑意。\r
+唐鸢：虽然没有开满全国的连锁店，但能把这间店里的每一炉蛋糕都做到一百分，这种踏实感一点也不差。\r
+林暖端着一壶刚泡好的桂花茶坐在小院躺椅上。\r
+林暖：念念，看着街坊四邻每天高高兴兴地进出咱们林记，妈这心里比什么都满足。\r
+\r
+苏晴背着相机推门进来，将今天刚拍的一组街巷照片摆到柜台上。\r
+苏晴：林老板，三周年纪念照我已经洗出来啦！你看，全栖云镇最有人情味的地方，非咱们林记莫属！\r
+林念系着熟悉的围裙走出柜台，看着满屋子熟悉的面孔，脸上满是笃定与平和。\r
+林念：是啊。不需要去追逐多么遥远的目标，能守护好大家身边这口熟悉的甜，就是我最喜欢的生活了。\r
+\r
+旁白：林记依然是一家不算大的店，却拥有着整座小城最高的顾客忠诚度，成为许多人生命中不可或缺的一部分。\r
+旁白：【达成最终结局：社区老店结局】\r
+\r
+---\r
+\r
+### 13.2 最终结局二：传统手作老字号\r
+**【触发条件：完成36个月经营，\`traditionScore\` 为主导最高项】**\r
+**【事件ID：EVT_FINAL_END_TRADITION】**\r
+\r
+三周年店庆这天，栖云镇的林记烘焙门前热闹非凡。\r
+凭借着三年来对外婆经典配方的坚守与匠心打磨，林记烘焙正式被授予「传统手作烘焙老字号」牌匾，桂花栗子蛋糕与传统原味奶油蛋糕更成为了远近闻名的代表作。\r
+\r
+挂牌仪式后，陈奶奶摸着崭新的胡桃木牌匾，激动得连连点头。\r
+陈奶奶：好呀，真好！从林老太太到林大姐，再到咱们念念，三代人守着这一门手艺，实至名归！\r
+周雨桐捧着刚出炉的桂花栗子蛋糕走出来，香气瞬间盈满前厅。\r
+周雨桐：念念姐，今天这批高山秋栗甜度正好，我按外婆「栗子甜则少放糖」的法子做的，大家都夸醇厚又不腻！\r
+唐鸢看着整齐排列的传统糕点，由衷地感叹。\r
+唐鸢：以前我总觉得传统手艺会被现代工业淘汰，来到林记才明白，真正用心的手作老味道，时间越久越有生命力。\r
+叶星河指着墙上装裱起来的《林记三代制饼图谱》。\r
+叶星河：能为一家真正的老字号设计视觉和礼盒，也是我这三年最骄傲的作品！\r
+许知遥笑着举起预约本。\r
+许知遥：现在连外省的食客都专门坐高铁来买咱们的老式鸡蛋糕和桂花栗子蛋糕呢！\r
+\r
+内室里，林暖将外婆那本写满三代人批注的《配方笔记》郑重交到林念手中。\r
+林暖：念念，你外婆把这本笔记传给我的时候，我二十二岁；三年前你接手林记的时候，也是二十二岁。如今，你不仅守住了老味道，还让它比以前更响亮了。\r
+林念双手接过沉甸甸的笔记，认真地看向母亲和一旁举着相机记录这一幕的苏晴。\r
+林念：妈，您放心。只要林记的烤炉还热着，这份传了三代人的手作温度，就永远不会变。\r
+\r
+旁白：有些味道，经过很多年依然不会忘记；有些匠心，跨越三代人依然历久弥新。\r
+旁白：【达成最终结局：传统手作老字号】\r
+\r
+---\r
+\r
+### 13.3 最终结局三：创意烘焙品牌\r
+**【触发条件：完成36个月经营，\`innovationScore\` 为主导最高项】**\r
+**【事件ID：EVT_FINAL_END_INNOVATION】**\r
+\r
+三周年庆典当天，林记烘焙的展示柜前围满了专程赶来打卡的年轻顾客。\r
+在这三年里，林记以源源不断的新品研发、惊艳的季节限定与极具美感的创意设计脱颖而出，成为了无数年轻人心中最向往的「新锐创意烘焙品牌」。\r
+\r
+周雨桐站在主展台后，端出了三周年首发限定——「流光四季果味慕斯塔」。\r
+周雨桐：念念姐，你看！这是我把这三年小本子上攒下的二十四种水果搭配灵感融汇在一起做出的纪念款！\r
+叶星河拿着配套的立体光影插画礼盒走过来。\r
+叶星河：再配上我设计的四时花窗透光礼盒，客人一打开盒子，光影落在慕斯镜面上，每一口都是视觉和味觉的双重奇遇！\r
+唐鸢微笑着看着后台的研发数据。\r
+唐鸢：三年下来，我们一共研发了超过三十款原创配方，而且每一款都做到了美味与稳定的平衡。\r
+许知遥拿着平板电脑笑得合不拢嘴。\r
+许知遥：念念，刚刚那本全国知名的生活美学杂志打来电话，说下个月要给我们林记的创意研发团队做整整六个版面的专访呢！\r
+\r
+林暖尝了一口新奇的茶香果味慕斯，笑着看向女儿。\r
+林暖：要是三年前有人告诉我，咱们林记能做出像艺术品一样的蛋糕，妈肯定不敢信。念念，你们年轻人真是把老店做出了新天地。\r
+苏晴晃了晃手里刚拍好的杂志级宣传大片。\r
+苏晴：林大主理人，我这个御用摄影师的镜头，以后可得跟着你们的新品灵感一起升级才行啦！\r
+林念看着身边充满活力的伙伴们，眼中闪烁着明亮的光彩。\r
+林念：好呀！下一季的新品研发，我们继续大胆尝试，把更多奇妙的味道做出来！\r
+\r
+旁白：在稳固的根基之上自由生长，林记用天马行空的创意，为传统烘焙写下了全新的篇章。\r
+旁白：【达成最终结局：创意烘焙品牌】\r
+\r
+---\r
+\r
+### 13.4 最终结局四：区域连锁品牌\r
+**【触发条件：完成36个月经营，综合经营成绩达到中高水平，开启多座周边城市门店】**\r
+**【事件ID：EVT_FINAL_END_REGIONAL】**\r
+\r
+三周年庆典当天，栖云镇老店、临江分店以及周边多个城市的林记门店，同时换上了由叶星河设计的三周年庆典橱窗。\r
+经过三年的稳扎稳打，林记烘焙已经在多座城市开设直营门店，形成了成熟的团队与稳定的区域供应链。\r
+\r
+庆典酒会上，各城市的店长齐聚一堂。\r
+许知遥站在台前，自信从容地总结着各区域的运营情况。\r
+许知遥：目前我们周边五座城市的门店全部实现了盈利增长，跨城会员卡已经累计突破五万名熟客啦！\r
+唐鸢拿起话筒补充道。\r
+唐鸢：中央冷链配送中心与各店后厨的培训考核也已全部达标，无论客人在哪座城市走进林记，吃到的都是同样新鲜的高品质蛋糕。\r
+周雨桐和叶星河端着三周年定制甜品走过来。\r
+周雨桐：下个季度的城市限定鲜果系列我和鸢姐已经试制好啦！\r
+叶星河：配套的城市风物插画手提袋也已经全部配发到各家分店了！\r
+\r
+林暖站在人群侧边，看着站在台前温和从容地统筹全局的女儿，眼角眉梢全是欣慰的笑意。\r
+林暖：念念，外婆要是能看到你今天把林记带到这么多城市，一定会特别骄傲。\r
+苏晴举着相机走到林念身边，笑着碰了碰她的果汁杯。\r
+苏晴：从栖云镇的一扇小木窗，到好几座城市都排起长队的知名品牌，林老板，这三年干得漂亮！\r
+林念握住母亲的手，又看向身边并肩作战的苏晴和全体伙伴。\r
+林念：妈，苏晴，这不是我一个人的功劳。我最高兴的，是终于能够让这么好的一群人，在这里共同经营属于我们大家的事业。\r
+\r
+旁白：从一间街角老店，到跨越城市的区域连锁品牌。林念带着她的团队，稳健而坚定地走向了更广阔的天地。\r
+旁白：【达成最终结局：区域连锁品牌】\r
+\r
+---\r
+\r
+### 13.5 最终结局五：全国连锁品牌（最高真结局）\r
+**【触发条件：完成36个月经营，经营成绩达到最高水平，解锁全国城市地图与LV4高端主题旗舰店】**\r
+**【事件ID：EVT_FINAL_END_NATIONAL】**\r
+**【CG：finale】**\r
+\r
+**【第一幕：全国旗舰店盛大启幕】**\r
+三周年纪念日这天，阳光明媚，微风和煦。\r
+位于城市核心街区的「林记烘焙」LV4 高端主题旗舰店，在万众瞩目中正式盛大开业。\r
+穿过优雅的拱形门洞，一楼是配备光洁大理石台面与精致花艺的现烤工坊及旗舰产品展示空间；二楼则是记录林记三代传承的品牌文化展厅——玻璃展柜里陈列着外婆三十多年前的手写《配方笔记》，墙面上则挂满了苏晴三年来拍摄的纪实摄影作品。\r
+\r
+此时此刻，不仅在栖云镇与临江市，从江南的杭州、上海、南京，到西南的成都、岭南的广州、北方的北京，全国多座核心城市的林记连锁门店同步迎来了三周年店庆客流高峰。\r
+\r
+前厅中央，已经成为全国运营负责人的许知遥正拿着对讲机，神采飞扬地向林念汇报。\r
+许知遥：念念！北京店、上海店、成都店和广州店刚刚同时发来捷报，三周年限定桂花栗子礼盒在开业半小时内全部预订一空！那个当年连两张预约单都会抄漏的许知遥，现在可是能替你管好全国门店的大总管啦！\r
+林念笑着向她比了个大拇指。\r
+林念：我们知遥总监现在可是林记最稳的大管家！\r
+\r
+开放式透明厨房里，已经成为首席研发烘焙师的周雨桐正带着一排年轻学徒做最后的装饰点缀。\r
+看到林念走过来，周雨桐端着一只晶莹剔透的四时果味定制蛋糕迎上前，眼神自信而明亮。\r
+周雨桐：念念姐，旗舰店的首批三百份纪念甜点全部出炉了！刚才有几个新学徒手有点抖，我就像两年多前你安慰我那样告诉她们「别怕，手腕放松慢慢来」……念念姐，谢谢你当年没有嫌弃那个连说话都不敢大声的我，还把我的小本子变成了真正的菜单。\r
+林念温柔地替小雨理了理厨师帽。\r
+林念：是你自己从来没有放弃对烘焙的热爱，小雨，现在的你已经是年轻学徒们的榜样了。\r
+\r
+唐鸢拿着一份全国供应链与研发中心运行报告走过来，一贯严肃的脸上带着温暖的笑意。\r
+唐鸢：林念，全国八城的中央冷链与标准化品控全部运行满分。说实话，刚来林记的时候，我以为这只是一家还没有摆脱作坊习惯的老店。但这三年，是你和大家让我重新找回了做蛋糕的初心——标准化守住的是下限，而我们对食材和客人的真心，才是林记走向全国的上限。\r
+林念真诚地看向她。\r
+林念：鸢姐，要是没有你帮林记立起这身钢筋铁骨，我们的味道绝对走不出江南，谢谢你。\r
+\r
+这时，叶星河抱着一摞刚刚印好的《林记三周年品牌纪念画册》小跑过来，裙摆飞扬。\r
+叶星河：林店长！快看！旗舰店的拱形花艺展区已经被客人们评为年度最美打卡地啦！以前我只会躲在画室里画不切实际的纸盒，是林记让我明白，当设计真正走进千家万户的生活里时，才是最浪漫的艺术！\r
+\r
+**【第二幕：两代人的传承与老街坊的见证】**\r
+二楼的品牌文化展厅里，专程被接来参加庆典的陈奶奶正戴着老花镜，笑呵呵地看着展柜里外婆的老烤盘。\r
+陈奶奶：哎哟，我这辈子都没想过，咱们栖云镇街口那间只有两张旧木桌的林记，有一天能开出这么气派的大店，连北京上海的人都能吃上咱们林记的蛋糕！\r
+林暖陪在陈奶奶身边，转头看向一步步走向自己的女儿，眼眶微微湿润。\r
+林暖：念念，还记得三年前你刚从大学回来那天吗？那时候你坐在后厨的小板凳上叹气，跟妈说「毕业即失业，不知道自己能干什么」。\r
+林念握住母亲温和宽厚的手，鼻尖一阵发酸。\r
+林念：妈，那时候要不是您让我试着接手林记，在旁边一直耐心地给我托底，我可能到现在还在迷茫呢。\r
+林暖欣慰地拍了拍女儿的手背。\r
+林暖：妈只是给了你一把钥匙，能把一间社区老店变成今天走向全国的品牌，全靠你自己这三年的汗水，还有你聚拢起来的这群好姑娘。从今天起，妈和你外婆的接力棒，算是完完全全交到你手里了。\r
+\r
+**【第三幕：露台夕阳与一辈子的约定】**\r
+傍晚时分，盛大的开业庆典圆满落幕。\r
+林暖、苏晴、周雨桐、许知遥、唐鸢、叶星河与林念一起来到旗舰店顶层的露天花园。\r
+温暖的夕阳洒在鲜花簇拥的露台上，桌上摆着那本只差最后一页的《林记与我们的三年》相册。\r
+\r
+苏晴熟练地架好三脚架，调试好光圈与焦距，笑着看向林念。\r
+苏晴：念念，从第一个月第一天你在旧柜台后头紧张地扯围裙，到今天站在全国旗舰店的露台上，我用镜头整整追了你三十六个月。\r
+林念看着眼前从高一同桌、高二后门、高三走廊一直陪伴自己走到今天的挚友，眼底满是温柔的笑意。\r
+林念：那我们的苏大摄影师觉得，现在的林老板跟三年前比，有什么变化呀？\r
+苏晴歪着脑袋想了想，眉眼弯弯地笑了起来。\r
+苏晴：以前遇到难题的时候，你总是一个人躲在后厨偷偷焦虑；现在的你呀，身后有一群可以放心托付的伙伴，眼里有光，脚下有路。不过嘛——在我面前爱吃醋、爱撒娇这一点，倒是一点都没变！\r
+小雨、知遥、阿鸢和星河在旁边听到，全都忍不住笑出了声。\r
+\r
+苏晴按下十秒定时快门，小跑着回到队伍正中央，自然而亲密地挽住了林念的手臂。\r
+苏晴：来！林记烘焙三周年全家福——三、二、一，大家看镜头，笑一个！\r
+\r
+「咔嚓——」\r
+清脆的快门声响起。\r
+画面缓缓定格，化作一张色彩温暖的相片，稳稳地贴进了《林记与我们的三年》相册的最后一页。\r
+\r
+林念看着相册上定格的笑脸，在心里轻声对自己、也对身边的每一个人说道：\r
+林念：三年前，我以为回家接手林记只是一次退而求其次的暂时落脚。直到和你们一起走过这三十六个月的春夏秋冬，我才真正明白——人生从来没有白走的路。\r
+\r
+旁白：林念终于从那个不知道未来在哪里的大学毕业生，成长为能够独立承担责任的品牌创始人。\r
+旁白：有些味道，经过很多年依然不会忘记。\r
+旁白：有些朋友，走过很远的路，依然会陪在身边。\r
+旁白：从林记的一块小小蛋糕开始，慢慢把生活经营成自己喜欢的样子。\r
+旁白：这就是《林记烘焙》。\r
+旁白：【达成最高真结局：林记烘焙——走向全国】\r
+\r
+---\r
+\r
+### 13.6 可选遗憾结局：《转让》\r
+**【触发条件：后期收到品牌收购邀请时，玩家主动选择「接受收购」】**\r
+**【事件ID：EVT_FINAL_END_TRANSFER】**\r
+\r
+签署完品牌转让协议的那个下午，阳光安静地落在办公桌上。\r
+面对日益庞大的跨城管理与资金周转压力，林念最终选择接受了大型餐饮集团的收购邀约。\r
+「林记烘焙」的品牌依然会继续存在，各个城市的门店依然会每天按时营业，只是这家店不再由林念独立经营。\r
+\r
+交接完最后一份文件的傍晚，伙伴们纷纷来办公室与林念道别。\r
+周雨桐红着眼眶抱了抱林念。\r
+周雨桐：念念姐，不管以后谁管这家店，你永远是带我走上烘焙之路的师父。以后我做出了新口味，还是第一个送给你尝！\r
+许知遥和叶星河也用力挥了挥手。\r
+许知遥：念念，等你休息好了，随时叫我们出来聚餐！\r
+唐鸢推了推眼镜，温和地向林念伸出手。\r
+唐鸢：这三年辛苦了，林店长。有我守着后厨标准，林记的味道不会乱的，你放心去休息吧。\r
+林暖在家里为女儿留了一盏暖灯，温和地告诉她，累了就随时回家歇歇，妈妈永远支持她的决定。\r
+\r
+搬空店长办公室的最后一天，苏晴背着相机站在店门口等她，自然地伸手接过林念手里的纸箱。\r
+两人并肩走到青石板街口，林念停下脚步，回头看了一眼熟悉的招牌。\r
+林念：苏晴，你说我在这个时候停下来，是不是有点遗憾？\r
+苏晴温柔地笑了笑，挽住了林念的胳膊。\r
+苏晴：傻瓜，这三年你流过的汗、做出的好蛋糕都是实实在在的。累了就先歇一歇，重新想想未来想做什么——反正不管你去哪儿，我都会陪着你的。\r
+\r
+旁白：虽然在经营道路上留下了一丝遗憾，但那些共同成长的岁月与始终陪伴在身边的挚友，从来不曾褪色。\r
+旁白：【达成选择型结局：《转让》】\r
+\r
+---\r
+\r
+### 13.7 伙伴个人结局档案文案（随最终结局同步展示）\r
+\r
+#### 1. 周雨桐（小雨）个人结局（四档细分）\r
+- **【高信赖 + 高专业：主力研发烘焙师】**\r
+【触发条件：trust ≥ 80 且 skillLevel ≥ 4，完成M11《藏起来的小本子》与M27专属协助】\r
+午后的研发室里，阳光落在整洁的操作台上。\r
+曾经那个攥着帆布包带子、连说话都不敢大声的兼职学徒，如今已经穿上了印有「林记首席研发」字样的主厨围裙。\r
+展示柜最显眼的C位上，摆着她独立研发的「江南四时鲜果系列」招牌蛋糕。\r
+新来的年轻学徒端着抹面微歪的练习胚，忐忑地站在工作台边。\r
+周雨桐温和地走过去，手把手扶住学徒微抖的手腕。\r
+周雨桐：别怕，刚开始学抹面的时候，我的手抖得比你还厉害呢。手腕放轻松，心里想着吃蛋糕的人开心的样子，慢慢转转盘就好。\r
+林念站在玻璃门外看着这一幕，欣慰地笑了笑。\r
+周雨桐转头看见林念，眼睛一下子亮了起来，捧起手边写满新灵感的厚笔记本跑过来。\r
+周雨桐：念念姐！下个季度的青梅冻夹心我已经调好配比了，第一口还是留给你尝！谢谢你当年翻开了我的小本子，让我相信自己的想法也能发光。\r
+【档案结语】那本曾经藏在抽屉角落的旧笔记本，终于变成了林记最闪耀的四季菜单。她不仅找到了属于自己的舞台，也成为了照亮后来者的一束微光。\r
+- **【高信赖 + 普通专业：稳定的主力烘焙师】**\r
+【触发条件：trust ≥ 80 且 skillLevel < 4】\r
+清晨六点的后厨里，周雨桐已经准时将当日所需的红颜草莓、台农芒果与动物奶油分装得整整齐齐。\r
+她或许没有去挑战最繁复华丽的分子甜点技艺，但只要有她在后厨守着烤炉，林念就永远不用担心任何一款经典蛋糕的品质。\r
+周雨桐擦了擦额角的细汗，将刚出炉、香气扑鼻的原味戚风端到林念面前。\r
+周雨桐：念念姐，今天早上老街坊们预订的二十份草莓蛋糕我已经全部抹好面啦，每一颗草莓都是我挑的最甜的！\r
+林念笑着递给她一杯温牛奶。\r
+林念：有小雨在后厨坐镇，我现在可省心太多了。\r
+周雨桐腼腆地弯起嘴角。\r
+周雨桐：只要能一直留在林记，每天给念念姐和大家烤出热乎乎的蛋糕，我就觉得特别幸福了。\r
+【档案结语】她成为了林念最贴心、最可靠的后厨主力。经她双手做出的每一块水果蛋糕，都饱含着让人安心的甜美与赤诚。\r
+- **【普通信赖 + 高专业：独立制作能力极强的烘焙师】**\r
+【触发条件：trust < 80 且 skillLevel ≥ 4】\r
+操作台前，周雨桐手中的抹刀行云流水般掠过蛋糕表面，短短三分钟便完成了一只棱角分明、光洁如镜的十寸定制蛋糕。\r
+凭借三年来日复一日的刻苦练习，她彻底克服了最初的生疏与胆怯，练就了一手炉火纯青的制作与裱花绝活，成为了后厨里出餐最稳、效率最高的技术骨干。\r
+唐鸢翻看着本月的出品合格率报表，赞许地点了点头。\r
+唐鸢：小雨，这个月你负责的五百份定制蛋糕又是零返工，技术已经完全达到资深烘焙师的水准了。\r
+周雨桐认真地收起抹刀，对着镜子理了理厨师帽。\r
+周雨桐：谢谢鸢姐和林店长的培养，接下来的订单高峰，我也会稳稳拿下的！\r
+【档案结语】汗水从不辜负认真的人。当她握紧抹刀的那一刻，所有的怯懦都化作了指尖无可挑剔的专业与底气。\r
+- **【普通信赖 + 普通专业：认真负责的正式员工】**\r
+【触发条件：trust < 80 且 skillLevel < 4】\r
+三年期满，周雨桐顺利从兼职学徒转正，成为了林记烘焙一名踏实勤恳的正式烘焙师。\r
+每天伴着清晨的第一缕阳光到店筛粉、打蛋、切配鲜果，下班时带走一块自己亲手包装的小切块蛋糕。\r
+周雨桐将擦得锃亮的烤盘归位，朝林念微笑着挥了挥手。\r
+周雨桐：念念姐，后厨的卫生和明早的备料我都检查过两遍啦，那我先下班咯，明天见！\r
+林念温和地点了点头。\r
+林念：辛苦啦小雨，路上慢点，明天见。\r
+【档案结语】在熟悉的奶油与面粉香气里，她告别了迷茫的过去，拥有了一份安稳、充实而温暖的日常。\r
+\r
+#### 2. 许知遥个人结局（两档细分）\r
+- **【高养成：区域运营负责人】**\r
+【触发条件：trust ≥ 75 且 skillLevel ≥ 4，完成M19《知遥的管理理想》与M27专属协助】\r
+宽敞明亮的运营办公室里，许知遥身穿干练的职业装，正对着电脑屏幕与各家分店的店长开每周运营例会。\r
+桌角放着她当年入职第一个月时，林念陪她一起画的那张《前厅后厨时段核对表》——如今，这张手绘表格已经升级成了覆盖全门店的智能订单与熟客CRM系统。\r
+结束视频会议后，许知遥转过身，笑着向推门进来的林念扬了扬手中的季度报表。\r
+许知遥：林大老板，各门店的节庆预售排期和跨城冷链调度已经全部对齐，老顾客复购率又创新高啦！\r
+林念笑着把一杯热拿铁放到她桌上。\r
+林念：还记得当初是谁因为漏抄了两张单子，站在收银台后头红着眼眶说自己不是管店的料吗？\r
+许知遥不好意思地笑出声，眼神却格外明亮自信。\r
+许知遥：那不是遇到了一个愿意手把手教我的好老板嘛！现在的许总监，可是能替你守好千军万马的大后方了！\r
+【档案结语】她彻底建立起了属于自己的管理自信，将天生的沟通亲和力与严谨的订单运营体系融会贯通，成长为统管多城门店的运营大总管。\r
+- **【常规养成：独立门店店长】**\r
+【触发条件：未完全满足高养成条件】\r
+前厅的玻璃门一推开，永远能第一时间听到许知遥清脆爽朗的招呼声。\r
+她依然能一口叫出每一位熟客的称呼，记得谁家的孩子不吃酸、哪位老人偏爱少糖原味，更把门店的日常排班、收银盘点与线上客服打理得井井有条。\r
+许知遥将系好丝带的蛋糕盒递给陈奶奶，笑得眉眼弯弯。\r
+许知遥：陈奶奶您慢走，下周您家小孙子生日的定制单我已经帮您提前锁好烤炉时段啦，保准一分钟都不耽误！\r
+【档案结语】从莽撞热情的前台店员，到熟客们交口称赞的金牌店长。有许知遥坐镇的前厅，永远盈满欢声笑语。\r
+\r
+#### 3. 唐鸢个人结局（两档细分）\r
+- **【高养成：首席研发与培训负责人】**\r
+【触发条件：trust ≥ 75 且 skillLevel ≥ 4，完成M21《尘封的配方》与M27专属协助】\r
+中央研发实验室里，刚出炉的「焦糖海盐伯爵茶千层」与「招牌桂花栗子蛋糕」并排摆在品鉴台上。\r
+曾经那个只看秒表与毛利率、把原创热情死死锁进抽屉里的连锁主管，在林记的这三年里，终于找回了最初爱上烘焙时的心动。\r
+唐鸢合上最新一版《林记风味动态标准与匠人培训手册》，摘下眼镜，神色温和而从容。\r
+唐鸢：林念，新一期分店烘焙师的培训考核全部结束了。我在手册扉页上写了一句话——「标准化是林记的骨骼，而对食材与人的尊重，是林记的灵魂」。\r
+林念看着那行端正的字迹，由衷地微笑道。\r
+林念：鸢姐，这三年有你在，林记才真正做到了既走得远、又没有弄丢味道。\r
+唐鸢嘴角扬起一抹难得一见的温柔笑意。\r
+唐鸢：应该是我谢谢林记才对。是这里让我明白，效率和热爱，从来都不是单选题。\r
+【档案结语】她解开了束缚自己多年的心结，在严谨的标准化效率与鲜活的手工温度之间找到了完美平衡，成为林记当之无愧的研发与培训领路人。\r
+- **【常规养成：生产管理负责人】**\r
+【触发条件：未完全满足高养成条件】\r
+后厨的生产看板上，每一项原料损耗率、烘烤温区曲线与出餐准点率都被唐鸢把控得严丝合缝。\r
+虽然她平时依然话不多、要求严格，但所有店员都知道，只要有鸢姐站在操作台后，无论面对多么庞大的节庆订单潮，后厨都绝不会乱了阵脚。\r
+唐鸢看了一眼计时器，干脆利落地宣布。\r
+唐鸢：今日三百份预售订单全部质检合格，准时封箱发车。大家表现得很好，准点下班。\r
+【档案结语】她以极其专业的标准化流程守护着林记的后厨防线，是林记品质如一最坚实的压舱石。\r
+\r
+#### 4. 叶星河个人结局（两档细分）\r
+- **【高养成：品牌视觉负责人 & 独立设计工作室主理人】**\r
+【触发条件：trust ≥ 75 且 skillLevel ≥ 4，完成M25《个人作品展》与M27/M33视觉剧情】\r
+青年商业设计大奖的领奖台上，25岁的叶星河捧着奖杯，身后的大屏幕上正展示着她为林记烘焙打造的全套「江南四时腰封礼盒」与旗舰店空间视觉方案。\r
+在林念的引导与支持下，她不再是那个只会画华而不实折纸盒的理想主义毕业生，不仅成为了林记的首席品牌视觉负责人，还创办了自己的「星河视觉设计工作室」。\r
+庆功会后，叶星河捧着最新一季的手绘礼盒打样跑来找林念和苏晴。\r
+叶星河：林店长，苏晴姐！现在业内好多人找我约设计稿，但不管我的工作室接多少大单，林记永远是我的第一顺位甲方！\r
+林念笑着接过精美的礼盒。\r
+林念：那我们林记可就赖上叶大设计师一辈子咯！\r
+叶星河抱住画夹，笑得灿烂而骄傲。\r
+叶星河：一言为定！我要用画笔陪着林记走过十年、二十年！\r
+【档案结语】她没有为了迎合商业而磨平灵气，而是学会了让艺术真正走进生活。她的画笔，成为了林记被人一眼认出的温暖名片。\r
+- **【常规养成：长期品牌合作伙伴】**\r
+【触发条件：未完全满足高养成条件】\r
+叶星河继续以自由插画师与特约设计师的身份，与林记烘焙保持着稳定而愉快的长期合作。\r
+每逢中秋、除夕与店庆，她都会背着画夹来店里坐上一整个下午，一边吃着小雨切的水果蛋糕，一边为林记画出充满温度的节日限定插画包装。\r
+叶星河举起画笔对着阳光比划了一下。\r
+叶星河：林店长，今年冬天的限定礼盒初稿画好啦，这次我把承重卡扣和插画结合得可稳当了！\r
+【档案结语】自由而浪漫的画笔，在每一个重要的节日里，准时为林记的甜点披上最美的衣裳。\r
+\r
+#### 5. 林暖（母亲）个人结局（两档细分）\r
+- **【高家庭默契：放心交接的岁月导师】**\r
+【触发条件：家庭默契值 ≥ 75，解锁全部旧配方与母女传承故事】\r
+栖云镇老店后院的桂花树下，五十多岁的林暖正悠闲地摇着蒲扇，和陈奶奶等老姐妹一起品着新泡的雨前龙井，桌边放着她刚从老年大学插花班带回来的花篮。\r
+操劳了大半辈子的她，终于彻彻底底松开了紧握三十年的账本与烤盘，把林记完完全全交到了女儿林念手中。\r
+林念端着一碟刚出炉的少糖桂花栗子蛋糕走出后厨，轻轻放在母亲手边。\r
+林念：妈，今天新店和老店的账目我都核对好啦，这是专门给您和陈奶奶留的第一炉蛋糕。\r
+林暖慈爱地看着眼前成熟稳重、眼里有光的女儿，欣慰地拍了拍她的手。\r
+林暖：好，妈现在呀，什么心都不操了。以前总怕你太年轻挑不起这副担子，现在看着你把林记管得比我和你外婆那时候还要好，妈这心里只有享福的份儿咯。\r
+【档案结语】从手把手把关的严师，到潇洒退居幕后的慈母。三十多年的坚守终于迎来了最圆满的传承，属于林暖的悠闲下半场才刚刚开始。\r
+- **【常规家庭默契：温暖守望的后盾】**\r
+【触发条件：家庭默契值 < 75】\r
+虽然林念已经全面接手了林记的日常经营，但闲不住的林暖依然习惯每天早上来后厨转一圈，帮着看看新进的面粉成色、擦擦老烤炉。\r
+每当林念忙得不可开交时，转身总能看到母亲在厨房里默默为她留好的一碗热汤。\r
+林暖将温热的鸡汤端到办公桌边。\r
+林暖：当了大店长也得按时吃饭呀。大方向你来拿主意，后厨这些散碎活儿，妈还能再帮你盯几年呢。\r
+【档案结语】无论女儿走得多远、飞得多高，母亲永远是这间老店里最温暖、最坚实的后盾。\r
+\r
+---\r
+\r
+## 第十四章：图鉴与收集系统完整文案附录\r
+\r
+### 14.1 十二款核心蛋糕图鉴文案\r
+| 解锁月份 | 产品名称 | 素材文件名 | 配方研发提示 | 图鉴风味描述 |\r
+| :--- | :--- | :--- | :--- | :--- |\r
+| M1 | 原味奶油蛋糕 | \`cake-plain\` | 鸡蛋+动物奶油+戚风胚 | 三十余年不变的经典配比，云朵般松软的戚风与浓郁纯粹的动物奶香。 |\r
+| M1 | 草莓奶油蛋糕 | \`cake-strawberry\` | 草莓+动物奶油+戚风胚 | 严选当季红颜草莓，酸甜多汁的果肉嵌在绵密白雪般的奶油之中。 |\r
+| M1 | 巧克力蛋糕 | \`cake-chocolate\` | 黑巧+可可胚+甘纳许 | 微苦醇厚的黑巧甘纳许淋面，入口丝滑浓郁，是巧克力控的心头好。 |\r
+| M3 | 芋泥薄脆 | \`cake-taro\` | 荔浦芋泥+焦糖杏仁薄脆 | 林念研发的第一款新品，绵密芋泥撞上咔嚓作响的现烤薄脆。 |\r
+| M4 | 抹茶蛋糕 | \`cake-matcha\` | 春日抹茶粉+蜜红豆 | 清新微苦的茶香中和了蜜红豆的绵甜，宛如舌尖上的一场春雨。 |\r
+| M6 | 芒果慕斯 | \`cake-mango\` | 台农芒果泥+轻盈慕斯 | 夏日生活节主打甜点，金黄澄澈的果肉冻层，冰爽顺滑。 |\r
+| M8 | 提拉米苏 | \`cake-tiramisu\` | 马斯卡彭+浓缩咖啡液 | 浸透咖啡酒香的手指饼干与醇滑芝士交叠，带着微微成熟的回甘。 |\r
+| M10 | 无花果奶油 | \`cake-fig\` | 波姬红无花果+轻奶油 | 为苏晴生日研发的秋日甜点，切面如花朵绽放，清甜不腻。 |\r
+| M12 | 季节水果蛋糕 | \`cake-seasonal\` | 四季时令鲜果+定制夹心 | 顺应四时风物而变的缤纷果味蛋糕，藏着小雨满满的搭配灵感。 |\r
+| M16 | 生日定制蛋糕 | \`cake-custom\` | 双层承重胚+手工定制裱花 | 为每一个值得纪念的日子量身打造，承载着无数家庭的欢笑。 |\r
+| M20 | 节日限定蛋糕 | \`cake-festival\` | 传统红曲/栗蓉+节庆装饰 | 逢年过节餐桌上的团圆重头戏，一盒点心便是一份圆满祝福。 |\r
+| M26 | 招牌：桂花栗子蛋糕 | \`cake-signature\` | 高山秋栗+金桂冻+戚风胚 | 外婆旧配方与现代工艺的结晶，「栗子甜则少放糖，桂花香淡则后撒」。 |\r
+\r
+---\r
+\r
+### 14.2 城市地图风物志文案（第14.7节）\r
+1. **栖云镇（初始大本营）**：青石板铺就的江南水乡小城，林记三十多年故事开始的地方，邻里温情最为醇厚。\r
+2. **临江市（\`city-linjiang\`）**：充满活力的邻近商业城市，写字楼白领云集，是林记迈出跨城第一步的起点。\r
+3. **杭州（\`city-hangzhou\`）**：湖光山色与茶香交融之城，食客偏爱清雅微甜的茶味与桂花系列甜点。\r
+4. **上海（\`city-shanghai\`）**：精致摩登的海派都市，对咖啡搭配、精品切块与品牌包装视觉有着极高要求。\r
+5. **南京（\`city-nanjing\`）**：底蕴深厚的梧桐古都，传统手作糕点与秋日桂花栗子蛋糕在这里备受欢迎。\r
+6. **成都（\`city-chengdu\`）**：悠闲巴适的烟火蓉城，下午茶堂食氛围浓厚，创意鲜果慕斯销量领先。\r
+7. **广州（\`city-guangzhou\`）**：讲究食材本味的食在羊城，低糖清爽的动物奶油与时令鲜果款最受青睐。\r
+8. **北京（\`city-beijing\`）**：大气厚重的北方都会，节庆伴手礼盒与高端主题旗舰展陈极具号召力。\r
+\r
+\r
+---\r
+\r
+## 附篇三：新手教程（林暖带林念认店）\r
+\r
+*（设计说明：序幕「接手林记」结束后弹出「是否查看新手教程」。选「查看」依次播放 T1—T6；选「暂不查看」只播 T7 并把教程标记为已完成。查看教程时，T2 后练习柜台接待、T3 后练习制作、T4 后练习采购、T5 后练习手机；练习使用独立数据，不消耗正式存档中的原料、成品、资金、行动力或经营日。每一步完成后继续下一段剧情，刷新后可以接着练习。场景顶部的「地图」可切换已开放地点，「手机」在所有场景均可打开。教程不推进正式经营日期。）*\r
+\r
+### T1｜串着铜钥匙的钥匙扣\r
+**【事件ID：EVT_TUTORIAL_START｜触发条件：序幕结束后】**\r
+**【场景：蛋糕店前厅】**\r
+\r
+林暖将串着后厨与前厅铜钥匙的钥匙扣递到林念掌心里，钥匙碰在一起，发出很轻的一声响。\r
+林暖：念念，既然接手了林记，咱们先把前厅、后厨和街上的进货地方走一遍。我带你从前厅开始。\r
+林念捏着那串还带着母亲体温的钥匙，点了点头。\r
+林念：好。\r
+林暖解下围裙搭在椅背上，往柜台那边抬了抬下巴。\r
+\r
+### T2｜前厅的五个角落\r
+**【事件ID：EVT_TUTORIAL_FRONT｜触发条件：教程 T1 之后】**\r
+**【场景：蛋糕店前厅】**\r
+\r
+林暖带着林念站在洒满晨光的蛋糕店前厅中央，逐一指向店内的五个核心区域。\r
+林暖：咱们林记最重要的地方就是这间前厅，和里头那间独立的后厨。你先看正中间的柜台——平时接待到店顾客、看大家想吃什么口味、结账收银，还有处理街坊们的特殊定制订单，全都在这儿完成。\r
+林念走到玻璃柜台后，摸了摸擦得发亮的台面。\r
+林念：明白，这里就是我们林记的门面。\r
+林暖又指向四周的木墙与展示柜。\r
+林暖：再看旁边的装修册。等以后手里攒了充裕的资金，你可以在这儿更换墙面、地板、灯具，添置更大的三层展示柜和货架。店里环境敞亮舒适了，客人们也更愿意坐下来慢慢挑。\r
+林暖转身指了指门口，又点了点通往右侧的门帘。\r
+林暖：从门口出去就是栖云镇老街；掀开这道门帘，就是咱们的后厨。另外，妈虽然把店交给你了，但平时有空也会回店里坐坐，你想听听以前的经验，就点「和妈妈聊聊」。\r
+这时，店门上的风铃轻轻一响，第一位早起的街坊李婶走了进来。\r
+李婶：念念今天当家呀？给我拿一份刚出炉的原味奶油蛋糕，给家里孩子当点心！\r
+林暖轻轻推了推林念的肩膀。\r
+林念熟练地打包结账，把系好丝带的蛋糕盒递过去。\r
+林念：李婶您拿好，欢迎常来！\r
+林暖站在一旁，看着女儿送客的背影，眼里都是笑意。\r
+\r
+### T3｜后厨里的老伙计\r
+**【事件ID：EVT_TUTORIAL_KITCHEN｜触发条件：教程 T2 之后】**\r
+**【场景：烘焙后厨】**\r
+\r
+送走第一位客人，林暖带林念掀开门帘，走进宽敞的独立烘焙后厨。\r
+林暖指向正中央摆着模具与抹刀的操作台。\r
+林暖：这里是后厨的核心。每天选定菜单、准备材料、动手制作和装饰蛋糕，都在这张操作台上完成。\r
+林念伸手按了按台面，木头被几十年的揉面磨得温润发亮。\r
+林暖又依次指向左侧的设备区与右侧的食材区。\r
+林暖：设备区摆着咱们的烤箱和打蛋器，以后升级了高级设备，烤出来的蛋糕品质更高、也更省力气；食材区用来查看面粉、鸡蛋、奶油和鲜果的库存，哪种原料快见底了，得及时去街上补货。\r
+林念注意到角落里还放着一张盖着白布的实验台，墙上挂着一块空白的员工排班板。\r
+林念：妈，那边的实验台和排班板，现在还用不上吗？\r
+林暖温和地笑了笑。\r
+林暖：一口吃不成胖子。等你把基础配方都练熟了，实验台就能用来研发你自己的新口味；等以后店里生意大了、招了新店员，排班板就派得上大用场。\r
+林暖拍了拍操作台。\r
+林暖：来，现在先做一炉原味奶油蛋糕，找找手感。\r
+\r
+### T4｜青石板路与赵叔的食材铺\r
+**【事件ID：EVT_TUTORIAL_STREET｜触发条件：教程 T3 之后】**\r
+**【场景：栖云镇老街】**\r
+\r
+从蛋糕店门口走出来，眼前便是青石板铺就的栖云镇中心街道。\r
+林暖带着林念站在街口，指点着街道两侧的去处。\r
+林暖：这条街连接着镇上的各个角落。左手边这家是老赵叔开的食材铺，店里日常用的面粉、鲜鸡蛋、动物奶油和时令水果，都在这儿买。\r
+林暖又指向绿树成荫的街心方向与居民巷。\r
+林暖：往前走是镇上的公园，累了可以去散步透透气；苏晴那丫头也常在街上和公园一带拍照，你想找她聊天，点「寻找苏晴」准能碰上。等晚上打烊了，点「回家」就能回咱们自己家里歇着。\r
+林暖塞给林念一只采购篮。\r
+林暖：走，先去食材铺把明早要用的面粉和草莓买齐。\r
+赵叔热情地迎上来，围裙上还沾着面粉。\r
+赵叔：哟，林大姐带念念来进货啦？今天清晨刚从农场送来的红颜草莓和鲜牛奶，水灵着呢。以后念念来拿货，叔都给你留最新鲜的批次！\r
+林念微笑着付完款，把采购单折好收进围裙口袋。\r
+林念：谢谢赵叔，以后就要常来麻烦您啦！\r
+\r
+### T5｜口袋里的手机\r
+**【事件ID：EVT_TUTORIAL_PHONE｜触发条件：教程 T4 之后】**\r
+**【场景：栖云镇老街】**\r
+\r
+刚走出食材铺，林念口袋里的手机「叮咚」响了一声。\r
+林暖指了指界面角落常驻的手机按钮。\r
+林暖：念念，不管你在店里、后厨还是街上，随时都能打开手机打理店务，不用专门跑回柜台。快打开看看是谁发来的消息。\r
+林念点开手机，最先跳出来的是苏晴的消息。\r
+苏晴（手机消息）：恭喜林老板正式上任！下午有空来街上找我玩呀！\r
+林暖：上面这一排，妈给你挨个说一遍。通知会提醒新订单、快到期、食材不够这些事；人物里记着你认识的每个人，资料和互动进度都在里面；线上接单和订单详情是一对，远处客人下的单和到店、定制的单，统一在这儿核对材料和截止时间。\r
+林念往下划，看到日历上标着即将到来的春日花卉节。\r
+林暖：日历上会把接下来几个月的活动和节日都标出来，提早备料，别等活动开幕了才发现草莓不够。\r
+林暖最后点了点收藏和经营数据。\r
+林暖：收藏里是蛋糕图鉴、苏晴的回忆、CG 和结局这些你慢慢攒下来的东西；经营数据是每天的账，赚了多少、花了多少，心里要有数。\r
+\r
+### T6｜围裙交到你手上\r
+**【事件ID：EVT_TUTORIAL_END｜触发条件：教程 T5 之后】**\r
+**【场景：蛋糕店前厅】**\r
+\r
+回到林记烘焙前厅，林暖解下自己的围裙叠好，放进柜台下的抽屉里，温和地看着女儿。\r
+林暖：好啦，店里店外和手机上的门道，妈都已经交给你了。从现在起，这家林记烘焙，就正式由你独立当家。\r
+林念接过那串铜钥匙，把它挂在了自己的围裙带子上。\r
+林念：妈，您就放心吧。\r
+林暖：放手去干吧，念念。妈就在镇上，有事招呼一声。\r
+林暖推门出去，风铃又响了一次。林念站在柜台后，深深吸了一口气。\r
+林念：好，那就从今天开始。\r
+\r
+### T7｜那我自己先试试\r
+**【事件ID：EVT_TUTORIAL_SKIP｜触发条件：教程选择「暂不查看」】**\r
+**【场景：蛋糕店前厅】**\r
+\r
+林念晃了晃手里的铜钥匙，自信地笑了笑。\r
+林念：妈，我在林记长了二十二年，闭着眼睛都能摸到烤箱开关呢！让我自己先试试看吧！\r
+林暖愣了一下，随即欣慰地点了点头。\r
+林暖：好，有志气！你的手机里已经存好了订单和日历提醒，要是有拿不准的，随时在店里找妈聊天。\r
+林暖把围裙搭在椅背上。\r
+林暖：那今天第一天营业，正式开始吧！
+`,Rn={林念:"林念",苏晴:"苏晴",林暖:"林暖",周雨桐:"周雨桐",小雨:"周雨桐",许知遥:"许知遥",知遥:"许知遥",唐鸢:"唐鸢",阿鸢:"唐鸢",叶星河:"叶星河",星河:"叶星河",陈奶奶:"陈奶奶",张叔:"张叔",李婶:"李婶",赵叔:"赵叔",沈知夏:"沈知夏",许佳宁:"许佳宁",沈妍:"沈妍",顾客:"顾客"},Bs={周雨桐:"xiaoyu",许知遥:"zhiyao",唐鸢:"kexin",叶星河:"qinghe"},wa={xiaoyu:"小雨",zhiyao:"知遥",kexin:"阿鸢",qinghe:"星河"},Pd={tradition:"传统",innovation:"创新",efficiency:"效率",community:"社区"},Rd={一:1,二:2,三:3,四:4,五:5,六:6},Od=/^(林念|苏晴|林暖|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;function Qr(e,t){if(!e)return!0;if(e.trust){for(const n of Object.keys(e.trust))if((t.partnerTrust[n]||0)<e.trust[n])return!1}if(e.momBond&&(t.momBond||0)<e.momBond)return!1;if(e.played){for(const n of e.played)if(!t.played.some(r=>r.indexOf(n)>=0))return!1}if(e.style){const n=t.style||{},r=n[e.style.id]||0;if(r<e.style.min)return!1;const a=Object.keys(n).filter(o=>o!==e.style.id).map(o=>n[o]||0);if(r-Math.max(0,...a)<e.style.lead)return!1}return!0}function qs(e,t){const n=[];for(const r of e||[])r.t==="cond"?n.push(...qs(Qr(r.test,t)?r.then:r.else,t)):r.t==="choice"?n.push({...r,options:(r.options||[]).map(a=>({...a,branch:qs(a.branch||[],t)})),after:qs(r.after||[],t)}):n.push(r);return n}function As(e,t,n){e.lastIndex=0;let r=e.exec(t);for(;r;)n(r),r=e.exec(t)}function Nd(e,t){const n=[];if(!e)return n;As(/(tradition|innovation|efficiency|community)Score\s*\+\s*(\d+)/g,e,a=>{n.push({k:"style",id:a[1],v:Number(a[2]),label:Pd[a[1]]+" +"+a[2]})}),As(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*\+\s*(\d+)/g,e,a=>{const o=Rn[a[1]];n.push({k:"trust",id:Bs[o],v:Number(a[2]),label:a[1]+"信赖 +"+a[2]})}),As(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)?专业能力\s*\+\s*(\d+)/g,e,a=>{const o=a[1]?Rn[a[1]]:t,i=Bs[o];i&&n.push({k:"skill",id:i,v:Number(a[2])/10,label:(a[1]||wa[i])+"专业 +"+a[2]})});const r=Object.keys(Rn);return As(/信赖度\s*\+\s*(\d+)/g,e,a=>{const o=e.slice(0,a.index);if(r.some(c=>o.endsWith(c)))return;const i=Bs[t];i&&(n.some(c=>c.k==="trust"&&c.id===i)||n.push({k:"trust",id:i,v:Number(a[1]),label:wa[i]+"信赖 +"+a[1]}))}),/顾客忠诚度增加|忠诚度提升/.test(e)&&n.push({k:"loyalty",v:4,label:"忠诚 +4"}),n}function Wn(e){const t={};let n=!1;const r=e.match(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)信赖度\s*[≥>=]+\s*(\d+)/);r&&(t.trust={[Bs[Rn[r[1]]]]:Number(r[2])},n=!0);const a=e.match(/家庭默契\s*[≥>=]+\s*(\d+)/);a&&(t.momBond=Number(a[1]),n=!0);const o=e.match(/(tradition|innovation|efficiency|community)Score\s*[≥>=]+\s*(\d+)/);o&&(t.style={id:o[1],min:Number(o[2]),lead:15},n=!0);const i=e.match(/领先[^0-9]{0,4}(\d+)/);i&&t.style&&(t.style.lead=Number(i[1]));const c=e.match(/M(\d+)/);return c&&/已完成|完成M/.test(e)?(t.played=["M"+c[1]],n=!0):/原创配方研发剧情/.test(e)?(t.played=["M21"],n=!0):/个人作品展/.test(e)&&(t.played=["M25"],n=!0),n?t:null}function zn(e){return e.replace(/[（(]\s*`?(?:cake|city|EVT|shop)-?[A-Za-z0-9_]*`?\s*[）)]/g,"").replace(/`/g,"").trim()}function Ps(e,t){const n=e.trim();if(!n||/^\|/.test(n))return;if(n.startsWith("旁白")){const a=n.match(/^旁白\s*(?:（([^）]*)）)?\s*[：:]\s*(.*)$/);t.push({t:"nar",who:a&&a[1]?a[1]:"",text:zn(a?a[2]:n)});return}if(/^\*\*[^*]+\*\*$/.test(n)){t.push({t:"nar",text:zn(n.replace(/\*\*/g,""))});return}if(/^\*（.+）\*$/.test(n)||/^\*\(.+\)\*$/.test(n)){t.push({t:"note",text:n.replace(/^\*[（(]|[）)]\*$/g,"").trim()});return}const r=n.match(Od);if(r){t.push({t:"say",who:Rn[r[1]],emo:r[2]||"",text:zn(r[4].replace(/\*\*/g,""))});return}t.push({t:"nar",text:zn(n.replace(/\*\*/g,""))})}function mt(e,t={}){const n=[],r={ids:[],month:null,kind:null,test:null,title:"",cond:null};let a="main",o=n,i=null,c=null,f=null,v=null,h=null,y=0,b=!0;const m=()=>a==="branch"&&c?c.branch:a==="then"&&f?f.then:a==="else"&&f?f.else:a==="inline"&&h?h.then:o,M=_=>m().push(_);for(const _ of e){const E=_.trim();if(!E){b=!0;continue}if(E.startsWith(">")){let k=E.replace(/^>+\s*/,"").trim();if(!k)continue;const H=k.match(/^\*{0,2}【(.+?)】\*{0,2}(.*)$/);if(H&&/玩家选择节点/.test(H[1])){a="main",h=null;const q=H[1],J=q.match(/节点\s*([\d.\-]+)/),Y=q.match(/[：:]\s*(.+)$/);i={t:"choice",node:J?J[1]:"",prompt:Y?Y[1].trim():q,options:[],after:[]},M(i);continue}const ie=k.match(/^[-*]\s*\*\*选项([A-Z])[：:](.+?)\*\*(.*)$/);if(ie&&i){const q=Ld([k,i.prompt].join(" ")),J=ie[3]||"";i.options.push({label:ie[2].trim(),hint:J.replace(/^[（(]|[）)]$/g,"").trim(),gains:Nd(J,q),branch:[]});continue}/^\*[（(].+[）)]\*$/.test(k)&&i&&(i.note=k.replace(/^\*[（(]|[）)]\*$/g,"").trim());continue}const w=E.replace(/^[*-]\s+/,"").trim().match(/^\*{0,2}【(.+?)】\*{0,2}(.*)$/);if(w){const k=w[1],H=(w[2]||"").replace(/^[：:]\s*/,"").trim();if(k.indexOf("事件ID")>=0){k.split("｜").forEach(P=>{const N=P.search(/[：:]/);if(N<0)return;const ue=P.slice(0,N).trim(),ge=P.slice(N+1).trim();if(ue==="事件ID")r.ids.push(ge);else if(ue==="触发月份"||ue==="触发时间"){const me=ge.match(/M(\d+)/);me&&(r.month=Number(me[1]))}else if(ue==="触发条件"){/新游戏开始|开始游戏/.test(ge)&&(r.kind="prologue");const me=Wn(ge);me&&(r.cond=me)}});continue}if(/^(触发条件|状态变更|初始状态|检查条件|注意|系统提示)/.test(k))continue;if(/^(场景|插入回忆|接续回忆|回忆片段|回到现在|闪回|时间|地点)/.test(k)){M({t:"scene",text:k.replace(/^场景\s*[：:]\s*/,"")}),H&&M({t:"nar",text:H});continue}const ie=k.match(/^CG\s*[：:]\s*(.+)$/i);if(ie){M({t:"cg",key:ie[1].trim()});continue}if(/^CG\s*(结束|收起)/.test(k)){M({t:"cgend"});continue}const q=k.match(/^分支([A-Z])(?:[：:](.*))?$/);if(q&&i){const ne=q[1].charCodeAt(0)-65;for(;i.options.length<=ne;)i.options.push({label:"选项"+String.fromCharCode(65+i.options.length),hint:"",gains:[],branch:[]});c=i.options[ne],a="branch",h=null,H&&M({t:"nar",text:zn(H)});continue}if(/^(主线汇合|汇合|汇合点)$/.test(k)){a="main",h=null,i&&(o=i.after),H&&M({t:"nar",text:H});continue}const J=k.match(/^高养成解锁分支[：:]\s*(.*)$/),Y=k.match(/^普通保底分支[：:]\s*(.*)$/);if(J||Y){if(J)h=null,f={t:"cond",test:Wn(J[1])||{},then:[],else:[]},v=f,n.push(f),a="then";else{const ne=v&&v.else.length===0?v:null;ne?(f=ne,a="else"):a="main"}continue}if(/^若/.test(k)){const ne=Wn(k);ne&&(f={t:"cond",test:ne,then:[],else:[]},n.push(f),h=f,a="inline",y=0,b=!1,H&&Ps(H,m()));continue}const re=k.match(/^第[一二三四五六七八九十]+幕[：:]\s*(.*)$/);if(re){const ne=Wn(re[1]),P=re[1].replace(/[（(]\s*若[^）)]*[）)]/g,"").trim();M({t:"act",text:P,test:ne||null}),H&&M({t:"nar",text:H});continue}H&&M({t:"nar",text:H});continue}const x=E.match(/^\*\*\s*(\d+\.\s*)?(.+?)\s*\*\*$/);if(x&&/协助|结局|相册|档案/.test(x[2])){a="main",h=null,M({t:"scene",text:x[2].replace(/[：:]\s*$/,"")});continue}if(a==="inline"&&h){const k=[];Ps(E,k);const H=k[0],ie=H&&H.t==="nar";if(b&&y>0&&ie){a="main",h=null,Ps(E,o),b=!1;continue}k.forEach(q=>h.then.push(q)),b&&(y+=1),b=!1;continue}Ps(E,m()),b=!1}return i&&i.options.forEach(_=>{_.branch.length||(_.branch=[])}),r.title=t.title||"",{beats:Dd(n),meta:r}}function Dd(e){const t=[];let n=0;for(;n<e.length;){const r=e[n];if(r.t==="act"&&r.test){let a=n+1;for(;a<e.length&&e[a].t!=="act";)a++;t.push({t:"cond",test:r.test,then:e.slice(n,a),else:[]}),n=a}else t.push(r),n++}return t}function Ld(e){const t=e.match(/(小雨|知遥|阿鸢|星河|周雨桐|许知遥|唐鸢|叶星河)/);return t?Rn[t[1]]:""}function Vd(e){const t={level:1,text:"",lines:[],children:[]},n=[t];for(const r of e.split(/\r?\n/)){const a=r.match(/^(#{1,4})\s+(.*)$/);if(a){const o=a[1].length;for(;n.length>1&&n[n.length-1].level>=o;)n.pop();const i={level:o,text:a[2].trim(),lines:[],children:[]};n[n.length-1].children.push(i),n.push(i)}else n[n.length-1].lines.push(r)}return t}function Fd(e){const t=Vd(e),n=[],r={},a={},o={},i={},c={},f=[];let v=0;const h=m=>(m.order=v++,n.push(m),m),y=[];for(const m of t.children)m.level===1?y.push(...m.children):y.push(m);for(const m of y){const M=m.text||"";if(/^序幕/.test(M)){const{beats:_,meta:E}=mt(m.lines,{title:"序幕 · 回家"});h({id:E.ids[0]||"EVT_PROLOGUE_01",ids:E.ids,title:"序幕 · 回家",chapter:"",month:0,kind:"prologue",test:null,beats:_});continue}if(/^第[一二三四五六]章/.test(M)){for(const _ of m.children){const E=_.text,T=/结算/.test(E)&&/(月末|目标)/.test(E),w=E.match(/M(\d+)/),x=w?Number(w[1]):null;if(T&&!w)continue;if(T){const J=Sa(E,x),Y=mt(_.lines,{title:E}),re=Y.beats;if(Y.meta.ids.length&&h({id:Y.meta.ids[0],ids:Y.meta.ids,title:Rs(E),chapter:M,month:x,kind:"main",test:Y.meta.cond,beats:re}),!J)continue;r[J]=r[J]||{pass:[],failId:"",failBeats:[]};for(const ne of _.children){const P=Os(ne.text);if(!P)continue;const N=mt(ne.lines,{title:ne.text});P==="pass"?r[J].pass=N.beats:(r[J].failBeats=N.beats,r[J].failId=N.meta.ids[0]||"",N.meta.ids.length&&h({id:N.meta.ids[0],ids:N.meta.ids,title:Ea(ne.text,N.beats),chapter:M,month:null,kind:"short",test:null,beats:N.beats}))}continue}const{beats:k,meta:H}=mt(_.lines,{title:E});if(!H.ids.length)continue;let ie=H.cond,q=x??H.month;ie&&!q&&(q=H.month);for(const J of _.children){if(Os(J.text))continue;const Y=mt(J.lines,{title:J.text});Y.beats.length&&(k.push({t:"scene",text:J.text.replace(/^【|】$/g,"")}),k.push(...Y.beats))}if(h({id:H.ids[0],ids:H.ids,title:Rs(E),chapter:M,month:q,kind:"main",test:ie,beats:k}),_.children.length){const J=Sa(E,q),Y=_.children.filter(re=>Os(re.text));if(J&&Y.length){r[J]=r[J]||{pass:[],failId:"",failBeats:[]};for(const re of Y){const ne=Os(re.text),P=mt(re.lines,{title:re.text});ne==="pass"?r[J].pass=P.beats:(r[J].failBeats=P.beats,r[J].failId=P.meta.ids[0]||"",P.meta.ids.length&&h({id:P.meta.ids[0],ids:P.meta.ids,title:Ea(re.text,P.beats),chapter:M,month:null,kind:"short",test:null,beats:P.beats}))}}}}continue}if(/^附篇一/.test(M)){for(const _ of m.children){const{beats:E,meta:T}=mt(_.lines,{title:_.text}),w=T.cond||Wn(_.text)||{};h({id:T.ids[0]||"EVT_STYLE_"+v,ids:T.ids,title:Rs(_.text),chapter:M,month:null,kind:"style",test:w,beats:E})}continue}if(/^附篇二/.test(M)){for(const _ of m.children){const E=_.text.match(/^M(\d+)\s*[｜|]\s*(.+)$/);if(!E)continue;const T=Number(E[1]),w=_.lines.filter(ie=>!/^\*\*第.+章互动/.test(ie.trim())),x=mt(w,{title:E[2]}),k=x.meta.ids[0]||"EVT_FRIEND_M"+T,H={id:k,ids:x.meta.ids.length?x.meta.ids:[k],title:E[2],chapter:"与苏晴的每月互动",month:T,kind:"friend",test:null,beats:x.beats};a[T]=H,h(H)}continue}if(/^附篇三/.test(M)){let _=0;for(const E of m.children){const T=E.text.match(/^(T\d+)\s*[｜|]\s*(.+)$/);if(!T)continue;const w=mt(E.lines,{title:T[2]}),x=w.meta.ids[0]||"EVT_TUTORIAL_"+T[1];h({id:x,ids:w.meta.ids.length?w.meta.ids:[x],title:T[2],chapter:"新手教程",month:null,kind:"tutorial",order:_++,test:null,beats:w.beats})}continue}if(/^附篇三/.test(M)){let _=0;for(const E of m.children){const T=E.text.match(/^(T\d+)\s*[｜|]\s*(.+)$/);if(!T)continue;const w=mt(E.lines,{title:T[2]}),x=w.meta.ids[0]||"EVT_TUTORIAL_"+T[1];h({id:x,ids:w.meta.ids.length?w.meta.ids:[x],title:T[2],chapter:"新手教程",month:null,kind:"tutorial",order:_++,test:null,beats:w.beats})}continue}if(/^第十三章/.test(M)){for(const _ of m.children){if(/^13\.7/.test(_.text)){for(const w of _.children){const x=jd(w.text);if(!x)continue;const k=[];for(const H of w.lines){const ie=H.trim();if(/^【触发条件/.test(ie))continue;const q=ie.match(/^[-*]\s*\*\*【(.+?)】\*\*\s*(.*)$/);q?k.push({title:q[1],text:(q[2]||"").trim()}):k.length&&ie&&!/^[-*#]/.test(ie)&&(k[k.length-1].text+=(k[k.length-1].text?`
+`:"")+ie)}k.length&&(c[x]=k)}continue}const{beats:E,meta:T}=mt(_.lines,{title:_.text});T.ids.length&&h({id:T.ids[0],ids:T.ids,title:Rs(_.text),chapter:M,month:null,kind:"final",test:null,beats:E})}continue}if(/^第十四章/.test(M)){for(const _ of m.children)for(const E of _.lines){const T=E.trim(),w=T.match(/^\|\s*(M\d+|初始)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|/);if(w){const H=w[3].replace(/`/g,"").trim().replace(/^cake-/,"");H&&(o[H]={hint:w[4].trim(),flavor:w[5].trim()});continue}const x=T.match(/^\d+\.\s*\*\*(.+?)（.*?）\*\*[：:]\s*(.+)$/);x&&(i[x[1]]=x[2])}continue}}n.length||f.push("没有解析出任何事件，检查 v5_0.md 是否还在根目录");const b={events:n,stages:r,friend:a,codex:o,cityText:i,partnerEndings:c,warnings:f};return b.find=m=>n.find(M=>M.id===m||(M.ids||[]).includes(m))||null,b}function Rs(e){return e.replace(/^M\d+\s*[｜|]\s*/,"").replace(/[（(]\s*(?:含|可选)[^）)]*[）)]/g,"").replace(/^【|】$/g,"").trim()}function Ea(e,t){const n=e.match(/《(.+?)》/);if(n)return n[1];const r=t.find(a=>a.t==="nar");return r?r.text.slice(0,12):e}function Os(e){return e?/未达标/.test(e)?"fail":/达标/.test(e)?"pass":"":""}function Sa(e,t){const n=e.match(/第([一二三四五六])阶段/);return n?Rd[n[1]]:t?Math.ceil(t/6):null}function jd(e){return/周雨桐|小雨/.test(e)?"xiaoyu":/许知遥/.test(e)?"zhiyao":/唐鸢/.test(e)?"kexin":/叶星河/.test(e)?"qinghe":/林暖/.test(e)?"mom":""}const Ne=Fd(Ad);if(typeof console<"u"){const e={};Ne.events.forEach(r=>e[r.kind]=(e[r.kind]||0)+1);let t=0,n=0;Ne.events.forEach(r=>{(r.beats||[]).forEach(a=>{a.t==="choice"&&(t+=1,n+=a.options.length)})}),console.log("[剧情] 已加载 "+Ne.events.length+" 个事件（"+Object.keys(e).map(r=>r+" "+e[r]).join("，")+"），友情互动 "+Object.keys(Ne.friend).length+" 段，阶段结算 "+Object.keys(Ne.stages).length+" 组，选择 "+t+" 处 / "+n+" 项"),Ne.warnings.length&&Ne.warnings.forEach(r=>console.warn("[剧情] "+r))}const si=["清爽果香","绵甜柔和","醇厚浓香"],ri=["偏少","均衡","偏多"],li=["简约点缀","日常装饰","丰富装饰"],Bd=[72,90,100],ai=[100,90,72],hr={taro:{direction:1,ratio:0,process:1,theme:"做出绵软、微甜，又有清脆夹心的层次。",focus:"芋泥夹层要先冷却，薄脆尽量靠近售卖时再组合。",ratioLabel:"芋泥甜度",processes:["趁热把薄脆拌进芋泥","芋泥冷却后分层夹入薄脆","把薄脆压碎拌入奶油"],distractors:["蜜红豆","轻盈慕斯"]},matcha:{direction:0,ratio:0,process:1,theme:"让茶香清新微苦，红豆甜味恰好托住回甘。",focus:"抹茶少量多次加入，避免高温久烤带出苦味。",ratioLabel:"抹茶用量",processes:["一次加入全部抹茶并延长烘烤","分次拌入抹茶并缩短烘烤","先加红豆再用热奶油冲抹茶"],distractors:["台农芒果泥","动物奶油"]},mango:{direction:0,ratio:1,process:2,theme:"突出成熟芒果的清香，同时保留慕斯的轻盈。",focus:"尝过果泥再调甜度，冷藏定型后再装饰。",ratioLabel:"果泥与慕斯比例",processes:["慕斯远多于果泥","果泥和慕斯大致平衡","大量果泥直接拌入温热慕斯"],distractors:["蜜红豆","轻奶油"]},tiramisu:{direction:2,ratio:1,process:1,theme:"咖啡香醇厚，但奶酪仍要保留轻柔回甘。",focus:"手指饼干快速蘸取咖啡液，留住内部结构。",ratioLabel:"咖啡液浓度",processes:["让饼干长时间浸泡","快速蘸取后分层冷藏","用咖啡液直接冲入奶酪"],distractors:["可可胚","金桂冻"]},fig:{direction:0,ratio:0,process:2,theme:"让无花果的清甜成为主角，奶油只做轻柔衬托。",focus:"选熟度合适的无花果，最后轻放在冷却奶油上。",ratioLabel:"无花果用量",processes:["无花果和奶油长时间打发","烤前放入无花果","奶油冷却后再铺鲜果"],distractors:["浓缩咖啡液","高山秋栗"]},seasonal:{direction:0,ratio:1,process:1,theme:"让当季水果有层次，甜度不盖住果香。",focus:"按季节更换鲜果，果肉与夹心分层组合。",ratioLabel:"鲜果与夹心比例",processes:["将所有水果打成同一层果泥","保留果肉并与夹心分层","增加糖浆并把水果提前烤干"],distractors:["传统红曲","蜜红豆"]},custom:{direction:1,ratio:1,process:0,theme:"按顾客想要的口味设计，同时保证切分时结构稳定。",focus:"先确认承重胚，再固定夹层和手工裱花。",ratioLabel:"夹层与蛋糕胚比例",processes:["使用双层承重胚，逐层固定裱花","把全部夹层叠在单层软胚上","先装饰外层再填入夹心"],distractors:["金桂冻","波姬红无花果"]},festival:{direction:1,ratio:1,process:2,theme:"在节日氛围里保留熟悉的团圆风味。",focus:"传统红曲或栗蓉搭配节庆装饰，出炉冷却后再包装。",ratioLabel:"馅料与蛋糕胚比例",processes:["热蛋糕出炉后立刻装入礼盒","把装饰和馅料一同长时间烘烤","冷却定型后装饰并包装"],distractors:["鲜草莓","浓缩咖啡液"]},signature:{direction:2,ratio:0,process:1,theme:"复原外婆的桂花栗子蛋糕，让秋栗醇厚、金桂清雅。",focus:"栗子甜则少放糖，桂花冻冷却后分层夹入，装盒前现撒金桂。",ratioLabel:"额外糖量",processes:["趁热把金桂干花拌进栗子泥","桂花冻冷却后作为独立夹层","桂花冻趁热浸入戚风胚"],distractors:["桂花蜜","动物奶油"]}},Us={plain:{question:"原味奶油蛋糕切开后有些干，奶油也盖住了戚风的香气。",options:["增加糖浆并厚涂奶油","缩短烘烤，并减薄奶油层","延长烘烤，让外皮更脆"],correct:1,feedback:"先守住戚风的湿润度，再让奶油薄薄衬托。"},strawberry:{question:"顾客觉得奶油有些腻，草莓的酸甜味不够明显。",options:["减少奶油，增加草莓夹层","延长蛋糕胚烘烤时间","改变表面装饰颜色"],correct:0,feedback:"把奶油减薄，并增加草莓果味层。"},chocolate:{question:"巧克力蛋糕入口偏苦，回味也显得厚重。",options:["加入更多纯可可粉","减少甘纳许并调和可可浓度","增加烘烤时间让水分散尽"],correct:1,feedback:"适当收住甘纳许和可可的浓度，保留香气即可。"},taro:{question:"芋泥薄脆放一会儿就不脆了。",options:["把薄脆提前拌进热芋泥","芋泥冷却后分层，临近售卖再组合","把薄脆泡进奶油里"],correct:1,feedback:"减少水分接触，让薄脆临近售卖时再入层。"},matcha:{question:"抹茶的苦味有些突出，蜜红豆也不明显。",options:["增加红豆层并略减抹茶","增加抹茶粉并减少红豆","把红豆打成糖浆淋面"],correct:0,feedback:"略减抹茶浓度，让蜜红豆的甜味接住茶香。"},mango:{question:"芒果慕斯吃起来偏腻，果香不够明亮。",options:["增加慕斯比例","使用成熟芒果泥并平衡慕斯比例","延长烘烤芒果泥的时间"],correct:1,feedback:"用熟芒果的果香提亮口味，保持慕斯轻盈。"},tiramisu:{question:"提拉米苏底层的手指饼干湿软散开了。",options:["延长咖啡浸泡时间","快速蘸咖啡液后立即分层冷藏","增加咖啡液并拌入奶酪"],correct:1,feedback:"饼干快速蘸取咖啡液即可，避免吸水过多。"},fig:{question:"无花果奶油看起来漂亮，但吃不出鲜果香。",options:["增加奶油厚度","烘烤时加入更多无花果","冷却后铺上新鲜无花果"],correct:2,feedback:"最后加入新鲜果肉，保留无花果的香气和口感。"},seasonal:{question:"季节水果蛋糕层次混在一起，果味不够清楚。",options:["保留果肉并和夹心分层","把水果全部打成泥","增加糖浆覆盖水果"],correct:0,feedback:"保留果肉口感，再用独立夹层表现季节变化。"},custom:{question:"生日定制蛋糕切分时夹层容易倾斜。",options:["改用双层承重胚并逐层固定","增加顶部裱花重量","使用单层软胚并增加夹心"],correct:0,feedback:"先稳定承重结构，再逐层填入夹心和装饰。"},festival:{question:"节日限定蛋糕节庆感很足，味道却有些平淡。",options:["增加礼盒装饰层数","选择红曲或栗蓉馅料，冷却后再包装","延长礼盒内的回温时间"],correct:1,feedback:"用红曲或栗蓉明确节日风味，并在冷却后包装。"},signature:{question:"栗子甜度合适，但桂花香气不够鲜明。",options:["增加糖量并提前烤入桂花","桂花冻冷却分层，装盒前现撒金桂","把桂花干花打碎混进戚风胚"],correct:1,feedback:"沿用外婆手记：桂花冻冷却分层，装盒前再现撒金桂。"}};function Xs(e){return[...new Set(Array.isArray(e)?e:[])].sort()}function oi(e,t){const n=Xs(t);return(_l[e]||[]).some(r=>{const a=Xs(r);return a.length===n.length&&a.every((o,i)=>o===n[i])})}function qd({coreCorrect:e,directionCorrect:t,ratioOffset:n,processCorrect:r,decoration:a}){const o=[];return e||o.push("核对图鉴中的核心食材，选齐后再做风味判断。"),t||o.push("风味方向和产品主题不太协调。"),n&&o.push("调整主料比例，让主要食材的味道更突出。"),r||o.push("工艺还需要照顾这款蛋糕的口感结构。"),a===2&&o.push("装饰丰富，外观加分；制作成本也相应提高。"),a===0&&o.push("简约装饰控制了成本，可以再考虑提升展示效果。"),o.length||o.push("四项都很协调，可以考虑正式上架。"),o}function Ud(e,t){const n=hr[e];if(!n)return null;const r=oi(e,t.ingredients),a=t.direction===n.direction,o=Math.abs(t.ratio-n.ratio),i=t.process===n.process,c=t.decoration;if(![0,1,2].includes(t.direction)||![0,1,2].includes(t.ratio)||![0,1,2].includes(t.process)||![0,1,2].includes(c))return null;const f=Math.max(0,(a?100:65)-o*15-(r?0:45)),v=i?100:60,h=Bd[c],y=ai[c],b=Math.round((f+v+h+y)/4);return{type:"development",productId:e,ingredients:Xs(t.ingredients),direction:t.direction,ratio:t.ratio,process:t.process,decoration:c,coreCorrect:r,scores:{flavor:f,texture:v,appearance:h,cost:y},score:b,passed:r&&b>=75,refined:r&&b>=90,feedback:qd({coreCorrect:r,directionCorrect:a,ratioOffset:o,processCorrect:i,decoration:c})}}function Hd(e){if(!e||![0,1,2].includes(e.sugar)||![0,1,2].includes(e.filling)||![0,1,2].includes(e.garnish))return null;const t=oi("signature",e.ingredients),n=e.sugar===0,r=e.filling===1,a=e.garnish===2,o={flavor:Math.max(0,(n?100:60)-(t?0:45)),texture:r?100:55,appearance:a?100:65,cost:t?90:65},i=Math.round(Object.values(o).reduce((f,v)=>f+v,0)/4),c=[];return t||c.push("请按手记选齐高山秋栗、金桂冻和戚风胚。"),n||c.push("甜栗本身够甜时，要减少额外糖量。"),r||c.push("桂花冻冷却后单独夹入，才能保留清楚的层次。"),a||c.push("装盒前现撒金桂，香气会更鲜明。"),c.length||c.push("外婆手记的风味与做法都复原了。"),{type:"signature",productId:"signature",ingredients:Xs(e.ingredients),sugar:e.sugar,filling:e.filling,garnish:e.garnish,coreCorrect:t,scores:o,score:i,passed:t&&n&&r&&a&&i>=75,refined:t&&n&&r&&a&&i>=90,feedback:c}}function Zr(e){const t=hr[e];return[...new Set([...(_l[e]||[]).flat(),...(t==null?void 0:t.distractors)||[]])]}function Kd(e){return Us[e]||null}const gt=(...e)=>e.join(","),er={shop:{name:"林记烘焙 · 店内",img:"bg-shop.webp",css:gt("radial-gradient(34% 26% at 24% 8%, rgba(255,232,170,.75), rgba(255,232,170,0) 72%)","radial-gradient(30% 24% at 70% 6%, rgba(255,238,186,.55), rgba(255,238,186,0) 72%)","linear-gradient(200deg, rgba(255,244,214,.55) 0%, rgba(255,244,214,0) 42%)","radial-gradient(120% 70% at 50% 116%, rgba(120,74,42,.5), rgba(120,74,42,0) 72%)","linear-gradient(180deg,#f8e6c9 0%,#eed3aa 40%,#cda279 74%,#9c7049 100%)")},kitchen:{name:"后厨",img:"bg-kitchen.webp",css:gt("radial-gradient(38% 30% at 30% 6%, rgba(255,255,250,.85), rgba(255,255,250,0) 70%)","linear-gradient(190deg, rgba(255,255,248,.5), rgba(255,255,248,0) 48%)","radial-gradient(120% 64% at 50% 114%, rgba(96,120,110,.34), rgba(96,120,110,0) 72%)","linear-gradient(180deg,#eef4ef 0%,#dde7e0 52%,#bcc9c1 100%)")},street:{name:"栖云镇 · 街上",img:"bg-street.webp",css:gt("radial-gradient(40% 32% at 72% 22%, rgba(255,214,150,.9), rgba(255,214,150,0) 70%)","radial-gradient(60% 40% at 20% 62%, rgba(120,86,86,.35), rgba(120,86,86,0) 72%)","linear-gradient(180deg, rgba(96,66,72,.18) 40%, rgba(60,38,42,.5) 100%)","linear-gradient(180deg,#ffeacb 0%,#f8c69c 34%,#dc9b85 62%,#8d6b72 100%)")},home:{name:"家里",img:"bg-home.webp",css:gt("radial-gradient(46% 36% at 64% 12%, rgba(255,252,238,.9), rgba(255,252,238,0) 70%)","linear-gradient(205deg, rgba(255,250,235,.5) 0%, rgba(255,250,235,0) 46%)","radial-gradient(110% 60% at 50% 114%, rgba(96,112,140,.3), rgba(96,112,140,0) 72%)","linear-gradient(180deg,#dfe7f3 0%,#cbd6e7 50%,#a4b0c6 100%)")},cafe:{name:"咖啡店",img:"bg-cafe.webp",css:gt("radial-gradient(32% 26% at 64% 12%, rgba(255,226,170,.8), rgba(255,226,170,0) 72%)","linear-gradient(200deg, rgba(255,238,206,.45), rgba(255,238,206,0) 44%)","radial-gradient(120% 64% at 50% 114%, rgba(70,44,28,.45), rgba(70,44,28,0) 72%)","linear-gradient(180deg,#e6d3bd 0%,#c9a889 48%,#8b674c 100%)")},market:{name:"市集 / 活动",img:"bg-market.webp",css:gt("radial-gradient(circle at 18% 16%, rgba(255,236,180,.85), rgba(255,236,180,0) 11%)","radial-gradient(circle at 48% 11%, rgba(255,228,160,.75), rgba(255,228,160,0) 10%)","radial-gradient(circle at 78% 17%, rgba(255,236,180,.85), rgba(255,236,180,0) 11%)","radial-gradient(70% 46% at 50% 26%, rgba(255,244,210,.55), rgba(255,244,210,0) 72%)","radial-gradient(120% 66% at 50% 116%, rgba(96,56,36,.45), rgba(96,56,36,0) 72%)","linear-gradient(180deg,#ffeccd 0%,#f7c894 40%,#cf9264 72%,#8f6146 100%)")},store:{name:"门店",img:"bg-store.webp",css:gt("radial-gradient(46% 32% at 50% 6%, rgba(255,251,240,.95), rgba(255,251,240,0) 70%)","linear-gradient(200deg, rgba(255,252,244,.6) 0%, rgba(255,252,244,0) 46%)","radial-gradient(110% 56% at 50% 112%, rgba(140,102,64,.34), rgba(140,102,64,0) 72%)","linear-gradient(180deg,#fdf7ec 0%,#efdcc2 52%,#caa983 100%)")},school:{name:"学校",img:"bg-school.webp",css:gt("radial-gradient(44% 34% at 22% 10%, rgba(255,255,242,.85), rgba(255,255,242,0) 70%)","linear-gradient(200deg, rgba(250,255,238,.5), rgba(250,255,238,0) 46%)","radial-gradient(110% 58% at 50% 114%, rgba(96,110,70,.28), rgba(96,110,70,0) 72%)","linear-gradient(180deg,#eef2e2 0%,#dae3c8 52%,#b0bd9c 100%)")},park:{name:"河边",img:"bg-park.webp",css:gt("radial-gradient(46% 32% at 70% 12%, rgba(255,248,214,.85), rgba(255,248,214,0) 70%)","linear-gradient(200deg, rgba(240,255,236,.4), rgba(240,255,236,0) 44%)","radial-gradient(120% 62% at 50% 114%, rgba(70,96,88,.35), rgba(70,96,88,0) 72%)","linear-gradient(180deg,#e6efe0 0%,#cbdcc4 42%,#9cb39a 74%,#778d83 100%)")},night:{name:"夜里",img:"bg-night.webp",css:gt("radial-gradient(34% 28% at 62% 30%, rgba(255,204,138,.5), rgba(255,204,138,0) 72%)","radial-gradient(26% 22% at 24% 44%, rgba(255,208,150,.32), rgba(255,208,150,0) 72%)","linear-gradient(180deg,#2e3450 0%,#3a3e5a 46%,#222438 100%)")},studio:{name:"工作室",img:"bg-studio.webp",css:gt("radial-gradient(48% 36% at 42% 8%, rgba(255,255,250,.85), rgba(255,255,250,0) 70%)","linear-gradient(200deg, rgba(255,255,250,.5), rgba(255,255,250,0) 46%)","radial-gradient(110% 56% at 50% 114%, rgba(120,112,96,.24), rgba(120,112,96,0) 72%)","linear-gradient(180deg,#f5f3ef 0%,#e3dfd7 52%,#c2bcb2 100%)")}},Gd=[[/后厨|厨房|研发室|操作台|烤箱|烤炉/,"kitchen"],[/咖啡店|咖啡馆|下午茶/,"cafe"],[/市集|生活节|文化节|展览|活动当天|摊位/,"market"],[/旗舰店|新店|分店|开业|门店/,"store"],[/宿舍|卧室|家里|房间/,"home"],[/教室|学校|晚自习|办公室|班会|走廊/,"school"],[/河边|公园|街角|长椅|散步/,"park"],[/打烊|深夜|晚上|夜里|关灯|路灯/,"night"],[/工作室|设计室|画室/,"studio"],[/店内|店里|店内景|展示柜|柜台|烘焙店|林记烘焙/,"shop"],[/街上|街道|门口|路上|镇|巷/,"street"]],Ta={1:"home",2:"shop",3:"kitchen",4:"shop",5:"shop",6:"market",7:"shop",8:"shop",9:"kitchen",10:"shop",11:"shop",12:"shop",13:"kitchen",14:"shop",15:"shop",16:"market",17:"street",18:"shop",19:"store",20:"shop",21:"shop",22:"store",23:"shop",24:"shop",25:"shop",26:"kitchen",27:"kitchen",28:"street",29:"market",30:"shop",31:"store",32:"street",33:"store",34:"store",35:"studio",36:"shop"},Ia={1:"shop",2:"street",3:"street",4:"shop",5:"park",6:"market",7:"night",8:"shop",9:"studio",10:"cafe",11:"studio",12:"shop",13:"kitchen",14:"shop",15:"street",16:"park",17:"street",18:"shop",19:"store",20:"street",21:"cafe",22:"night",23:"cafe",24:"studio",25:"street",26:"street",27:"kitchen",28:"shop",29:"park",30:"studio",31:"cafe",32:"street",33:"store",34:"studio",35:"school",36:"shop"};function Wd(e){return e?e.kind==="main"&&Ta[e.month]?Ta[e.month]:e.kind==="friend"&&Ia[e.month]?Ia[e.month]:ii(e.title)||"shop":"shop"}function ii(e){const t=e||"";for(const[n,r]of Gd)if(n.test(t))return r;return""}const fs={林念:{in:"ln-sprite-in.webp",out:"ln-sprite-out.webp",face:"ln-face.webp"},苏晴:{in:"sq-sprite-in.webp",out:"sq-sprite-out.webp",face:"sq-face.webp"},林暖:{in:"nu-sprite-in.webp",out:"nu-sprite-out.webp",face:"nu-face.webp"},周雨桐:{in:"xy-sprite-in.webp",out:"xy-sprite-out.webp",face:"xy-face.webp"},许知遥:{in:"zy-sprite-in.webp",out:"zy-sprite-out.webp",face:"zy-face.webp"},唐鸢:{in:"ty-sprite-in.webp",out:"ty-sprite-out.webp",face:"ty-face.webp"},叶星河:{in:"xh-sprite-in.webp",out:"xh-sprite-out.webp",face:"xh-face.webp"}},Aa=fs,zd={shop:"in",kitchen:"in",store:"in",street:"out",home:"out",cafe:"out",market:"out",school:"out",park:"out",night:"out",studio:"out"};function Yd(e){return zd[e]||"out"}function ui(e,t){const n=fs[e];if(!n)return"";if(Ye(n[t])==="ok")return n[t];const r=t==="in"?"out":"in";return Ye(n[r])==="ok"?n[r]:""}function Jd(e,t){const n=ui(e,t||"out");return n?Ae(n):""}function Qd(){Object.keys(fs).forEach(e=>{const t=fs[e];["in","out","face"].forEach(n=>Ye(t[n]))}),Object.keys(er).forEach(e=>Ye(er[e].img))}function Xr(e){const t=fs[e];return t&&Ye(t.face)==="ok"?Ae(t.face):""}function Zd(e,t){return!!ui(e,t||"out")}const Xd={friends:{img:"sq-friends.webp",name:"合影"},mom:{img:"nu-duo.webp",name:"母亲"},shop:{img:"shop-exterior.webp",name:"林记烘焙"},"graduation-rejection":{img:"cg-graduation-rejection.webp",name:"毕业季的拒信"},osmanthus:{img:"cg-osmanthus.webp",name:"桂花栗子蛋糕"},festival:{img:"cg-festival.webp",name:"秋日文化节"},memory:{img:"cg-memory.webp",name:"高三晚自习"},flagship:{img:"cg-flagship.webp",name:"旗舰店方案"},album:{img:"cg-album.webp",name:"三年相册"},finale:{img:"cg-finale.webp",name:"三周年合影"}},ci=[{id:"graduation-rejection",event:"EVT_PROLOGUE_01"},{id:"osmanthus",event:"EVT_M26_MAIN"},{id:"festival",event:"EVT_M29_MAIN"},{id:"memory",event:"EVT_M29_MAIN"},{id:"flagship",event:"EVT_M33_MAIN"},{id:"album",event:"EVT_M35_MAIN"},{id:"finale",event:"EVT_FINAL_END_NATIONAL"}];function tr(e){const t=Xd[e],n=t?t.img:"cg-"+e+".webp";return{src:Ye(n)==="ok"?Ae(n):"",name:t?t.name:e}}function ef(e){return!e||!e.img?"":Ye(e.img)==="ok"?Ae(e.img):""}const mr="alb-save-v6",tf="alb-manual-save-v1",nf="alb-manual-slot-v1-",di=3,ps=5,fi=60,pi=40;function bt(){return{v:9,month:1,day:1,cash:12e3,reputation:20,popularity:10,loyalty:20,brand:5,shopLevel:1,storeCount:1,cities:["qiyun"],surveyed:[],ap:8,maxAp:8,stamina:100,maxStamina:100,pantry:{base:12,dairy:8,decor:2,strawberry:2,cocoa:2},legacyStock:0,warehouseCapacity:120,ngpDiscountUsed:!1,devices:{},shelf:{},batches:[],plan:{},prices:{},levels:{plain:1,strawberry:1,chocolate:1},unlocked:["plain","strawberry","chocolate"],staff:[],partnerTrust:{},partnerSkill:{},momBond:10,style:{tradition:0,innovation:0,efficiency:0,community:0},orders:[],dayPhase:"prep",service:null,productionMini:null,productionResult:null,bakingRecords:[],recipeNames:{},marketPoints:0,tutorialSeen:!1,tutorialPromptPending:!1,tutorialProgress:0,tutorialPractice:null,tutorialPracticeProgress:0,marketRun:null,cafeRun:null,cafeCollab:0,activityRecords:{market:[],cafe:[]},sceneVisits:{},scenePhotos:[],sceneEvents:[],outfit:"auto",unlockedOutfits:["auto","daily","bakery"],designWorks:[],cafeRelation:0,cafeLastTalk:0,notices:[],unlockNotified:[],dailyLedger:[],daySpend:0,staffAssignments:{picker:null,packer:null,auto:!1},challenge:null,challengeDayIndex:0,challengeDone:!1,decorations:[],regularCustomers:{chen:{purchases:0,lastPurchaseDay:0,stories:[]},zhang:{purchases:0,lastPurchaseDay:0,stories:[]}},runEndings:[],career:{products:["plain","strawberry","chocolate"],photos:[],cgs:[],decorations:[],endings:[],labReports:{},activityRecords:{market:[],cafe:[]},newGamePlusRuns:0},labPending:null,newGamePlus:!1,doneOrders:0,customOrders:0,onlineOrders:0,festivalOrders:0,monthSnap:{rep:20,unlocked:[],skill:{}},deliveryDay:-1,helpers:0,usedMomHelp:!1,dayIndex:1,cd:{},dayRev:0,daySold:0,dayLeft:0,dayMade:0,monthRev:0,monthCost:0,monthSold:{},played:[],storyChoices:{},photos:[],log:[],phase:"playing",ending:null,acquired:!1,autoStory:!1,sqchatMonth:0,stage:1,report:null}}const s=un(bt()),qe=un({events:[]});function ks(e){return s.devices[e]||0}function wn(e){const t=Cl(e),n=ks(e);return n&&t?t.tiers[n-1].value:0}function gn(e){const t=Cl(e),n=ks(e);return t&&n<t.tiers.length?t.tiers[n]:null}function vi(e){const t=gn(e);return!t||s.phase!=="playing"||s.dayPhase!=="prep"||s.cash<t.cost?!1:(s.cash-=t.cost,s.devices[e]=ks(e)+1,e==="warehouse"&&(s.warehouseCapacity=[120,180,240,320][s.devices[e]]),s.monthCost+=t.cost,s.daySpend+=t.cost,$e("升级了"+Cl(e).name+"，"+t.text,"good"),oe(),!0)}const Vt=j(()=>Ue.filter(e=>s.unlocked.includes(e.id)));function Fe(e){var t;return((t=s.recipeNames)==null?void 0:t[e])||De(e).name}function sf(e,t){if(!s.unlocked.includes(e))return!1;const n=String(t||"").trim().slice(0,20);return n?(s.recipeNames={...s.recipeNames||{},[e]:n},oe(),!0):!1}const _n=j(()=>s.stamina+fi+s.staff.length*pi+wn("oven")),el=j(()=>Math.min(4,s.decorations.length)),_s=j(()=>Object.values(s.pantry||{}).reduce((e,t)=>e+Number(t||0),0));function rf(e=s.plan){return Object.entries(e||{}).reduce((t,[n,r])=>{const a=cn[n]||{};return Object.entries(a).forEach(([o,i])=>{t[o]=(t[o]||0)+i*r}),t},{})}function gr(e=s.plan){const t={};let n=s.legacyStock||0;return Object.entries(e||{}).forEach(([r,a])=>{for(let o=0;o<a;o++){if(n>=1){n-=1;continue}Object.entries(cn[r]||{}).forEach(([i,c])=>{t[i]=(t[i]||0)+c})}}),Object.keys(t).forEach(r=>{t[r]=Math.max(0,t[r]-((s.pantry||{})[r]||0))}),Object.fromEntries(Object.entries(t).filter(([,r])=>r>0))}function Xt(e,t=1){return(s.legacyStock||0)>=t?!0:Object.entries(cn[e]||{}).every(([n,r])=>((s.pantry||{})[n]||0)+1e-4>=r*t)}function wl(e,t=1){const n=cn[e]||{},r=Object.fromEntries(Object.entries(n).map(([a,o])=>[a,o*t]));return(s.legacyStock||0)>=t?(s.legacyStock=Math.round((s.legacyStock-t)*100)/100,!0):Xt(e,t)?(Object.entries(r).forEach(([a,o])=>{s.pantry[a]=Math.round(((s.pantry[a]||0)-o)*100)/100}),!0):!1}function lf(e){if(s.phase!=="playing"||s.dayPhase!=="prep"||s.ap<1)return{ok:!1,message:"准备阶段需要 1 点行动力采购。"};const t=Object.entries(e||{}).filter(([,c])=>Number(c)>0);if(!t.length||t.some(([c,f])=>{const v=ft.find(h=>h.id===c);return!v||v.month>s.month||!Number.isInteger(Number(f))}))return{ok:!1,message:"请选择原料和整数购买数量。"};const n=Object.fromEntries(t.map(([c,f])=>[c,Number(f)])),r=Object.values(n).reduce((c,f)=>c+f,0),a=t.reduce((c,[f,v])=>c+ft.find(h=>h.id===f).price*v,0),o=s.newGamePlus&&!s.ngpDiscountUsed?Math.min(300,a):0,i=a-o;return _s.value+r>s.warehouseCapacity?{ok:!1,message:"仓库容量不足，请减少购买数量。"}:s.cash<i?{ok:!1,message:"资金不足。"}:(s.ap-=1,s.cash-=i,s.monthCost+=i,s.daySpend+=i,Object.entries(n).forEach(([c,f])=>{s.pantry[c]=(s.pantry[c]||0)+f}),s.newGamePlus&&!s.ngpDiscountUsed&&(s.ngpDiscountUsed=!0),$e("采购了 "+t.map(([c,f])=>ft.find(v=>v.id===c).name+" ×"+f).join("、")+(o?"，二周目优惠 ¥"+o:""),"good"),oe(),{ok:!0,message:"采购完成，共 ¥"+i+"。"})}function af(){const e=gr(),t={};return Object.entries(e).forEach(([n,r])=>{t[n]=Math.ceil(r)}),t}function El(){return xl.filter(e=>s.month>=e.month&&s.day===e.day)}function of(e){El().forEach(t=>{const n=s.regularCustomers[t.id];if(!e[t.product]||n.lastPurchaseDay===s.dayIndex)return;n.purchases+=1,n.lastPurchaseDay=s.dayIndex;const r=n.purchases===1?0:n.purchases===3?1:-1;r>=0&&!n.stories.includes(r)?(n.stories.push(r),$e(t.name+"和你聊起了老街坊的故事","story")):$e(t.name+"买走了一份"+De(t.product).name)})}function uf(){const e=Ue.filter(n=>n.month===s.month&&s.unlocked.includes(n.id)),t=[{type:"stock",target:""},{type:"custom",target:""}];return e.length&&t.push({type:"new",target:e[Math.floor(Math.random()*e.length)].id}),t[Math.floor(Math.random()*t.length)]}function hi(){s.challengeDayIndex===s.dayIndex&&s.challenge||(s.challenge=uf(),s.challengeDayIndex=s.dayIndex)}function Nr(e,t,n){Object.entries(cn[t]||{}).forEach(([r,a])=>{e[r]=(e[r]||0)+a*n})}function cf(e){return Md[s.prices[e]||"std"]}function Ft(e){const t=De(e),n=s.levels[e]||1;return Math.round(t.price*cf(e).priceMul*(1+(n-1)*.05)*(1+wn("cashier")))}const mi=j(()=>700+s.shopLevel*180+s.staff.length*500),yr=j(()=>Td(s.month)),en=j(()=>{const e=yr.value;if(!e||!e.goals||!e.goals.length)return{done:0,need:0,list:[]};const t=e.goals.map(n=>({text:n.text,done:n.check(s),expand:!!n.expand}));return{done:t.filter(n=>n.done).length,need:e.need,list:t}});function Sl(){let e=0;for(const t of Object.keys(s.plan))e+=s.plan[t]*De(t).diff;return e}function Tl(){Al();const e=qe.events.map(t=>Ne.events.some(n=>n.id===t.id)?t.id:t);return{...s,storyQueue:e,savedAt:Date.now()}}function oe(){try{localStorage.setItem(mr,JSON.stringify(Tl()))}catch{}}function gi(e){return!!e&&typeof e=="object"&&[6,7,8,9].includes(e.v)&&Number.isInteger(Number(e.month))&&Number(e.month)>=1&&Number(e.month)<=36&&Number.isInteger(Number(e.day))&&Number(e.day)>=1&&Number(e.day)<=ps&&Number.isFinite(Number(e.cash))&&(e.unlocked===void 0||Array.isArray(e.unlocked))&&(e.played===void 0||Array.isArray(e.played))&&(e.storyChoices===void 0||e.storyChoices&&typeof e.storyChoices=="object"&&!Array.isArray(e.storyChoices))&&(e.storyQueue===void 0||Array.isArray(e.storyQueue))&&(e.career===void 0||e.career&&typeof e.career=="object"&&!Array.isArray(e.career))}function Wt(e){try{const t=typeof e=="string"?JSON.parse(e):e;return gi(t)?{ok:!0,data:t,preview:{month:Number(t.month),day:Number(t.day),savedAt:Number(t.savedAt)||0,cash:Number(t.cash)||0,phase:t.phase||"playing"}}:{ok:!1,message:"存档格式无效或版本不受支持。"}}catch{return{ok:!1,message:"无法读取存档文件。"}}}function Il(e){var t,n,r,a;if(!gi(e))return!1;try{Object.assign(s,bt());const o=e.v!==9;if(Object.keys(bt()).forEach(v=>{e[v]!==void 0&&v!=="regularCustomers"&&v!=="career"&&(s[v]=e[v])}),e.v===6){s.pantry={};let v=Math.max(0,Number(e.stock||0));Object.entries(e.plan||{}).forEach(([M,_])=>{const E=Math.min(v,Math.max(0,Number(_)||0));E&&Nr(s.pantry,M,E),v-=E});const h=(e.unlocked||["plain"]).filter(M=>cn[M]),y=h.length?h:["plain"],b=Math.floor(v);for(let M=0;M<b;M++)Nr(s.pantry,y[M%y.length],1);const m=v-b;m&&y.forEach(M=>Nr(s.pantry,M,m/y.length)),s.legacyStock=0,s.cash+=Number(e.monthRev||0),s.dayPhase=e.daySold||e.dayRev?"closing":"prep",s.sqchatMonth=Number(e.friendMonth||0),s.batches=Object.entries(e.shelf||{}).filter(([,M])=>M>0).map(([M,_],E)=>({id:"migrated-"+E,product:M,qty:_,quality:"normal",decoration:null})),s.service=null,s.stock=void 0,delete s.friendship,delete s.friendMonth,s.ngpDiscountUsed=!1,s.challenge=null,s.challengeDayIndex=0}s.v=9,s.pantry=s.pantry||{},s.legacyStock=Number(s.legacyStock||0),s.batches=s.batches||[],s.staffAssignments={...bt().staffAssignments,...s.staffAssignments||{}},s.dayPhase=s.dayPhase||"prep",s.regularCustomers=Object.fromEntries(xl.map(v=>[v.id,{...bt().regularCustomers[v.id],...(e.regularCustomers||{})[v.id]}])),s.career={...bt().career,...e.career||{}},s.career.labReports={...bt().career.labReports,...(e.career||{}).labReports||{}},s.activityRecords={...bt().activityRecords,...e.activityRecords||{}},s.activityRecords.market=s.activityRecords.market||[],s.activityRecords.cafe=s.activityRecords.cafe||[],s.career.activityRecords={...bt().career.activityRecords,...(e.career||{}).activityRecords||{},market:[...new Set([...((n=(t=e.career)==null?void 0:t.activityRecords)==null?void 0:n.market)||[],...s.activityRecords.market.map(v=>v.id)])],cafe:[...new Set([...((a=(r=e.career)==null?void 0:r.activityRecords)==null?void 0:a.cafe)||[],...s.activityRecords.cafe.map(v=>v.id)])]},s.career.cgs=s.career.cgs||[],s.storyChoices=s.storyChoices||{},s.savedAt=Number(e.savedAt)||0;const i=new Map(Ne.events.map(v=>[v.id,v])),c=(e.storyQueue||[]).map(v=>typeof v=="string"?i.get(v):v).filter(v=>v&&typeof v=="object"&&typeof v.id=="string"&&Array.isArray(v.beats));qe.events.splice(0,qe.events.length,...c),s.challengeDayIndex=Number(s.challengeDayIndex||0);const f=s.dayPhase==="prep"&&(!s.challenge||s.challengeDayIndex!==s.dayIndex);return f&&hi(),Al(),(o||f)&&oe(),!0}catch{return!1}}function yi(e){const t=Number(e);return Number.isInteger(t)&&t>=1&&t<=di?nf+t:""}function Pa(e=!1,t=1){try{const n=e?nr(t):localStorage.getItem(mr);return!!n&&Wt(n).ok}catch{return!1}}function df(e=1){const t=yi(e);if(!t)return!1;try{return localStorage.setItem(t,JSON.stringify(Tl())),!0}catch{return!1}}function nr(e=1){const t=yi(e);if(!t)return"";try{return localStorage.getItem(t)||(Number(e)===1?localStorage.getItem(tf):"")||""}catch{return""}}function ff(){try{return localStorage.getItem(mr)||""}catch{return""}}function Dr(){return JSON.stringify(Tl(),null,2)}function Lr(e=!0,t=1){try{const n=nr(t);if(!n||!Wt(n).ok)return!1;const r=JSON.parse(n);return Il(r)?(e&&oe(),!0):!1}catch{return!1}}function pf(e){const t=Wt(e);return t.ok?Il(t.data)?(oe(),{ok:!0,preview:t.preview}):{ok:!1,message:"存档无法载入。"}:t}function Ns(){try{const e=localStorage.getItem(mr);return!e||!Wt(e).ok?!1:Il(JSON.parse(e))}catch{return!1}}function bi(){const e={...Al()};Object.assign(s,bt()),s.career=e,qe.events.length=0,s.monthSnap={rep:s.reputation,unlocked:s.unlocked.slice(),skill:Object.assign({},s.partnerSkill)},kr(),oe()}function Al(){const e=s.career||bt().career;e.products=[...new Set([...e.products||[],...s.unlocked||[]])],e.photos=[...new Set([...e.photos||[],...s.photos||[]])];const t=e.cgs||[];return ci.forEach(n=>{(s.played||[]).includes(n.event)&&!t.includes(n.id)&&t.push(n.id)}),e.cgs=t,e.decorations=[...new Set([...e.decorations||[],...s.decorations||[]])],s.phase==="ended"&&s.ending&&s.ending.key&&(s.runEndings=[...new Set([...s.runEndings||[],s.ending.key])],e.endings=[...new Set([...e.endings||[],s.ending.key])]),s.career=e,e}function ki(e,t,n){const r=s.career.labReports[e]||{};s.career.labReports[e]={...r,[t]:{...n,run:(s.career.newGamePlusRuns||0)+1,month:s.month}}}function Pe(e,t){return{ok:e,message:t}}function tl(e){if(s.phase!=="playing")return Pe(!1,"当前不能进行实验。");if(s.dayPhase!=="prep")return Pe(!1,"营业开始后不能进行研发。");if(s.labPending)return Pe(!1,"请先处理上次试吃结果。");if(s.ap<1)return Pe(!1,"至少需要 1 点行动力才能开始试做。");const t=e&&e.productId,n=Ue.find(a=>a.id===t);if(!n||s.unlocked.includes(t)||n.month<=0||n.month>s.month)return Pe(!1,"这款产品还未开放研发，或已经上架。");if(t==="signature"&&(!e||e.type!=="signature"))return Pe(!1,"桂花栗子蛋糕需要进入 M26 专属复原。");const r=t==="signature"?Hd(e):Ud(t,e||{});return r?wl(t,.25)?(s.ap-=1,s.labPending=r,$e("试做「"+n.name+"」消耗 1 点行动力和四分之一配方材料","story"),oe(),Pe(!0,"试吃完成。")):Pe(!1,"这款蛋糕的试做原料不足，请先到食材铺采购。"):Pe(!1,"实验参数不完整，请检查每一项选择。")}function vf(e){const t=tl(e);if(!t.ok||!s.labPending)return t;const n={taro:"戚风",matcha:"抹茶",mango:"原味",tiramisu:"原味",fig:"戚风",seasonal:"戚风",custom:"戚风",festival:"原味",signature:"戚风"},r={taro:"栗子泥",matcha:"鲜奶油",mango:"鲜奶油",tiramisu:"芝士",fig:"鲜奶油",seasonal:"鲜奶油",custom:"鲜奶油",festival:"巧克力奶油",signature:"栗子泥"},a=e.base===(n[e.productId]||"戚风"),o=e.cream===(r[e.productId]||"鲜奶油"),i=(a?0:15)+(o?0:15),c=s.labPending;return c.score=Math.max(0,c.score-i),c.passed=c.passed&&c.score>=75,c.refined=c.refined&&c.score>=90,c.base=e.base,c.cream=e.cream,a||c.feedback.push("蛋糕胚与目标风味不够契合，试着换一种胚体。"),o||c.feedback.push("夹心与主题不够协调，试着调整奶油或夹层。"),oe(),t}function _i(){const e=s.labPending;if(s.dayPhase!=="prep")return Pe(!1,"请在营业开始前完成上架。");if(s.phase!=="playing"||!e||!e.passed)return Pe(!1,"这份试吃结果还未达到上架要求。");if(s.ap<1)return Pe(!1,"行动力不足；试吃结果已保存，明天可以继续。");const t=Ue.find(n=>n.id===e.productId);return!t||t.month>s.month||s.unlocked.includes(e.productId)?Pe(!1,"产品状态已变化，请返回实验室确认。"):(s.ap-=1,s.unlocked.push(t.id),s.levels[t.id]=e.refined?1.5:1,ki(t.id,"development",{...e,type:e.type==="signature"?"signature":"development",feedback:e.type==="signature"?["外婆配方复原成功，桂香与秋栗的层次都找回来了。"]:e.feedback}),s.labPending=null,$e("「"+t.name+"」研发完成并正式上架，"+(e.refined?"精制品质，熟练度 Lv1.5":"熟练度 Lv1"),"good"),oe(),Pe(!0,t.name+(e.type==="signature"?"复原成功，已加入菜单。":"已正式上架。")))}function nl(){return s.labPending?(s.labPending=null,oe(),!0):!1}function hf(e,t){if(s.phase!=="playing")return Pe(!1,"当前不能进行改良。");if(s.dayPhase!=="prep")return Pe(!1,"营业开始后不能进行改良。");const n=Ue.find(c=>c.id===e),r=Kd(e);if(!n||!r||!s.unlocked.includes(e))return Pe(!1,"这款产品目前不能改良。");const a=s.levels[e]||1;if(a>=5)return Pe(!1,"这款产品已达到熟练度上限。");if(!Number.isInteger(t)||t<0||t>=r.options.length)return Pe(!1,"请选择一个改良方案。");const o=t===r.correct;if(s.ap<(o?2:1))return Pe(!1,o?"改良成功需要 2 点行动力。":"改良试吃需要 1 点行动力。");if(!wl(e,.25))return Pe(!1,"这款蛋糕的试做原料不足，请先到食材铺采购。");if(s.ap-=1,!o){const c="这次试吃没有解决问题。"+r.feedback;return $e("改良「"+n.name+"」未通过试吃，消耗了四分之一配方材料","story"),oe(),{...Pe(!1,c),retry:!0,feedback:c}}s.ap-=1,s.levels[e]=Math.min(5,a+1),s.style.innovation+=3;const i={type:"improvement",score:100,levelBefore:a,levelAfter:s.levels[e],feedback:[r.feedback]};return ki(e,"improvement",i),$e("改良「"+n.name+"」成功，熟练度提升至 Lv"+s.levels[e],"good"),oe(),{...Pe(!0,r.feedback),feedback:r.feedback,level:s.levels[e]}}function mf(){return s.phase!=="ended"||!s.ending?!1:(bi(),s.newGamePlus=!0,s.ngpDiscountUsed=!1,s.career.newGamePlusRuns=(s.career.newGamePlusRuns||0)+1,oe(),!0)}function gf(){if(s.phase!=="playing")return!1;const e=s.month;for(;s.month===e&&s.phase==="playing";)s.dayPhase="closing",s.service={tickets:[],current:0},Ol("waste");return s.month!==e}function yf(){const e=Ln.find(t=>!t.final&&t.short.key===(s.ending&&s.ending.key));return s.phase!=="ended"||!e?!1:(s.phase="playing",s.ending=null,s.stamina=s.maxStamina,kr(),Nl(),oe(),!0)}function bf(e){const t=$l.find(n=>n.id===e);return!t||s.phase!=="playing"||s.dayPhase!=="prep"||s.decorations.includes(e)||s.shopLevel<t.shopLevel||s.cash<t.cost?!1:(s.cash-=t.cost,s.monthCost+=t.cost,s.daySpend+=t.cost,s.decorations.push(e),$e("添置了"+t.name+"，店铺舒适度 +1","good"),oe(),!0)}function $e(e,t){s.log.unshift({month:s.month,day:s.day,text:e,tone:t||"normal"}),s.log.length>60&&s.log.pop()}function Oe(e){return Math.max(0,Math.min(100,e))}function kf(e){const t=[];for(const n of e)if(n.kind==="num"){const r=n.value;switch(n.key){case"资金":s.cash=Math.max(0,s.cash+r);break;case"口碑":s.reputation=Oe(s.reputation+r);break;case"知名度":s.popularity=Oe(s.popularity+r);break;case"友情值":break;case"门店":s.storeCount=Math.max(1,s.storeCount+r);break;case"员工":r>0&&Mf();break;case"烘焙":_f(r*.2);break;case"品质":$f(r*.05);break}t.push(n.key+(r>=0?"+":"")+r)}else n.key==="配方"?s.unlocked.includes(n.value)||(s.unlocked.push(n.value),t.push("解锁「"+De(n.value).name+"」")):n.key==="照片"&&(s.photos.includes(n.value)||(s.photos.push(n.value),t.push("获得纪念照片")));return t}function _f(e){const n=s.unlocked.slice().sort((r,a)=>(s.levels[r]||1)-(s.levels[a]||1))[0];n&&(s.levels[n]=Math.min(5,(s.levels[n]||1)+e))}function $f(e){s.unlocked.forEach(t=>{s.levels[t]=Math.min(5,(s.levels[t]||1)+e)})}function xf(e){const t=[];for(const n of e||[]){switch(n.k){case"style":s.style[n.id]=(s.style[n.id]||0)+n.v;break;case"trust":if(!n.id)break;s.partnerTrust[n.id]=Oe((s.partnerTrust[n.id]||0)+n.v);break;case"skill":if(!n.id)break;s.partnerSkill[n.id]=Math.min(5,Math.round(((s.partnerSkill[n.id]||1)+n.v)*10)/10);break;case"loyalty":s.loyalty=Oe(s.loyalty+n.v);break}n.k!=="friend"&&n.label&&t.push(n.label)}return t}function Ra(e,t,n,r=""){const a=e.node||"choice-"+n,o=s.storyChoices[r]||{};if(Object.prototype.hasOwnProperty.call(o,a))return[];const i=xf(t.gains);return s.storyChoices[r]={...o,[a]:n},e&&e.node==="13.6"&&n===1&&(s.acquired=!0),i.length&&$e("选择："+t.label+"（"+i.join("，")+"）","story"),oe(),i}function $i(e){if(!e||s.staff.includes(e))return;s.staff.push(e),s.partnerTrust[e]===void 0&&(s.partnerTrust[e]=10),s.partnerSkill[e]===void 0&&(s.partnerSkill[e]=1);const t=Dn(e);t&&$e(t.name+" 加入了林记","story")}function Mf(){const e=Mn.find(t=>!s.staff.includes(t.id)&&t.joinMonth<=s.month);e&&$i(e.id)}function xi(){return s.staff.map(e=>Dn(e)).filter(Boolean)}const Oa={feedback:5,market:3,talk:2,train:5};function Cf(e){const t=s.cd[e]||0;return Math.max(0,t-s.dayIndex)}function Yt(e){switch(e){case"restock":return{name:"原料采购",ap:1,cost:0,note:"请前往老街食材铺选择原料",disabled:!0};case"feedback":{const t=Cf("feedback");return{name:"顾客反馈",ap:1,cost:0,note:t>0?"还要等 "+t+" 天":"听听顾客对店里的建议",disabled:t>0}}case"talk":{const t=s.staff.length?xi()[0].nick:null;return{name:"伙伴交流",ap:1,cost:0,note:t?"和 "+t+" 聊聊近况":"和妈妈聊聊经营经验"}}case"sqchat":{const t=s.sqchatMonth===s.month;return{name:"与苏晴互动",ap:1,cost:0,note:t?"这个月已经聊过了":"本月专属相处剧情",disabled:t}}case"market":return{name:"市场宣传",ap:2,cost:800,note:"发布新品内容，让更多人认识林记",disabled:s.cash<800};case"train":return s.staff.length?{name:"员工培训",ap:2,cost:400,note:"为一位伙伴安排专业训练",disabled:s.cash<400}:{name:"员工培训",ap:2,cost:0,note:"还没有伙伴可以培训",disabled:!0};case"decorate":{const t=ds.find(n=>n.lv===s.shopLevel+1);return t?{name:"装修到「"+t.name+"」",ap:2,cost:t.cost,note:"展示位与产能提升",disabled:s.cash<t.cost}:{name:"店铺装修",ap:2,cost:0,note:"已经是最高等级",disabled:!0}}case"survey":{const t=Cn.find(r=>!s.cities.includes(r.id)&&!s.surveyed.includes(r.id));if(!t)return{name:"外出考察",ap:2,cost:0,note:"没有新的城市可去",disabled:!0};const n=s.month>=t.month&&s.reputation>=t.rep;return{name:"考察"+t.name,ap:2,cost:2e3,note:n?"考察之后可以筹备开店":"需要第 "+t.month+" 个月、口碑 "+t.rep,disabled:!n||s.cash<2e3}}case"branch":{if(!s.surveyed.length)return{name:"分店筹备",ap:3,cost:0,note:"先外出考察一座城市",disabled:!0};const t=Cn.find(n=>n.id===s.surveyed[0]);return{name:"在"+t.name+"开店",ap:3,cost:t.cost,note:"在当地开设一间新店",disabled:s.cash<t.cost}}case"coffee":return{name:"喝一杯手冲",ap:0,cost:18,note:"喝杯热饮，歇一会儿",disabled:s.cash<18};case"walk":return{name:"沿河散步",ap:0,cost:0,note:"吹吹河风，调整状态"};default:return{name:e,ap:1,cost:0,note:""}}}function Vn(e,t){if(s.phase!=="playing"||s.dayPhase!=="prep")return!1;const n=Yt(e);if(n.disabled||s.ap<n.ap||n.cost&&s.cash<n.cost)return!1;const r=s.cash;switch(e){case"restock":return!1;case"feedback":s.reputation=Oe(s.reputation+1),s.loyalty=Oe(s.loyalty+2),$e("认真听了顾客的意见，口碑上升");break;case"coffee":s.cash-=18,s.stamina=Math.min(s.maxStamina,s.stamina+12),$e("在栖木咖啡喝了杯手冲，体力回来了些");break;case"walk":s.reputation=Oe(s.reputation+.5),s.loyalty=Oe(s.loyalty+2),$e("沿河走了一圈，脑子清醒多了");break;case"talk":if(t&&t.partner==="mom")s.momBond=Oe(s.momBond+4),$e("和妈妈聊了一会儿，家庭默契 +4");else if(s.staff.length){const a=t&&t.partner?t.partner:s.staff[0];if(!s.staff.includes(a))return!1;s.partnerTrust[a]=Oe((s.partnerTrust[a]||0)+6);const o=Dn(a);$e("和 "+(o?o.nick:"伙伴")+" 聊了很久，信赖 +6")}else s.momBond=Oe(s.momBond+4),$e("和妈妈聊了一会儿，家庭默契 +4");break;case"sqchat":{const a=Ne.friend[s.month];if(!a)break;s.sqchatMonth=s.month,s.autoStory=!0,$n(a),$e("和苏晴度过了一段只属于两人的时间");break}case"market":s.cash-=800,s.popularity=Oe(s.popularity+2),s.brand=Oe(s.brand+1.5),$e("发了新品帖子，知名度上升");break;case"train":{if(!s.staff.length)return!1;const a=t&&t.partner?t.partner:s.staff[0];s.cash-=400,s.partnerSkill[a]=Math.min(5,(s.partnerSkill[a]||1)+1);const o=Dn(a);$e("培训了 "+(o?o.nick:"伙伴")+"，专业能力提升");break}case"decorate":{const a=ds.find(o=>o.lv===s.shopLevel+1);if(!a)return!1;s.cash-=a.cost,s.shopLevel=a.lv,s.maxAp=8+(a.ap||0),s.reputation=Oe(s.reputation+3),s.style.community+=2,$e("店铺升级为「"+a.name+"」","good");break}case"survey":{const a=Cn.find(o=>!s.cities.includes(o.id)&&!s.surveyed.includes(o.id));if(!a)return!1;s.cash-=2e3,s.surveyed.push(a.id),$e("去"+a.name+"看了一圈，可以筹备开店了");break}case"branch":{const a=Cn.find(o=>o.id===s.surveyed[0]);if(!a)return!1;s.cash-=a.cost,s.storeCount+=1,s.cities.push(a.id),s.surveyed=s.surveyed.filter(o=>o!==a.id),s.brand=Oe(s.brand+6),s.style.efficiency+=3,$e("在"+a.name+"开了新店","good");break}default:return!1}return s.ap-=n.ap,Oa[e]&&(s.cd[e]=s.dayIndex+Oa[e]),r>s.cash&&(s.monthCost+=r-s.cash),r>s.cash&&(s.daySpend+=r-s.cash),oe(),!0}function Mi(e,t){if(s.dayPhase!=="prep"||!s.unlocked.includes(e))return;const n=Math.max(0,Math.min(12,Math.floor(t||0)));n===0?delete s.plan[e]:s.plan[e]=n,oe()}function sl(){if(s.phase!=="playing"||s.dayPhase!=="prep")return{ok:!1,msg:"当前不是制作阶段。"};if(!s.productionResult)return{ok:!1,msg:"先完成或跳过主打蛋糕小游戏。"};const e=Object.keys(s.plan);if(!e.length)return{ok:!1,msg:"先去厨房排一下今天的产量"};const t=e.reduce((i,c)=>i+s.plan[c],0),n=gr();if(Object.keys(n).length)return{ok:!1,msg:"原料不足："+Object.entries(n).map(([i,c])=>ft.find(f=>f.id===i).name+" ×"+Math.ceil(c)).join("、")};const r=Sl();if(r>_n.value)return{ok:!1,msg:"产能不够。今天的产能是 "+_n.value+" 点，还差 "+(r-_n.value)};const a=fi+s.staff.length*pi+wn("oven"),o=Math.round(Math.max(0,r-a)*(1-wn("mixer")));for(const i of e)for(let c=0;c<s.plan[i];c++)wl(i,1);s.stamina=Math.max(0,s.stamina-o);for(const i of e)s.shelf[i]=(s.shelf[i]||0)+s.plan[i],s.dayMade+=s.plan[i],s.levels[i]=Math.min(5,(s.levels[i]||1)+s.plan[i]*.02),s.batches.push({id:"b"+s.dayIndex+"-"+i+"-"+s.batches.length,product:i,qty:s.plan[i],quality:i===s.productionResult.product?s.productionResult.quality:"normal",decoration:i===s.productionResult.product?s.productionResult.decoration:null});return $e("做了 "+t+" 个蛋糕，自己出了 "+o+" 点体力"),s.plan={},s.productionMini=null,s.productionResult=null,s.dayPhase="service-ready",oe(),{ok:!0,msg:"做好了 "+t+" 个"}}const Na=["mix","oven","piping","fruit"];function wf(){if(s.dayPhase!=="prep"||s.productionMini||!Object.keys(s.plan).length)return!1;const e=Object.keys(s.plan).sort((t,n)=>s.plan[n]-s.plan[t])[0];return s.productionMini={type:Na[Math.floor(Math.random()*Na.length)],product:e,window:58+Math.floor(Math.random()*20),pattern:Math.floor(Math.random()*3)},oe(),!0}function Ef(e=0,t=!1,n=null){const r=s.productionMini;if(!r||s.productionResult)return{ok:!1,message:"制作小游戏已结算。"};const a=t?0:Math.max(0,Math.min(100,Math.round(e)));s.productionResult={product:r.product,quality:a>=90?"perfect":a>=70?"fine":"normal",score:a,priceBonus:a>=90?.1:a>=70?.05:0,decoration:n},s.productionMini=null;const o=sl();if(o.ok&&!t){const i=a>=90?30:a>=70?12:0;return s.cash+=i,s.dayRev+=i,s.monthRev+=i,s.bakingRecords=[...s.bakingRecords||[],{day:s.dayIndex,product:r.product,score:a,bonus:i}].slice(-50),s.levels[r.product]=Math.min(5,(s.levels[r.product]||1)+a/1e3),oe(),{...o,bonus:i,score:a}}return o}function Sf(){return Vt.value.filter(e=>(s.shelf[e.id]||0)>0).map(e=>e.id)}function Tf(e,t){const n={...t},r=[];for(let a=0;a<e;a++){const o=Object.keys(n).filter(f=>n[f]>0);if(!o.length)break;const i=o[Math.floor(Math.random()*o.length)],c=1+Math.floor(Math.random()*Math.min(2,n[i]));n[i]-=c,r.push({product:i,qty:c,customer:["帶孩子的家長","放學的學生","散步的街坊","外地遊客"][Math.floor(Math.random()*4)]})}return r}function Ci(e,t,n){var o;const r=Ri(e,t),a=Math.round(r.reduce((i,c)=>i+n*c.qty*(c.quality==="perfect"?1.1:c.quality==="fine"?1.05:1),0));return s.shelf[e]=Math.max(0,(s.shelf[e]||0)-t),s.cash+=a,s.dayRev+=a,s.monthRev+=a,s.daySold+=t,s.monthSold[e]=(s.monthSold[e]||0)+t,((o=s.challenge)==null?void 0:o.type)==="new"&&s.challenge.target===e&&(s.marketRun&&(s.marketRun.challengeNewSold=(s.marketRun.challengeNewSold||0)+t),s.cafeRun&&(s.cafeRun.challengeNewSold=(s.cafeRun.challengeNewSold||0)+t)),a}function wi(e,t,n){if(t.recorded)return;const r=e+"-m"+t.month,a={id:r,month:t.month,day:t.day,sold:t.sold||0,revenue:t.revenue||0,success:n,score:t.score||0,menu:t.menu||null};s.activityRecords[e]=[...(s.activityRecords[e]||[]).filter(o=>o.id!==r),a],s.career.activityRecords[e]=[...new Set([...s.career.activityRecords[e]||[],r])],t.recorded=!0,t.completed=!0,e==="cafe"&&(s.cafeCollab+=a.sold),oe()}function If(e={}){if(s.marketRun&&!s.marketRun.completed)return{ok:!0,resumed:!0};if(s.dayPhase!=="service-ready")return{ok:!1,message:"先完成今天的制作，再带蛋糕去市集。"};if((s.activityRecords.market||[]).some(r=>r.month===s.month))return{ok:!1,message:"本月的市集活动已经结算。"};const t=Object.fromEntries(Sf().map(r=>{var a;return[r,Math.min(s.shelf[r],Math.max(0,Math.floor(((a=e.inventory)==null?void 0:a[r])??s.shelf[r])))]}).filter(([,r])=>r>0));if(!Object.keys(t).length)return{ok:!1,message:"展示柜里还没有可以带去市集的蛋糕。"};const n=Tf(5,t);return s.marketRun={month:s.month,day:s.day,inventory:t,theme:String(e.theme||"小镇甜品市集"),target:Math.ceil(n.length*.6),demands:n,customerIndex:0,sold:0,revenue:0,score:0,misses:0,completed:!1,recorded:!1},oe(),{ok:!0,resumed:!1}}function Ei(){const e=s.marketRun;return e&&!e.completed&&e.demands[e.customerIndex]||null}function Af(e){const t=s.marketRun,n=Ei();if(!t||!n||t.completed)return{ok:!1,message:"今天的市集已经结束。"};if(e!==n.product)return t.misses+=1,t.customerIndex+=1,t.customerIndex>=t.demands.length?rl():oe(),{ok:!1,message:"这位顾客想要"+De(n.product).name+"，只好先去别的摊位看看。"};if((s.shelf[e]||0)<n.qty||(t.inventory[e]||0)<n.qty)return{ok:!1,message:"摊位配货不足，无法交付这么多份。"};const r=Ci(e,n.qty,Ft(e));return t.inventory[e]-=n.qty,t.sold+=n.qty,t.revenue+=r,t.score+=1,t.customerIndex+=1,t.customerIndex>=t.demands.length?rl():oe(),{ok:!0,message:"市集成交："+De(e).name+" ×"+n.qty+"，收入 ¥"+r+"。"}}function Vr(){const e=s.marketRun;return!e||e.completed?!1:(e.misses+=1,e.customerIndex+=1,e.customerIndex>=e.demands.length?rl():oe(),!0)}function rl(){const e=s.marketRun;if(!e||e.recorded)return;const t=e.score>=Math.ceil(e.demands.length*.6),n=t?Math.round(e.revenue*.05):0;n&&(s.cash+=n,s.dayRev+=n,s.monthRev+=n,e.revenue+=n),t&&(s.marketPoints=(s.marketPoints||0)+e.score*10),wi("market",e,t)}function Pf(e,t=1){const n=s.marketRun;if(!n||n.completed||!s.unlocked.includes(e))return{ok:!1,message:"当前无法补货。"};const r=(s.shelf[e]||0)-(n.inventory[e]||0),a=Math.max(1,Math.floor(t));if(r<a)return{ok:!1,message:"店铺没有多余的现货可调拨。"};const o=a*5;return s.cash<o?{ok:!1,message:"运货费用不足。"}:(s.cash-=o,s.monthCost+=o,s.daySpend+=o,n.inventory[e]=(n.inventory[e]||0)+a,n.misses+=.2,oe(),{ok:!0,message:`调拨了 ${a} 份，运费 ¥${o}。`})}const Fn={americano:"bold",latte:"mellow",cappuccino:"mellow",mocha:"bold",iced:"fresh"},Da={plain:"mellow",strawberry:"mellow",chocolate:"bold",taro:"bold",matcha:"fresh",mango:"fresh",tiramisu:"bold",fig:"fresh",seasonal:"fresh",custom:"mellow",festival:"bold",signature:"bold"},Rf={americano:"美式",latte:"拿铁",cappuccino:"卡布奇诺",mocha:"摩卡",iced:"冰咖啡"},Of={matcha:["latte","cappuccino","iced"],strawberry:["latte","cappuccino","iced"],tiramisu:["americano","mocha","cappuccino"]};function Si(e,t){if(!Da[e]||!Fn[t])return!1;const n=Of[e];return n?n.includes(t):Da[e]===Fn[t]}function Nf({product:e,coffee:t,price:n,theme:r}={}){if(s.cafeRun&&!s.cafeRun.completed)return{ok:!0,resumed:!0};if(s.dayPhase!=="service-ready")return{ok:!1,message:"先完成今天的制作，再开始咖啡联名。"};if((s.activityRecords.cafe||[]).some(f=>f.month===s.month))return{ok:!1,message:"本月的咖啡联名已经结算。"};if(!s.unlocked.includes(e)||!Fn[t])return{ok:!1,message:"请选择已上架的蛋糕和咖啡。"};if((s.shelf[e]||0)<1)return{ok:!1,message:"展示柜里没有这款蛋糕。"};const a=Math.max(1,Math.round(Number(n)||0)),o=Fn[t],i={mellow:"fresh",fresh:"bold",bold:"mellow"}[o],c=[o,o,i].map((f,v)=>({customer:["附近居民","年轻客人","咖啡爱好者"][v],profile:f}));return s.cafeRun={month:s.month,day:s.day,menu:{product:e,coffee:t,price:a,theme:String(r||"栖云午后")},customers:c,customerIndex:0,sold:0,revenue:0,score:0,misses:0,completed:!1,recorded:!1},oe(),{ok:!0,resumed:!1}}function Ti(){const e=s.cafeRun;return e&&!e.completed&&e.customers[e.customerIndex]||null}function Df(e=null){const t=s.cafeRun,n=Ti();if(!t||!n||t.completed)return{ok:!1,message:"本次联名已经结束。"};const{price:r}=t.menu,a=(e==null?void 0:e.product)||t.menu.product,o=(e==null?void 0:e.coffee)||t.menu.coffee;if(!s.unlocked.includes(a)||!Fn[o])return{ok:!1,message:"请选择已解锁的蛋糕和咖啡。"};const i=Si(a,o),c=r<=Math.round(Ft(a)*1.25+65);if(!(i&&c&&(n.profile===Fn[o]||t.menu.theme==="四季果香")))return t.misses+=1,oe(),{ok:!1,message:i?c?"这位顾客想要另一种风味，请换搭配。":"套餐价格超过了顾客预算，请在下一轮调整。":"蛋糕与咖啡的风味没有搭好，再试一份。"};if((s.shelf[a]||0)<1)return{ok:!1,message:"这款蛋糕售罄，无法完成联名订单。"};const v=Ci(a,1,r);return s.cash-=8,s.monthCost+=8,s.daySpend+=8,t.sold+=1,t.revenue+=v,t.menu.lastServed={product:a,coffee:o},t.score+=1,t.customerIndex+=1,t.customerIndex>=t.customers.length?Ii():oe(),{ok:!0,message:"联名套餐交付："+De(a).name+" + "+Rf[o]+"，收入 ¥"+v+"。"}}function Lf(){const e=s.cafeRun;return!e||e.completed?!1:(e.misses+=1,e.customerIndex+=1,e.customerIndex>=e.customers.length?Ii():oe(),!0)}function Ii(){const e=s.cafeRun;if(!e||e.recorded)return;const t=e.score>=2,n=t?Math.round(e.revenue*.05):0;n&&(s.cash+=n,s.dayRev+=n,s.monthRev+=n,e.revenue+=n),wi("cafe",e,t)}function Vf(){s.orders=[];const e=Math.min(.9,.55+s.popularity/350),t=1+(Math.random()<e?1:0);for(let n=0;n<t;n++){const r=Vt.value;if(!r.length)break;const a=r[Math.floor(Math.random()*r.length)],o=Math.random(),i=o<.35,c=!i&&o<.68,f=!i&&!c&&o<.8,v=i?"定制":c?"线上":f?"节日":"普通",h=i?1:1+Math.floor(Math.random()*3);s.orders.push({id:"o"+s.month+"-"+s.day+"-"+n,orderNo:"LJ-"+String(s.month).padStart(2,"0")+String(s.day).padStart(2,"0")+"-"+String(n+1).padStart(2,"0"),type:v,customer:i?"预约顾客":c?"线上顾客":f?"节日顾客":"附近顾客",product:a.id,qty:h,pay:Math.round(Ft(a.id)*h*(i?1.6*(1+wn("packing")):c?1.25:1)),due:i?["粉色小花","清爽配色","简洁裱花"][Math.floor(Math.random()*3)]:"",blessing:i?["生日快乐","愿你每天都有好心情","把今天的甜分享给你"][Math.floor(Math.random()*3)]:"",taken:!1})}}function Ai(e){if(s.dayPhase!=="prep")return!1;const t=s.orders.find(n=>n.id===e);return t?(t.taken=!t.taken,oe(),!0):!1}function Pi(e,t=1){const n=s.batches.filter(r=>r.product===e&&r.qty>0);return n.reduce((r,a)=>r+a.qty,0)>=t?n[0]:null}function Ri(e,t){const n=s.batches.filter(o=>o.product===e&&o.qty>0);if(n.reduce((o,i)=>o+i.qty,0)<t)return[{qty:t,quality:"normal"}];let r=t;const a=[];for(const o of n){const i=Math.min(r,o.qty);if(i&&(o.qty-=i,a.push({qty:i,quality:o.quality||"normal"}),r-=i,!r))break}return r?[{qty:t,quality:"normal"}]:a}function Oi(){var h;if(s.phase!=="playing"||s.dayPhase!=="service-ready"||s.service)return null;const e={tickets:[],current:0,unhappy:0,startedAt:Date.now(),automationUnlocked:Pl()},t=s.orders.filter(y=>y.taken);t.forEach(y=>{const b=30+5*(y.qty-1);e.tickets.push({...y,kind:"appointment",status:"waiting",patience:b,remaining:b,customSatisfied:!0})});const n=Math.max(1,Math.min(4,s.shopLevel)),r=[[3,5],[5,7],[7,9],[9,12]],[a,o]=r[n-1],i=a+Math.floor(Math.random()*(o-a+1)),c=Math.max(0,s.reputation-20)/240+Math.max(0,s.popularity-10)/350+Math.max(0,s.loyalty-20)/400,f=Math.max(a,Math.min(o,Math.round(i*(1+c+el.value*.02+wn("display"))))),v=Math.max(1,f-t.length);for(let y=0;y<v;y++){const b=El().find(T=>y===0),m=Vt.value,M=b?De(b.product):m[Math.floor(Math.random()*m.length)],_=1+Math.floor(Math.random()*3),E=30+5*(_-1);e.tickets.push({id:"visit-"+s.dayIndex+"-"+y,kind:"walkin",type:b?"熟客":"到店",customer:b?b.name:["附近居民","学生顾客","路过的客人","带孩子的家长","年轻客人"][Math.floor(Math.random()*5)],product:M.id,qty:_,pay:Ft(M.id)*_,clue:b?"我还是想买那款熟悉的蛋糕。":jf(M.id),due:"",blessing:"",status:"waiting",patience:E,remaining:E,customSatisfied:!0})}return s.orders=[],s.service=e,s.dayPhase="service",e.activeTicketId=((h=e.tickets[0])==null?void 0:h.id)||null,e.automationUnlocked&&s.staffAssignments.auto&&Gf(),oe(),{customers:e.tickets.length}}const Ff={plain:"想吃一款奶油薄一点、味道熟悉的经典蛋糕。",strawberry:"今天想买草莓酸甜口的奶油蛋糕。",chocolate:"有偏浓的可可味蛋糕吗？",taro:"想尝尝芋泥和脆脆夹心的搭配。",matcha:"有清香的茶味吗？希望甜度低一些。",mango:"想要清爽一点的芒果甜点。",tiramisu:"今天想吃咖啡味和奶酪味的蛋糕。",fig:"有没有放新鲜水果、奶油又轻一点的蛋糕？",seasonal:"想挑一款能尝到当季水果的蛋糕。",custom:"想订一份适合庆祝的精致蛋糕。",festival:"最近过节，想带一份有节日气氛的点心。",signature:"听说有桂花和栗子的秋日招牌。"};function jf(e){return Ff[e]||"想挑一款店里受欢迎的蛋糕。"}function Pl(){return s.shopLevel>=3&&s.staff.filter(e=>(s.partnerSkill[e]||1)>=3).length>=3}function jn(e=s.service){if(!e)return[];const t=Math.max(1,Math.min(3,s.shopLevel));return e.tickets.slice(e.current,e.current+t).filter(n=>!["delivered","unavailable"].includes(n.status))}function br(e=s.service){const t=jn(e);return t.find(n=>n.id===(e==null?void 0:e.activeTicketId))||t[0]||null}function Hn(e){return s.dayPhase!=="service"||!s.service||!jn().some(t=>t.id===e)?!1:(s.service.activeTicketId=e,oe(),!0)}function Ni(e){var t;for(;e.current<e.tickets.length&&["delivered","unavailable"].includes(e.tickets[e.current].status);)e.current+=1;e.activeTicketId=((t=jn(e)[0])==null?void 0:t.id)||null}function La(e){if(s.phase!=="playing"||s.dayPhase!=="prep")return!1;const t=new Set(s.staff),n={picker:null,packer:null,auto:!1,...e||{}};return n.picker&&!t.has(n.picker)&&(n.picker=null),n.packer&&!t.has(n.packer)&&(n.packer=null),n.picker&&n.picker===n.packer&&(n.packer=null),Pl()||(n.auto=!1),s.staffAssignments=n,oe(),!0}function Bf(e,t,n){if(s.dayPhase!=="service"||!s.service)return{ok:!1,message:"現在不是营业接待阶段。"};const r=br();if(!r||r.id!==e||r.status!=="waiting")return{ok:!1,message:"这位顾客的订单已在处理。"};if(t!==r.product)return{ok:!1,message:"口味不符合顾客需求，再找找看。"};if(n!==r.qty)return{ok:!1,message:"请按顾客的数量要求找蛋糕。"};if((s.shelf[t]||0)<n)return{ok:!1,message:"展示柜里的数量不够。"};if(jn().filter(o=>o.status==="searching").length>=1+(s.staffAssignments.picker?1:0))return{ok:!1,message:"找货工位正忙，先支援或处理另一位顾客。"};const a=Pi(t,n);return a?(r.selected=t,r.selectedQty=n,r.packBatchId=a.id,r.findRemaining=2/Uf("picker"),r.status="searching",oe(),{ok:!0,message:"在展示柜里找蛋糕。"}):{ok:!1,message:"展示柜里找不到这批蛋糕。"}}function qf(e,t=null,n=null){if(s.dayPhase!=="service"||!s.service)return{ok:!1,message:"現在不是营业接待阶段。"};const r=br();return!r||r.id!==e||r.status!=="found"?{ok:!1,message:"先从展示柜取出正确的蛋糕。"}:r.type==="定制"&&t!==r.due?{ok:!1,message:"装饰还没有符合预订要求。"}:r.type==="定制"&&n!==r.blessing?{ok:!1,message:"祝福语还没有符合预订要求。"}:jn().filter(a=>a.status==="packing").length>=1+(s.staffAssignments.packer?1:0)?{ok:!1,message:"打包工位正忙，先支援或处理另一位顾客。"}:(r.decoration=t,r.packedBlessing=n,r.packRemaining=3.6,r.packElapsed=0,r.status="packing",oe(),{ok:!0,message:"开始打包。"})}function Uf(e){const t=s.staffAssignments&&s.staffAssignments[e];return t&&s.staff.includes(t)?1+Math.max(0,(s.partnerSkill[t]||1)-1)*.15:1}function Hf(e=1){if(s.dayPhase!=="service"||!s.service)return;const t=Math.max(0,e);jn().forEach(n=>{if(n.remaining=Math.max(0,n.remaining-t),n.status==="searching"&&(n.findRemaining=Math.max(0,n.findRemaining-t),n.findRemaining===0&&(n.status="found")),n.status==="packing"&&(n.packRemaining=Math.max(0,n.packRemaining-t),n.packElapsed=Math.min(3.6,(n.packElapsed||0)+t),n.packRemaining===0&&(n.status="ready")),n.remaining===0&&!n.unhappy){n.unhappy=!0,s.service.unhappy+=1;const r=Math.min(.1,Math.max(0,.5-(s.dayReputationLoss||0)));s.dayReputationLoss=(s.dayReputationLoss||0)+r,s.reputation=Oe(s.reputation-r),$e(n.customer+"等得有些久，耐心少了一点。","bad")}}),Math.floor(Date.now()/1e3)!==s.service.lastSavedSecond&&(s.service.lastSavedSecond=Math.floor(Date.now()/1e3),oe())}function ll(e){if(s.dayPhase!=="service"||!s.service)return{ok:!1,message:"营业已结束。"};const t=s.service,n=br(t);if(!n||n.id!==e||n.status!=="ready")return{ok:!1,message:"蛋糕还没包好。"};if((s.shelf[n.product]||0)<n.qty)return{ok:!1,message:"展示柜里的数量不够。"};const r=Ri(n.product,n.qty);s.shelf[n.product]-=n.qty;const a=n.pay/n.qty,o=Math.round(r.reduce((i,c)=>i+a*c.qty*(c.quality==="perfect"?1.1:c.quality==="fine"?1.05:1),0));return s.cash+=o,s.dayRev+=o,s.monthRev+=o,s.daySold+=n.qty,s.monthSold[n.product]=(s.monthSold[n.product]||0)+n.qty,s.doneOrders+=1,n.type==="定制"&&(s.customOrders+=1),n.type==="线上"&&(s.onlineOrders+=1),n.type==="节日"&&(s.festivalOrders+=1),(n.customer==="陈奶奶"||n.customer==="张叔")&&of({[n.product]:n.qty}),s.loyalty=Oe(s.loyalty+.15),s.popularity=Oe(s.popularity+.02),n.revenue=o,n.status="delivered",$e("交付「"+De(n.product).name+"」×"+n.qty+"，收入 ¥"+o+" 已到账","good"),n.type==="定制"&&(t.customDone=(t.customDone||0)+1),s.challenge&&s.challenge.type==="new"&&s.challenge.target===n.product&&(t.challengeNewSold=(t.challengeNewSold||0)+n.qty),Ni(t),Rl(),oe(),{ok:!0,message:n.customer+"收下了蛋糕，¥"+o+" 已到账。"}}function Kf(e){const t=s.service,n=br(t);return!n||n.id!==e||s.dayPhase!=="service"?!1:(n.status="unavailable",Ni(t),Rl(),oe(),!0)}function Gf(){const e=s.service;if(e){for(;e.current<e.tickets.length;){const t=e.tickets[e.current];if(e.activeTicketId=t.id,(s.shelf[t.product]||0)<t.qty){t.status="unavailable",e.current+=1;continue}t.status="ready",t.packBatchId=(Pi(t.product,t.qty)||{}).id,ll(t.id)}Rl()}}function Rl(){const e=s.service;if(!e||e.current<e.tickets.length)return;s.dayPhase="closing";const t=e.tickets.filter(n=>n.status==="delivered").length;if(t&&(s.reputation=Oe(s.reputation+.06),s.loyalty=Oe(s.loyalty+.1)),!s.challengeDone&&s.challenge){const n=s.daySold,r=Object.values(s.shelf).reduce((o,i)=>o+i,0),a=s.challenge.type==="stock"?r/Math.max(1,n+r)<=.1:s.challenge.type==="new"?(e.challengeNewSold||0)>=3:(e.customDone||0)>0;if(a){const o=Math.round(s.dayRev*.05);s.cash+=o,s.dayRev+=o,s.monthRev+=o,$e("今日经营挑战完成，额外收入 ¥"+o,"good")}s.challengeDone=!0,$e("今日经营挑战："+(a?"完成":"未完成"),a?"good":"normal")}$e("营业结束，完成 "+t+" / "+e.tickets.length+" 位顾客","good"),oe()}const al={discount:{label:"打折卖掉",cashRate:.5,community:1},staff:{label:"留给伙伴",cashRate:0,community:2},share:{label:"社区分享",cashRate:0,community:3},waste:{label:"报损处理",cashRate:0,community:0}};function Ol(e){if(s.phase!=="playing"||s.dayPhase!=="closing")return null;const t=al[e]||al.discount;let n=0,r=0;for(const i of Object.keys(s.shelf))n+=s.shelf[i]||0,r+=(s.shelf[i]||0)*Ft(i);let a=0;if(n>0){const i=t.cashRate>0?t.cashRate+wn("fridge"):0;a=Math.round(r*i),s.cash+=a,t.community&&(s.style.community+=t.community*.3,s.reputation=Oe(s.reputation+t.community*.05))}s.dayLeft=n,s.shelf={},s.batches=[];const o={day:s.day,rev:s.dayRev,sold:s.daySold,left:n,gain:a};return s.dailyLedger.unshift({month:s.month,day:s.day,rev:s.dayRev+a,cost:s.daySpend,sold:s.daySold,orders:s.doneOrders}),s.dailyLedger=s.dailyLedger.slice(0,40),s.dayRev=0,s.daySold=0,s.dayMade=0,s.dayPhase="report",s.service=null,zf(),oe(),o}function Wf(){return s.phase!=="playing"||!["prep","service-ready","closing"].includes(s.dayPhase)?null:(s.dayPhase="closing",Ol("discount"))}function zf(){s.day+=1,s.dayIndex+=1,s.day>ps?(s.day=1,Yf()):kr()}function kr(){s.daySpend=0,s.ap=s.maxAp,s.stamina=Math.min(s.maxStamina,s.stamina+70),s.plan={},s.dayPhase="prep",s.service=null,s.productionMini=null,s.productionResult=null,s.dayReputationLoss=0,s.challengeDone=!1,hi(),s.shelf||(s.shelf={}),Vf(),oe()}function Yf(){const e=mi.value;s.monthCost+=e,s.cash-=e;let t=null;s.cash<0&&(s.usedMomHelp?(s.cash=0,s.reputation=Oe(s.reputation-2),t="这个月很难，勉强撑过去了"):(s.cash=3e3,s.usedMomHelp=!0,t="资金见底，妈妈先垫了一笔周转"),$e(t,"bad"));let n=null,r=0;Object.keys(s.monthSold).forEach(v=>{s.monthSold[v]>r&&(r=s.monthSold[v],n=v)});const a=s.monthSnap||{rep:s.reputation,unlocked:[],skill:{}},o=s.unlocked.filter(v=>a.unlocked.indexOf(v)<0),i=[];s.staff.forEach(v=>{const h=a.skill[v]||0,y=s.partnerSkill[v]||0;if(y-h>=.3){const b=Dn(v);i.push((b?b.nick||b.name:v)+" 专业 +"+(y-h).toFixed(1))}}),s.report={month:s.month,rev:s.monthRev,cost:s.monthCost,net:s.monthRev-s.monthCost,best:n?De(n).name:"—",bestN:r,warn:t,fresh:o.map(v=>(De(v)||{}).name).filter(Boolean),repDelta:Math.round((s.reputation-a.rep)*10)/10,rep:Math.round(s.reputation),grown:i,trust:Object.keys(s.partnerTrust).map(v=>{const h=Dn(v);return{name:h?h.nick||h.name:v,v:Math.round(s.partnerTrust[v]||0)}})},s.monthSnap={rep:s.reputation,unlocked:s.unlocked.slice(),skill:Object.assign({},s.partnerSkill)};const c=s.month;if(s.month+=1,s.monthRev=0,s.monthCost=0,s.monthSold={},s.shelf={},Mn.forEach(v=>{v.joinMonth===s.month&&$i(v.id)}),c===29){const v=Object.values(s.partnerTrust).filter(h=>h>=70).length;s.helpers=v+(s.momBond>=70?1:0)}const f=Ln.find(v=>v.to===c&&!v.final);if(f){const v=Ne.stages[f.id];if(!Qf(f)){s.phase="ended",s.ending={...f.short,key:f.short.key,text:""},v&&v.failId&&$n(Ne.find(v.failId)),$e("阶段目标没有达成","bad"),oe();return}s.stage=f.id+1,v&&v.pass.length&&$n({id:"STAGE_PASS_"+f.id,title:f.name+" · 阶段达成",chapter:f.name,kind:"stage",beats:v.pass}),$e("第 "+f.id+" 阶段目标达成","good")}if(s.month>36){s.month=36,s.phase="ended";const v=Zf();s.ending={...ni[v],key:v},$n(Ne.find(Jf[v])),oe();return}s.stamina=s.maxStamina,kr(),Nl()}const Jf={community:"EVT_FINAL_END_COMMUNITY",tradition:"EVT_FINAL_END_TRADITION",creative:"EVT_FINAL_END_INNOVATION",regional:"EVT_FINAL_END_REGIONAL",national:"EVT_FINAL_END_NATIONAL",transfer:"EVT_FINAL_END_TRANSFER"};function Qf(e){if(!e.goals.length)return!0;const t=e.goals.filter(n=>n.check(s));return!(t.length<e.need||e.needExpand&&!t.some(n=>n.expand))}function Zf(){if(s.acquired)return"transfer";if(s.storeCount>=6)return"national";if(s.storeCount>=3)return"regional";const e=s.style,t=Object.keys(e).sort((r,a)=>e[a]-e[r])[0];return{tradition:"tradition",innovation:"creative",community:"community",efficiency:"regional"}[t]||"community"}function $n(e){e&&(qe.events.find(t=>t.id===e.id)||qe.events.push(e))}function Nl(){const e=Ne.events.filter(t=>!(t.kind!=="main"||s.played.includes(t.id)||t.month==null||s.month<t.month||t.test&&!Qr(t.test,s)));e.sort((t,n)=>t.month-n.month||t.order-n.order),e.forEach($n),Ne.events.filter(t=>t.kind==="style"&&!s.played.includes(t.id)&&Qr(t.test,s)).forEach($n)}function Xf(e){const t=Ne.events.filter(a=>a.kind==="tutorial").sort((a,o)=>(a.order||0)-(o.order||0)),n=e?t.filter(a=>a.id!=="EVT_TUTORIAL_SKIP"):t.filter(a=>a.id==="EVT_TUTORIAL_SKIP"),r=n.filter(a=>!qe.events.some(o=>o.id===a.id));return qe.events.unshift(...r),s.tutorialSeen=!0,s.tutorialPromptPending=!1,s.tutorialProgress=e?1:0,oe(),n.length}const ep=[{season:0,title:"春日花卉节",place:"公园 · 小镇市集",materials:["strawberry","decor"],detail:"草莓与花卉装饰是春季订单的主角。"},{season:1,title:"夏日水果节",place:"咖啡店 · 小镇市集",materials:["mango","strawberry"],detail:"准备新鲜水果，留意咖啡店的夏日联名邀请。"},{season:2,title:"秋日丰收季",place:"小镇市集",materials:["chestnut","decor"],detail:"秋栗与坚果风味适合节日摊位。"},{season:3,title:"暖冬甜品节",place:"蛋糕店 · 咖啡店",materials:["cocoa","decor"],detail:"巧克力与礼盒订单会更受欢迎。"}];function Di(e=s.month){return ep[Math.floor((e-1)%12/3)]}function We(e){switch(e){case"school":return{open:!1,reason:"高中仅在回忆与主线剧情中出现，不作为日常地图。"};case"home":return{open:s.dayIndex>=2,reason:"第一天营业结束后，林念才有时间回家整理。"};case"park":return{open:s.dayIndex>=2,reason:"完成第一天经营后，苏晴会带你熟悉公园。"};case"river":return{open:(s.sceneVisits.park||0)>0&&(s.sqchatMonth>0||s.dayIndex>=3),reason:"先去公园散步，认识通往河岸的小路。"};case"lab":return{open:s.month>=3&&s.unlocked.length>=3,reason:"掌握三款基础配方，并经营到第 3 个月。"};case"staff":return{open:s.staff.length>=1,reason:"招聘第一位伙伴后开放排班板。"};case"studio":return{open:s.customOrders>=1,reason:"完成第一份定制订单后，叶星河会邀请你来设计。"};case"cafe":return{open:s.shopLevel>=2&&s.month>=6,reason:"店铺达到 Lv2 且进入第 6 个月，咖啡店主会提出合作。"};case"market":return{open:s.shopLevel>=3&&s.month>=6,reason:"店铺达到 Lv3，并完成前期经营（第 6 个月起）。"};case"store":return{open:s.shopLevel>=4&&s.customOrders>=2&&s.brand>=25&&s.month>=19,reason:"店铺 Lv4、完成 2 份定制、品牌 ≥25，并推进到第 19 个月。"};default:return{open:!0,reason:""}}}function rn(e,t,n="shop"){(s.notices||[]).some(r=>r.title===e)||(s.notices.unshift({id:"n-"+Date.now()+"-"+s.notices.length,title:e,detail:t,target:n,month:s.month,day:s.day,seen:!1}),s.notices=s.notices.slice(0,60),oe())}function Li(e){return We(e).open?(s.sceneVisits[e]=(s.sceneVisits[e]||0)+1,e==="park"&&s.sceneVisits[e]===1&&rn("河边的小路","公园通往河边。你可以去看看风景，也许会遇到特别的人。","river"),e==="cafe"&&s.sceneVisits[e]===1&&rn("咖啡店的邀请","主理人许沐禾想和林记烘焙推出第一份联名菜单。","cafe"),e==="studio"&&s.sceneVisits[e]===1&&rn("叶星河的设计工作室","定制订单带来了新的设计灵感，试着制作一份包装设计。","studio"),oe(),!0):!1}function tp(e){if(!["park","river"].includes(e))return{ok:!1,message:"只能在风景地点拍照。"};const t=e+"-"+s.month;return s.scenePhotos.some(n=>n.id===t)?{ok:!1,message:"这个月已经收集过这里的风景了。"}:s.dayPhase!=="prep"||s.ap<1?{ok:!1,message:"拍摄风景需要准备阶段的 1 点行动力。"}:(s.ap-=1,s.scenePhotos.push({id:t,place:e,month:s.month,day:s.day,title:e==="river"?"河岸晚风":"公园花影"}),s.loyalty=Math.min(100,s.loyalty+1),rn("新的风景照片","拍摄的照片已经存入手机收藏。",e),oe(),{ok:!0,message:"拍到了「"+(e==="river"?"河岸晚风":"公园花影")+"」，已收入收藏。"})}const Vi=[{id:"walk",title:"河边的第一次散步",detail:"苏晴陪林念沿着水边慢慢走，聊起接手蛋糕店后忙碌的生活。",unlock:()=>s.dayIndex>=3,reward:"苏晴好感与河岸回忆"},{id:"lost",title:"遗失的物品",detail:"在长椅下发现一枚小小的钥匙扣。循着线索找到失主，是常来林记的小镇居民。",unlock:()=>(s.sceneVisits.river||0)>=2,reward:"小镇纪念物与人物线索"},{id:"rain",title:"雨天的小插曲",detail:"约好见面的午后下起雨，林念和苏晴帮陌生人遮住了刚买的甜点。",unlock:()=>s.month>=5,reward:"特殊订单线索"},{id:"festival",title:"河岸灯会",detail:"夜色里亮起一串串小灯，林记的节日甜点为小镇添上了温暖。",unlock:()=>s.month>=6,reward:"灯会纪念与限定照片"},{id:"bridge",title:"旧桥边的回忆",detail:"苏晴在旧桥边提起那年一起走过的路，林念终于想起了很多珍贵的小事。",unlock:()=>s.sqchatMonth>=4,reward:"苏晴专属回忆"}];function np(e){const t=Vi.find(n=>n.id===e);return!t||!t.unlock()?{ok:!1,message:"这段故事还没有到来的时机。"}:s.sceneEvents.includes(e)?{ok:!1,message:"这段回忆已经收藏。"}:s.dayPhase!=="prep"||s.ap<1?{ok:!1,message:"今天先完成店里的营业，明天再来吧。"}:(s.ap-=1,s.sceneEvents.push(e),(e==="walk"||e==="bridge")&&(s.loyalty=Math.min(100,s.loyalty+3)),e==="festival"&&(s.marketPoints+=2),rn("河边回忆 · "+t.title,t.reward+"已记入手机收藏。","river"),oe(),{ok:!0,message:t.detail+`
+获得：`+t.reward})}function sp(e){return s.unlockedOutfits.includes(e)?(s.outfit=e,oe(),!0):!1}function rp({shape:e,color:t,decoration:n,packaging:r}){if(!We("studio").open||s.dayPhase!=="prep"||s.ap<1)return{ok:!1,message:"现在还无法进行设计。"};if((s.pantry.decor||0)<1)return{ok:!1,message:"需要 1 份裱花装饰料，请先去食材铺补货。"};const a="design-"+s.designWorks.length+"-"+s.dayIndex;return s.pantry.decor-=1,s.ap-=1,s.designWorks.push({id:a,shape:e,color:t,decoration:n,packaging:r,month:s.month,day:s.day}),s.brand=Math.min(100,s.brand+1),rn("设计作品已保存","新设计已归入手机收藏，将为品牌形象积累经验。","studio"),oe(),{ok:!0,message:"设计保存成功！消耗装饰料 ×1，品牌 +1。"}}function lp(){return!We("cafe").open||s.dayPhase!=="prep"||s.ap<1?{ok:!1,message:"当前无法交流。"}:s.cafeLastTalk===s.dayIndex?{ok:!1,message:"今天已经和许沐禾聊过了。"}:(s.ap-=1,s.cafeRelation+=3,s.cafeLastTalk=s.dayIndex,rn("街角咖啡馆","许沐禾分享了咖啡与蛋糕搭配的心得，联名合作又近了一步。","cafe"),oe(),{ok:!0,message:"和许沐禾聊了新品与小镇生活。咖啡店好感 +3。"})}function ol(){const e=Ne.events.find(t=>t.kind==="prologue");e&&!s.played.includes(e.id)&&!qe.events.some(t=>t.id===e.id)&&$n(e),Nl()}function ap(e){(e.ids&&e.ids.length?e.ids:[e.id]).forEach(r=>{s.played.includes(r)||s.played.push(r)}),kf(e.rewards||[]).length&&$e("剧情："+e.title,"story"),oe()}const op={xiaoyu:[{trust:80,skill:4,done:"EVT_M11_YUTONG_BOOK"},{trust:80},{skill:4},{}],zhiyao:[{trust:75,skill:4,done:"EVT_M19_MAIN"},{}],kexin:[{trust:75,skill:4,done:"EVT_M21_MAIN"},{}],qinghe:[{trust:75,skill:4,done:"EVT_M25_MAIN"},{}],mom:[{bond:75},{}]};function Va(e){const t=(Ne.partnerEndings||{})[e];if(!t||!t.length)return null;const n=s.partnerTrust[e]||0,r=s.partnerSkill[e]||0,a=s.momBond||0,o=op[e];if(!o)return n>=70?t[0]:t[1];for(const i of o)if(!(i.trust!=null&&n<i.trust)&&!(i.skill!=null&&r<i.skill)&&!(i.bond!=null&&a<i.bond)&&!(i.done&&!s.played.includes(i.done)))return t[Math.min(o.indexOf(i),t.length-1)];return t[t.length-1]}const He=(e,t)=>{const n=e.__vccOpts||e;for(const[r,a]of t)n[r]=a;return n},ip={class:"vn"},up=["src"],cp={key:0,class:"vn-cg"},dp=["src"],fp={class:"vn-cg-cap"},pp={key:0,class:"vn-cast"},vp=["src","alt"],hp={class:"vn-top"},mp={class:"vn-titles"},gp={class:"vn-chapter"},yp={key:0,class:"vn-scene"},bp={key:1,class:"vn-scene"},kp={class:"vn-tools"},_p={key:1,class:"vn-choice"},$p={class:"vn-ask"},xp=["onClick"],Mp={class:"t"},Cp={key:0,class:"vn-note"},wp={key:0,class:"vn-name"},Ep=["src"],Sp={key:1},Tp={class:"vn-text"},Ip={key:0,class:"caret"},Ap={class:"vn-foot"},Pp={key:1,class:"vn-dot"},Rp={__name:"StoryModal",props:{ev:{type:Object,required:!0}},emits:["done"],setup(e,{emit:t}){const n=e,r=t,a=K([]),o=K(0),i=K(0),c=K(!1);let f=0,v=0;function h(le){for(let pe=0;pe<le.length;pe++){const be=le[pe].t;if(be!=="scene"&&be!=="cg"&&be!=="cgend"&&be!=="act")return pe}return Math.max(0,le.length-1)}const y=j(()=>a.value[o.value]||null),b=j(()=>o.value>=a.value.length-1),m=j(()=>!!y.value&&y.value.t==="choice"),M=j(()=>!!y.value&&y.value.t==="say"),_=j(()=>!!y.value&&y.value.t==="nar"),E=j(()=>y.value&&y.value.text||""),T=j(()=>E.value.slice(0,i.value)),w=j(()=>i.value<E.value.length),x=j(()=>{for(let le=o.value;le>=0;le--)if(a.value[le].t==="scene")return le;return-1}),k=j(()=>x.value>=0?a.value[x.value]:null),H=j(()=>{for(let le=o.value;le>=0;le--){if(a.value[le].t==="act")return a.value[le].text;if(a.value[le].t==="scene")return""}return""}),ie=j(()=>Wd(n.ev)),q=j(()=>{if(k.value){const le=ii(k.value.text);if(le)return le}return ie.value}),J=j(()=>er[q.value]||er.shop),Y=j(()=>ef(J.value)),re=j(()=>Yd(q.value));function ne(le){return le!=="林念"||s.outfit==="auto"?re.value:s.outfit==="bakery"?"in":"out"}const P=j(()=>!!k.value&&/回忆|闪回|高中|高三|晚自习|那年|那一年/.test(k.value.text)),N=j(()=>{let le=-1;for(let pe=o.value;pe>=0;pe--){const be=a.value[pe].t;if(be==="cg"){le=pe;break}if(be==="cgend")return""}return le<0||le<x.value?"":a.value[le].key}),ue=j(()=>N.value?tr(N.value):null),ge={念念:"林念",小雨:"周雨桐",知遥:"许知遥",阿鸢:"唐鸢",鸢姐:"唐鸢",星河:"叶星河",妈妈:"林暖"},me=j(()=>{const le=$=>$&&Aa[$]&&Zd($,ne($));if(M.value)return le(y.value.who)?[y.value.who]:[];const pe=y.value&&y.value.text||"",it=[...Object.keys(Aa),"陈奶奶","张叔","李婶","赵叔","沈知夏"].map($=>({name:$,at:pe.indexOf($)})).concat(Object.entries(ge).map(([$,C])=>({name:C,at:pe.indexOf($)}))).filter($=>$.at>=0).sort(($,C)=>$.at-C.at)[0];return it&&le(it.name)?[it.name]:[]}),z=j(()=>M.value?y.value.who:"");Pt(()=>n.ev,()=>{a.value=qs(n.ev.beats||[],s);const le=s.storyChoices[n.ev.id]||{};for(let pe=0;pe<a.value.length;pe++){const be=a.value[pe];if(be.t!=="choice"||!Number.isInteger(le[be.node]))continue;const Le=be.options[le[be.node]];Le&&(Ra(be,Le,le[be.node],n.ev.id),a.value.splice(pe,1,...Le.branch,...be.after||[]),pe--)}o.value=h(a.value),i.value=0,c.value=!1,O()},{immediate:!0});function U(le){return{left:"50%",zIndex:10+le}}function O(){if(clearInterval(f),i.value=0,m.value||!E.value){i.value=E.value.length;return}const le=Math.max(1,Math.round(E.value.length/40));f=setInterval(()=>{i.value=Math.min(E.value.length,i.value+le),i.value>=E.value.length&&clearInterval(f)},18)}Pt(()=>o.value,O);function Q(le){let pe=le+1;for(;pe<a.value.length;){const be=a.value[pe].t;if(be==="scene"||be==="cg"||be==="cgend"||be==="act")pe++;else break}return Math.min(pe,a.value.length-1)}function te(){if(!m.value){if(w.value){i.value=E.value.length,clearInterval(f);return}b.value||(o.value=Q(o.value))}}function A(le,pe){Ra(y.value,le,pe,n.ev.id);const be=(le.branch||[]).concat(y.value.after||[]);a.value.splice(o.value,1,...be);let Le=Math.max(0,o.value-1);o.value=Q(Le)}function L(){for(let le=o.value+1;le<a.value.length;le++)if(a.value[le].t==="choice"){o.value=le;return}o.value=a.value.length-1,i.value=E.value.length}function R(){clearInterval(f),clearInterval(v),ap(n.ev),r("done")}function X(){c.value=!c.value,clearInterval(v),c.value&&(v=setInterval(()=>{if(b.value){clearInterval(v),c.value=!1;return}if(m.value){clearInterval(v),c.value=!1;return}w.value?i.value=E.value.length:o.value=Q(o.value)},1400))}return ys(()=>{clearInterval(f),clearInterval(v)}),(le,pe)=>(d(),p("div",ip,[l("div",{class:ve(["vn-stage",{flash:P.value}])},[l("div",{class:"vn-bg",style:ot({background:J.value.css})},[Y.value?(d(),p("img",{key:0,src:Y.value,alt:"",class:"vn-bg-img"},null,8,up)):S("",!0),pe[0]||(pe[0]=l("div",{class:"vn-veil"},null,-1))],4),je(Uc,{name:"cgfade"},{default:En(()=>[ue.value&&ue.value.src?(d(),p("div",cp,[l("img",{src:ue.value.src,alt:""},null,8,dp),l("div",fp,u(ue.value.name),1)])):S("",!0)]),_:1}),N.value?S("",!0):(d(),p("div",pp,[(d(!0),p(V,null,ee(me.value,(be,Le)=>(d(),p("div",{key:be,class:ve(["vn-actor",{dim:z.value&&z.value!==be,off:!z.value}]),style:ot(U(Le))},[l("img",{src:g(Jd)(be,ne(be)),alt:be},null,8,vp)],6))),128))])),l("div",hp,[l("div",mp,[l("div",gp,u(e.ev.title),1),H.value?(d(),p("div",yp,u(H.value),1)):k.value?(d(),p("div",bp,u(k.value.text),1)):S("",!0)]),l("div",kp,[l("button",{type:"button",class:ve({on:c.value}),onClick:at(X,["stop"])},"自动",2),l("button",{type:"button",onClick:at(L,["stop"])},"跳过")])]),m.value?(d(),p("div",_p,[l("div",$p,u(y.value.prompt),1),(d(!0),p(V,null,ee(y.value.options,(be,Le)=>(d(),p("button",{key:Le,type:"button",class:"vn-opt",onClick:at(it=>A(be,Le),["stop"])},[l("span",Mp,u(be.label),1)],8,xp))),128)),y.value.note?(d(),p("p",Cp,u(y.value.note),1)):S("",!0)])):(d(),p("div",{key:2,class:ve(["vn-box",{nar:_.value}]),onClick:te},[M.value?(d(),p("div",wp,[g(Xr)(y.value.who)?(d(),p("img",{key:0,src:g(Xr)(y.value.who),alt:""},null,8,Ep)):S("",!0),l("span",null,u(y.value.who),1),y.value.emo&&y.value.emo!=="视角"?(d(),p("em",Sp,u(y.value.emo),1)):S("",!0)])):S("",!0),l("div",Tp,[ye(u(T.value),1),w.value?(d(),p("span",Ip)):S("",!0)]),l("div",Ap,[b.value&&!w.value?(d(),p("span",{key:0,class:"vn-end",onClick:at(R,["stop"])},"结束 ←")):(d(),p("span",Pp,"▾"))])],2))],2)]))}},Op=He(Rp,[["__scopeId","data-v-d58c8e77"]]),vs="".replace(/\/$/,""),Np=typeof window<"u"&&(window.location.protocol==="https:"||["localhost","127.0.0.1"].includes(window.location.hostname)),Dp=/^https:\/\//i.test(vs)||/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(vs),Lp=!!vs&&Np&&Dp,Vp="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";function Fp(){const e=new Uint8Array(20);return crypto.getRandomValues(e),Array.from(e,t=>Vp[t&31]).join("")}async function Dl(e,t={}){if(!vs)throw new Error("云存档服务暂不可用。");const n=await fetch(vs+e,t),r=await n.json().catch(()=>({}));if(!n.ok){const a=new Error(r.message||"云存档请求失败。");throw a.status=n.status,a.data=r,a}return r}function Ll(e){return{"X-Recovery-Code":e.replace(/\s+/g,"").toUpperCase()}}function jp(e){return Dl("/api/save/meta",{headers:Ll(e)})}function Fa(e,t,n){const r={...Ll(e),"Content-Type":"application/json"};return n!=null&&(r["If-Match"]=String(n)),Dl("/api/save",{method:"PUT",headers:r,body:t})}async function Bp(e,t){return Dl("/api/save",{headers:{...Ll(e),"If-Match":String(t)}})}const qp=["src"],Up={key:1,viewBox:"0 0 120 120",class:"cakeart","aria-hidden":"true"},Hp=["fill"],Kp=["fill"],Gp=["fill"],Wp=["fill"],zp=["fill"],Yp=["fill"],Jp=["fill"],Qp=["fill"],Zp=["fill"],Xp=["fill"],ev=["fill"],tv={__name:"CakeArt",props:{id:{type:String,default:""},colors:{type:Object,default:()=>({sponge:"#F0D9AE",cream:"#FFF8EE",accent:"#E8B86D"})}},setup(e){const t=e,n=j(()=>t.id&&Ye("cake-"+t.id+".webp")==="ok"?Ae("cake-"+t.id+".webp"):"");return(r,a)=>n.value?(d(),p("img",{key:0,src:n.value,alt:"",class:"cakeart photo"},null,8,qp)):(d(),p("svg",Up,[a[0]||(a[0]=l("ellipse",{cx:"60",cy:"104",rx:"39",ry:"6",fill:"rgba(107,74,52,0.10)"},null,-1)),a[1]||(a[1]=l("ellipse",{cx:"60",cy:"97",rx:"43",ry:"9",fill:"#FFFDF9",stroke:"rgba(107,74,52,0.12)"},null,-1)),l("path",{d:"M21 56 L99 56 L99 90 A39 8 0 0 1 21 90 Z",fill:e.colors.sponge},null,8,Hp),l("rect",{x:"21",y:"56",width:"78",height:"15",fill:e.colors.cream},null,8,Kp),l("circle",{cx:"32",cy:"71",r:"4",fill:e.colors.cream},null,8,Gp),l("circle",{cx:"48",cy:"71",r:"5.4",fill:e.colors.cream},null,8,Wp),l("circle",{cx:"66",cy:"71",r:"4",fill:e.colors.cream},null,8,zp),l("circle",{cx:"84",cy:"71",r:"5",fill:e.colors.cream},null,8,Yp),l("ellipse",{cx:"60",cy:"56",rx:"39",ry:"9.5",fill:e.colors.cream,stroke:"rgba(107,74,52,0.10)"},null,8,Jp),l("circle",{cx:"46",cy:"54",r:"5",fill:e.colors.accent},null,8,Qp),l("circle",{cx:"66",cy:"52",r:"4.4",fill:e.colors.accent,opacity:"0.85"},null,8,Zp),l("circle",{cx:"76",cy:"57",r:"3.4",fill:e.colors.accent,opacity:"0.7"},null,8,Xp),l("circle",{cx:"55",cy:"58",r:"3",fill:e.colors.accent,opacity:"0.55"},null,8,ev)]))}},Fi=He(tv,[["__scopeId","data-v-bd8df027"]]),nv={class:"seg"},sv=["onClick"],rv={key:0,class:"card"},lv={class:"art"},av={class:"body"},ov={class:"name"},iv={class:"chip",style:{"font-size":"10px"}},uv={key:0,class:"chip",style:{"font-size":"10px"}},cv={class:"desc"},dv={key:0,class:"hint"},fv={key:1,class:"nums"},pv={key:1},vv={class:"photos"},hv={class:"im"},mv=["src","alt"],gv={key:1,class:"small muted"},yv={key:2,style:{"font-size":"20px",opacity:"0.3"}},bv={class:"cp"},kv={class:"ti"},_v={class:"cc"},$v={class:"cc"},xv={key:2,class:"cg-gallery"},Mv=["disabled","onClick"],Cv={class:"im"},wv=["src","alt"],Ev={key:1},Sv={class:"cp"},Tv={class:"ti"},Iv={class:"cc"},Av={key:3,class:"lab-list"},Pv={key:0,class:"card card-pad small muted"},Rv={class:"between"},Ov={class:"h2",style:{margin:"0"}},Nv={class:"chip",style:{"font-size":"10px"}},Dv=["src"],Lv={class:"between"},Vv={class:"small muted"},Fv={key:0,class:"lab-scores"},jv={key:1,class:"small muted"},Bv={key:4,class:"card"},qv={style:{flex:"1 1 auto","min-width":"0"}},Uv={class:"nm"},Hv={key:0,class:"chip sage",style:{"font-size":"10px"}},Kv={key:1,class:"chip pink",style:{"font-size":"10px"}},Gv={class:"nt"},Wv={key:0,class:"nt"},zv={key:5,class:"customer-list"},Yv={class:"between"},Jv={class:"h2",style:{margin:"0"}},Qv={class:"chip",style:{"font-size":"10px"}},Zv={class:"cc"},Xv={class:"cc"},eh={class:"small muted"},th={key:6,class:"collection"},nh={class:"h2"},sh={class:"small muted"},rh=["aria-label"],lh=["src","alt"],ah={__name:"CodexPage",props:{initialSegment:{type:String,default:"product"}},setup(e){const n=K(e.initialSegment),r=K(null),a=j(()=>Ue.map(m=>({...m,flavor:(Ne.codex[m.id]||{}).flavor||m.desc,hint:(Ne.codex[m.id]||{}).hint||"",owned:s.unlocked.includes(m.id),current:s.unlocked.includes(m.id),collected:s.career.products.includes(m.id),lv:Math.round((s.levels[m.id]||1)*10)/10,price:Ft(m.id),sold:s.monthSold[m.id]||0}))),o=j(()=>Object.keys(Is).map(m=>({id:m,...Is[m],owned:s.photos.includes(m),current:s.photos.includes(m),collected:s.career.photos.includes(m)}))),i=j(()=>Ue.map(m=>({...m,reports:s.career.labReports[m.id]||{}})).filter(m=>m.reports.development||m.reports.improvement)),c=j(()=>tr("osmanthus").src),f=j(()=>ci.map(m=>({id:m.id,...tr(m.id),collected:s.career.cgs.includes(m.id)}))),v=j(()=>Cn.map(m=>({...m,owned:s.cities.includes(m.id),surveyed:s.surveyed.includes(m.id)}))),h=j(()=>xl.map(m=>({...m,productName:Ue.find(M=>M.id===m.product).name,visit:s.regularCustomers[m.id]}))),y=j(()=>({products:Ue.map(m=>({id:m.id,name:m.name,collected:s.career.products.includes(m.id),current:s.unlocked.includes(m.id)})),photos:Object.keys(Is).map(m=>({id:m,name:Is[m].title,collected:s.career.photos.includes(m),current:s.photos.includes(m)})),cgs:f.value.map(m=>({id:m.id,name:m.name,collected:m.collected,current:m.collected})),decorations:$l.map(m=>({id:m.id,name:m.name,collected:s.career.decorations.includes(m.id),current:s.decorations.includes(m.id)})),endings:[...Ln.filter(m=>!m.final).map(m=>({id:m.short.key,name:m.short.name,collected:s.career.endings.includes(m.short.key),current:s.runEndings.includes(m.short.key)})),...Object.entries(ni).map(([m,M])=>({id:m,name:M.name,collected:s.career.endings.includes(m),current:s.runEndings.includes(m)}))]}));function b(m){return m.current?"本轮已解锁":m.collected?"已收录 · 本轮未解锁":"尚未收录"}return(m,M)=>(d(),p("div",null,[l("div",nv,[(d(),p(V,null,ee([{k:"product",t:"产品"},{k:"customer",t:"顾客"},{k:"photo",t:"相册"},{k:"cg",t:"CG"},{k:"city",t:"门店"},{k:"collection",t:"收藏"},{k:"lab",t:"实验档案"}],_=>l("button",{key:_.k,type:"button",class:ve({on:n.value===_.k}),onClick:E=>n.value=_.k},u(_.t),11,sv)),64))]),n.value==="product"?(d(),p("div",rv,[(d(!0),p(V,null,ee(a.value,_=>(d(),p("div",{key:_.id,class:ve(["cake",{locked:!_.owned}])},[l("div",lv,[je(Fi,{id:_.id,colors:_.colors},null,8,["id","colors"])]),l("div",av,[l("div",ov,[l("span",null,u(_.name),1),l("span",iv,u(b(_)),1),_.owned?(d(),p("span",uv,"Lv"+u(_.lv),1)):S("",!0)]),l("div",cv,u(_.owned?_.flavor:"第 "+_.month+" 个月解锁"),1),_.owned&&_.hint?(d(),p("div",dv,"配方："+u(_.hint),1)):S("",!0),_.owned?(d(),p("div",fv,[l("span",null,"¥"+u(_.price),1),l("span",null,u(_.diff)+" 点/个",1),l("span",null,"本月卖出 "+u(_.sold),1)])):S("",!0)])],2))),128))])):n.value==="photo"?(d(),p("div",pv,[l("div",vv,[(d(!0),p(V,null,ee(o.value,_=>(d(),p("div",{key:_.id,class:"photo"},[l("div",hv,[_.collected&&_.img?(d(),p("img",{key:0,src:_.img,alt:_.title},null,8,mv)):_.collected?(d(),p("span",gv,"未冲印")):(d(),p("span",yv,"?"))]),l("div",bv,[l("div",kv,u(_.collected?_.title:"还没发生"),1),l("div",_v,u(_.collected?_.caption:"继续经营，它会出现"),1),l("div",$v,u(b(_)),1)])]))),128))])])):n.value==="cg"?(d(),p("div",xv,[(d(!0),p(V,null,ee(f.value,_=>(d(),p("button",{key:_.id,class:"photo cg-card",type:"button",disabled:!_.collected||!_.src,onClick:E=>r.value=_},[l("span",Cv,[_.collected&&_.src?(d(),p("img",{key:0,src:_.src,alt:_.name},null,8,wv)):(d(),p("span",Ev,"?"))]),l("span",Sv,[l("span",Tv,u(_.collected?_.name:"还没发生"),1),l("span",Iv,u(b(_)),1)])],8,Mv))),128))])):n.value==="lab"?(d(),p("div",Av,[i.value.length?S("",!0):(d(),p("div",Pv,"完成一次新品上架或配方改良后，报告会保存在这里。")),(d(!0),p(V,null,ee(i.value,_=>{var E;return d(),p("article",{key:_.id,class:"card card-pad lab-report"},[l("div",Rv,[l("div",Ov,u(_.name),1),l("span",Nv,u(g(s).career.products.includes(_.id)?"配方已收录":"已研发"),1)]),((E=_.reports.development)==null?void 0:E.type)==="signature"&&c.value?(d(),p("img",{key:0,class:"lab-cg",src:c.value,alt:"桂花栗子蛋糕复原插画"},null,8,Dv)):S("",!0),(d(),p(V,null,ee(["development","improvement"],T=>l("div",{key:T,class:"lab-entry"},[_.reports[T]?(d(),p(V,{key:0},[l("div",Lv,[l("strong",null,u(T==="improvement"?"配方改良":_.reports[T].type==="signature"?"外婆配方复原":_.reports[T].refined?"精制新品研发":"新品研发"),1),l("span",Vv,"第 "+u(_.reports[T].run)+" 轮 · M"+u(_.reports[T].month),1)]),T==="development"?(d(),p("div",Fv,[l("span",null,"总分 "+u(_.reports[T].score),1),(d(),p(V,null,ee([{key:"flavor",label:"风味"},{key:"texture",label:"口感"},{key:"appearance",label:"外观"},{key:"cost",label:"成本"}],w=>l("span",{key:w.key},u(w.label)+" "+u(_.reports[T].scores[w.key]),1)),64))])):(d(),p("div",jv,"熟练度 Lv"+u(_.reports[T].levelBefore)+" → Lv"+u(_.reports[T].levelAfter),1)),(d(!0),p(V,null,ee(_.reports[T].feedback,w=>(d(),p("p",{key:w,class:"lab-note"},u(w),1))),128))],64)):S("",!0)])),64))])}),128))])):n.value==="city"?(d(),p("div",Bv,[(d(!0),p(V,null,ee(v.value,_=>(d(),p("div",{key:_.id,class:ve(["city",{on:_.owned,off:!_.owned&&!_.surveyed}])},[M[2]||(M[2]=l("span",{class:"dot"},null,-1)),l("div",qv,[l("div",Uv,[ye(u(_.name)+" ",1),_.owned?(d(),p("span",Hv,"营业中")):_.surveyed?(d(),p("span",Kv,"已考察")):S("",!0)]),l("div",Gv,u(_.note),1),_.owned?S("",!0):(d(),p("div",Wv," 第 "+u(_.month)+" 个月可考察 · 口碑 "+u(_.rep)+" · 开店 ¥"+u(_.cost),1))])],2))),128))])):n.value==="customer"?(d(),p("div",zv,[(d(!0),p(V,null,ee(h.value,_=>(d(),p("div",{key:_.id,class:"card card-pad customer"},[l("div",Yv,[l("div",Jv,u(_.name),1),l("span",Qv,u(_.visit.purchases)+" 次购买",1)]),l("div",Zv,"每月第 "+u(_.day)+" 个经营日 · "+u(_.productName),1),l("div",Xv,u(_.preference),1),(d(!0),p(V,null,ee(_.stories,(E,T)=>(d(),p("div",{key:T,class:"customer-story"},[l("div",eh,u(T===0?"第一次购买":"第三次购买"),1),l("div",null,u(_.visit.stories.includes(T)?E:"继续经营，解锁这段回忆"),1)]))),128))]))),128))])):(d(),p("div",th,[(d(),p(V,null,ee([{key:"products",title:"产品"},{key:"photos",title:"相册"},{key:"cgs",title:"CG"},{key:"decorations",title:"装饰"},{key:"endings",title:"结局"}],_=>l("div",{key:_.key,class:"card card-pad"},[l("div",nh,u(_.title),1),(d(!0),p(V,null,ee(y.value[_.key],E=>(d(),p("div",{key:E.id,class:"between collect-row"},[l("span",null,u(E.name),1),l("span",sh,u(b(E)),1)]))),128))])),64))])),r.value?(d(),p("div",{key:7,class:"cg-lightbox",role:"dialog","aria-modal":"true","aria-label":r.value.name,onClick:M[1]||(M[1]=at(_=>r.value=null,["self"]))},[l("button",{class:"cg-lightbox-close",type:"button","aria-label":"关闭 CG",onClick:M[0]||(M[0]=_=>r.value=null)},"✕"),l("img",{src:r.value.src,alt:r.value.name},null,8,lh),l("div",null,u(r.value.name),1)],8,rh)):S("",!0)]))}},ji=He(ah,[["__scopeId","data-v-3f325a7e"]]),oh=["src"],ih={key:1,class:"title-frame title-menu"},uh=["src"],ch=["disabled"],dh={class:"title-screen-reader","aria-live":"polite"},fh={key:2,class:"title-collection"},ph={class:"title-collection-body"},vh={key:3,class:"title-panel-mask"},hh=["aria-label"],mh={class:"title-panel-head"},gh={class:"title-panel-body"},yh={key:0,class:"save-group"},bh=["disabled"],kh={class:"manual-slots"},_h={class:"manual-slot-info"},$h={key:0},xh={key:1},Mh=["disabled","onClick"],Ch={key:1,class:"save-group"},wh={class:"manual-slots"},Eh={class:"manual-slot-info"},Sh={key:0},Th={key:1},Ih=["onClick"],Ah={key:1,class:"manual-slot-confirm"},Ph=["onClick"],Rh=["disabled"],Oh=["disabled"],Nh={key:0,class:"save-note"},Dh={key:1,class:"save-feedback",role:"status"},Lh={key:2,class:"recovery-code"},Vh={key:3,class:"save-preview"},Fh={key:2,class:"save-group"},jh=["disabled"],Bh={key:0,class:"save-note"},qh={key:1,class:"save-feedback",role:"status"},Uh={key:2,class:"save-preview"},Hh={key:3,class:"save-preview"},Kh={key:0,class:"title-panel-foot"},Gh={key:4,class:"title-panel-mask confirm-mask"},Wh={class:"confirm-card",role:"dialog","aria-modal":"true","aria-labelledby":"new-game-confirm"},zh={key:5,class:"title-toast",role:"status"},Yh={key:1,class:"save-center-mask"},Jh={class:"title-panel save-center"},Qh={class:"title-panel-head"},Zh={class:"title-panel-body"},Xh={class:"manual-slots"},em={class:"manual-slot-info"},tm={key:0},nm={key:1},sm=["onClick"],rm={key:1,class:"manual-slot-confirm"},lm=["onClick"],am=["disabled"],om=["disabled"],im={key:0,class:"save-note"},um={key:1,class:"save-feedback",role:"status"},cm={key:2,class:"recovery-code"},dm={key:3,class:"save-preview"},fm={key:4,class:"save-preview"},pm={class:"title-panel-foot"},vm={__name:"TitleScreen",props:{inGame:{type:Boolean,default:!1}},emits:["enter","close","title","collection"],setup(e,{emit:t}){const n=e,r=t,a=K(n.inGame?"settings":"cover"),o=K(!1),i=K(null),c=K(null),f=K(null),v=K(""),h=K(null),y=K(""),b=K(!1),m=K(null),M=K(0),_=j(()=>(M.value,Pa())),E=j(()=>(M.value,Array.from({length:di},(L,R)=>{const X=R+1,le=Wt(nr(X));return{slot:X,preview:le.ok?le.preview:null}}))),T=Lp;Sn(()=>{!n.inGame&&!Ns()&&Lr(!1)});const w=K(!1);function x(L){w.value||(w.value=!0,setTimeout(L,420))}function k(){x(()=>{ol(),r("enter",{})})}function H(){if(!w.value){if(!Ns())return O("没有可继续的本地自动存档。");k()}}function ie(){if(Pa()&&!o.value){o.value=!0;return}Ns()||Lr(!1),bi(),s.storyChoices={},o.value=!1,k()}function q(L){const R=nr(L),X=Wt(R);if(!X.ok)return O("这个本地存档位没有可读取的存档。");i.value={text:R,preview:X.preview}}function J(){const L=ff(),R=Wt(L);if(!R.ok)return O("没有可读取的本地自动存档。");i.value={text:L,preview:R.preview}}async function Y(L){var pe;const R=(pe=L.target.files)==null?void 0:pe[0];if(L.target.value="",!R)return;const X=await new Promise((be,Le)=>{const it=new FileReader;it.onload=()=>be(String(it.result||"")),it.onerror=()=>Le(new Error("无法读取存档文件。")),it.readAsText(R)}).catch(be=>(O(be.message),""));if(!X)return;const le=Wt(X);if(!le.ok)return O(le.message);i.value={text:X,preview:le.preview}}function re(){if(!i.value)return;const L=pf(i.value.text);if(!L.ok)return O(L.message);i.value=null,M.value++,k()}function ne(){const L=new Blob([Dr()],{type:"application/json"}),R=URL.createObjectURL(L),X=document.createElement("a");X.href=R,X.download="林记烘焙存档.json",X.click(),URL.revokeObjectURL(R),O("存档文件已导出。")}function P(L){var R;if((R=E.value.find(X=>X.slot===L))!=null&&R.preview){c.value=L;return}N(L)}function N(L){const R=df(L);c.value=null,R&&M.value++,O(R?`本地存档位 ${L} 已保存。`:"浏览器无法写入本地存档。")}async function ue(){var L;if(!T)return!1;if(!v.value.trim())return O("先输入云存档恢复码。"),!1;y.value="正在检查云存档…";try{return f.value=await jp(v.value),h.value=f.value.revision,y.value="已找到云存档，请核对进度后再恢复或覆盖。",!0}catch(R){return f.value=((L=R.data)==null?void 0:L.meta)||null,R.status===404?(h.value=null,y.value="这个恢复码还没有云存档，可以创建新云档。",!1):(y.value=R.message,!1)}}async function ge(){var L;if(!T)return O("云存档服务暂不可用。");if(v.value.trim()||(v.value=Fp()),!(!f.value&&await ue())){if(f.value)return O("请先核对云端进度，再点击“确认覆盖云档”。");y.value="正在备份到云端…";try{const R=await Fa(v.value,Dr(),h.value);h.value=R.revision,f.value=null,y.value=R.created?"云存档已创建。请立即复制恢复码，换设备时需要用它读取。":"云存档已更新。"}catch(R){f.value=((L=R.data)==null?void 0:L.meta)||null,f.value&&(h.value=f.value.revision),y.value=R.status===409?"云存档已有较新进度，请先核对后确认覆盖。":R.message}}}async function me(){var R;if(!f.value)return;const L=f.value.revision;y.value="正在更新云端存档…";try{const X=await Fa(v.value,Dr(),L);h.value=X.revision,f.value=null,y.value="云存档已更新。"}catch(X){f.value=((R=X.data)==null?void 0:R.meta)||null,f.value&&(h.value=f.value.revision),y.value=X.status===409?"云存档在预览后已有更新，请重新核对后再确认覆盖。":X.message}}async function z(){var L;if(f.value){y.value="正在读取云存档…";try{const R=await Bp(v.value,f.value.revision),X=Wt(R.save);if(!X.ok)throw new Error("云端存档内容无效。");i.value={text:R.save,preview:X.preview},f.value=null,y.value="已将云档载入预览，请确认后恢复。"}catch(R){f.value=((L=R.data)==null?void 0:L.meta)||null,f.value&&(h.value=f.value.revision),y.value=R.status===409?"云档在预览后已有更新，请重新核对。":R.message}}}async function U(){try{await navigator.clipboard.writeText(v.value),b.value=!0}catch{b.value=!1,O("请长按恢复码并手动复制。")}}function O(L){y.value=L}function Q(){Ns()||Lr(!1),a.value="collection"}function te(){i.value=null,f.value=null,y.value="",n.inGame?r("close"):a.value="menu"}function A(){n.inGame?r("close"):a.value="menu"}return(L,R)=>e.inGame?(d(),p("div",Yh,[l("section",Jh,[l("header",Qh,[R[38]||(R[38]=l("h1",null,"设置与存档",-1)),l("button",{class:"title-close",type:"button","aria-label":"关闭设置",onClick:R[14]||(R[14]=X=>L.$emit("close"))},"✕")]),l("div",Zh,[R[41]||(R[41]=l("h2",null,"本地存档",-1)),R[42]||(R[42]=l("p",{class:"save-note"},"自动存档会持续更新；手动槽位保存在当前浏览器，可以保留不同经营进度。",-1)),l("div",Xh,[(d(!0),p(V,null,ee(E.value,X=>{var le;return d(),p("div",{key:X.slot,class:"manual-slot"},[l("div",em,[l("strong",null,"手动槽位 "+u(X.slot)+" · "+u(X.preview?"已保存":"空槽位"),1),X.preview?(d(),p("small",tm,"M"+u(X.preview.month)+" · 第 "+u(X.preview.day)+" 个经营日 · ¥"+u(X.preview.cash.toLocaleString()),1)):S("",!0),(le=X.preview)!=null&&le.savedAt?(d(),p("small",nm,"保存于 "+u(new Date(X.preview.savedAt).toLocaleString()),1)):S("",!0)]),c.value!==X.slot?(d(),p("button",{key:0,class:"save-action primary",type:"button",onClick:pe=>P(X.slot)},u(X.preview?"覆盖这个槽位":"保存到此槽位"),9,sm)):(d(),p("div",rm,[l("span",null,"确认覆盖槽位 "+u(X.slot)+"？",1),l("button",{class:"save-action primary",type:"button",onClick:pe=>N(X.slot)},"确认保存",8,lm),l("button",{class:"save-action",type:"button",onClick:R[15]||(R[15]=pe=>c.value=null)},"取消")]))])}),128))]),l("button",{class:"save-action",type:"button",onClick:ne},"导出存档文件"),l("button",{class:"save-action",type:"button",onClick:R[16]||(R[16]=X=>{var le;return(le=m.value)==null?void 0:le.click()})},"导入存档文件"),R[43]||(R[43]=l("h2",null,"云存档",-1)),R[44]||(R[44]=l("p",{class:"save-note"},"手动备份到云端。恢复码可以在另一台设备读取同一份存档。",-1)),R[45]||(R[45]=l("label",{class:"save-label",for:"recovery-code-game"},"恢复码",-1)),st(l("input",{id:"recovery-code-game","onUpdate:modelValue":R[17]||(R[17]=X=>v.value=X),class:"save-input",autocomplete:"off",autocapitalize:"characters",spellcheck:"false",placeholder:"输入或创建恢复码"},null,512),[[Rt,v.value]]),l("button",{class:"save-action",type:"button",disabled:!g(T),onClick:ue},"检查云存档",8,am),l("button",{class:"save-action primary",type:"button",disabled:!g(T),onClick:ge},"备份到云端",8,om),g(T)?S("",!0):(d(),p("p",im,"云存档服务暂不可用，请稍后再试。")),y.value?(d(),p("p",um,u(y.value),1)):S("",!0),v.value&&v.value.length===20?(d(),p("div",cm,[l("span",null,u(v.value),1),l("button",{type:"button",onClick:U},u(b.value?"已复制":"复制恢复码"),1)])):S("",!0),f.value?(d(),p("div",dm,[R[39]||(R[39]=l("strong",null,"云端存档预览",-1)),l("span",null,"M"+u(f.value.month)+" · 第 "+u(f.value.day)+" 个经营日 · ¥"+u(Number(f.value.cash||0).toLocaleString()),1),l("small",null,"云端更新于 "+u(new Date(f.value.updatedAt).toLocaleString()),1),l("button",{class:"save-action primary",type:"button",onClick:z},"确认读取这份云档")])):S("",!0),i.value?(d(),p("div",fm,[R[40]||(R[40]=l("strong",null,"存档预览",-1)),l("span",null,"M"+u(i.value.preview.month)+" · 第 "+u(i.value.preview.day)+" 个经营日 · ¥"+u(i.value.preview.cash.toLocaleString()),1),l("small",null,u(i.value.preview.savedAt?new Date(i.value.preview.savedAt).toLocaleString():"保存时间未知"),1),l("button",{class:"save-action primary",type:"button",onClick:re},"确认读取并继续"),l("button",{class:"save-action",type:"button",onClick:R[18]||(R[18]=X=>i.value=null)},"取消")])):S("",!0),l("input",{ref_key:"fileInput",ref:m,class:"save-file",type:"file",accept:"application/json,.json",onChange:Y},null,544)]),l("footer",pm,[l("button",{class:"save-action",type:"button",onClick:R[19]||(R[19]=X=>L.$emit("close"))},"返回游戏"),l("button",{class:"save-action",type:"button",onClick:R[20]||(R[20]=X=>L.$emit("title"))},"返回标题")])])])):(d(),p("div",{key:0,class:ve(["title-screen",{leaving:w.value}])},[a.value==="cover"?(d(),p("div",{key:0,class:"title-frame",role:"button",tabindex:"0","aria-label":"点击任意位置开始游戏",onClick:R[0]||(R[0]=X=>a.value="menu"),onKeydown:[R[1]||(R[1]=Jr(X=>a.value="menu",["enter"])),R[2]||(R[2]=Jr(at(X=>a.value="menu",["prevent"]),["space"]))]},[l("img",{src:g(Ae)("cover.webp"),alt:"林记烘焙游戏封面"},null,8,oh),R[21]||(R[21]=l("div",{class:"title-prompt"},"点击任意位置开始游戏",-1))],32)):a.value==="menu"?(d(),p("div",ih,[l("img",{src:g(Ae)("cover-options.webp"),alt:"林记烘焙主菜单"},null,8,uh),l("button",{class:"title-hit title-hit-continue",type:"button",disabled:!_.value,"aria-label":"继续游戏",onClick:H},null,8,ch),l("button",{class:"title-hit title-hit-new",type:"button","aria-label":"新的开始",onClick:ie}),l("button",{class:"title-hit title-hit-load",type:"button","aria-label":"读取存档",onClick:R[3]||(R[3]=X=>{a.value="load",y.value=""})}),l("button",{class:"title-hit title-hit-settings",type:"button","aria-label":"设置",onClick:R[4]||(R[4]=X=>{a.value="settings",y.value=""})}),l("button",{class:"title-hit title-hit-collection",type:"button","aria-label":"查看收集",onClick:Q}),l("div",dh,u(_.value?"有本地自动存档":"暂无本地自动存档"),1)])):a.value==="collection"?(d(),p("div",fh,[l("header",null,[R[22]||(R[22]=l("h1",null,"查看收集",-1)),l("button",{class:"title-back",type:"button",onClick:R[5]||(R[5]=X=>a.value="menu")},"返回主菜单")]),l("div",ph,[je(ji,{"initial-segment":"collection"})])])):S("",!0),a.value==="settings"||a.value==="load"?(d(),p("div",vh,[l("section",{class:"title-panel","aria-label":a.value==="settings"?"设置和存档":"读取存档"},[l("header",mh,[l("button",{class:"title-back",type:"button",onClick:te},"← 返回"),l("h1",null,u(a.value==="settings"?"设置与存档":"读取存档"),1),e.inGame?S("",!0):(d(),p("button",{key:0,class:"title-back",type:"button",onClick:A},"主菜单"))]),l("div",gh,[a.value==="load"?(d(),p("div",yh,[R[23]||(R[23]=l("h2",null,"本地存档",-1)),R[24]||(R[24]=l("p",{class:"save-note"},"自动存档随经营进度保存；三个手动槽位可分别保留不同进度。",-1)),l("button",{class:"save-action",type:"button",disabled:!_.value,onClick:J},"预览最近自动存档",8,bh),l("div",kh,[(d(!0),p(V,null,ee(E.value,X=>{var le;return d(),p("div",{key:X.slot,class:"manual-slot"},[l("div",_h,[l("strong",null,"手动槽位 "+u(X.slot)+" · "+u(X.preview?"已保存":"空槽位"),1),X.preview?(d(),p("small",$h,"M"+u(X.preview.month)+" · 第 "+u(X.preview.day)+" 个经营日 · ¥"+u(X.preview.cash.toLocaleString()),1)):S("",!0),(le=X.preview)!=null&&le.savedAt?(d(),p("small",xh,"保存于 "+u(new Date(X.preview.savedAt).toLocaleString()),1)):S("",!0)]),l("button",{class:"save-action",type:"button",disabled:!X.preview,onClick:pe=>q(X.slot)},"预览并读取",8,Mh)])}),128))]),l("button",{class:"save-action",type:"button",onClick:R[6]||(R[6]=X=>{var le;return(le=m.value)==null?void 0:le.click()})},"从 JSON 文件导入")])):(d(),p("div",Ch,[R[26]||(R[26]=l("h2",null,"本地存档",-1)),R[27]||(R[27]=l("p",{class:"save-note"},"自动存档会持续更新；手动槽位保存在当前浏览器，可以保留不同经营进度。",-1)),l("div",wh,[(d(!0),p(V,null,ee(E.value,X=>{var le;return d(),p("div",{key:X.slot,class:"manual-slot"},[l("div",Eh,[l("strong",null,"手动槽位 "+u(X.slot)+" · "+u(X.preview?"已保存":"空槽位"),1),X.preview?(d(),p("small",Sh,"M"+u(X.preview.month)+" · 第 "+u(X.preview.day)+" 个经营日 · ¥"+u(X.preview.cash.toLocaleString()),1)):S("",!0),(le=X.preview)!=null&&le.savedAt?(d(),p("small",Th,"保存于 "+u(new Date(X.preview.savedAt).toLocaleString()),1)):S("",!0)]),c.value!==X.slot?(d(),p("button",{key:0,class:"save-action primary",type:"button",onClick:pe=>P(X.slot)},u(X.preview?"覆盖这个槽位":"保存到此槽位"),9,Ih)):(d(),p("div",Ah,[l("span",null,"确认覆盖槽位 "+u(X.slot)+"？",1),l("button",{class:"save-action primary",type:"button",onClick:pe=>N(X.slot)},"确认保存",8,Ph),l("button",{class:"save-action",type:"button",onClick:R[7]||(R[7]=pe=>c.value=null)},"取消")]))])}),128))]),l("button",{class:"save-action",type:"button",onClick:ne},"导出存档文件"),l("button",{class:"save-action",type:"button",onClick:R[8]||(R[8]=X=>{var le;return(le=m.value)==null?void 0:le.click()})},"导入存档文件"),R[28]||(R[28]=l("h2",null,"云存档",-1)),R[29]||(R[29]=l("p",{class:"save-note"},"手动备份到云端。恢复码可以在另一台设备读取同一份存档。",-1)),R[30]||(R[30]=l("label",{class:"save-label",for:"recovery-code"},"恢复码",-1)),st(l("input",{id:"recovery-code","onUpdate:modelValue":R[9]||(R[9]=X=>v.value=X),class:"save-input",autocomplete:"off",autocapitalize:"characters",spellcheck:"false",placeholder:"输入或创建恢复码"},null,512),[[Rt,v.value]]),l("button",{class:"save-action",type:"button",disabled:!g(T),onClick:ue},"检查云存档",8,Rh),l("button",{class:"save-action primary",type:"button",disabled:!g(T),onClick:ge},"备份到云端",8,Oh),g(T)?S("",!0):(d(),p("p",Nh,"云存档服务暂不可用，请稍后再试。")),y.value?(d(),p("p",Dh,u(y.value),1)):S("",!0),v.value&&v.value.length===20?(d(),p("div",Lh,[l("span",null,u(v.value),1),l("button",{type:"button",onClick:U},u(b.value?"已复制":"复制恢复码"),1)])):S("",!0),f.value?(d(),p("div",Vh,[R[25]||(R[25]=l("strong",null,"云端存档预览",-1)),l("span",null,"M"+u(f.value.month)+" · 第 "+u(f.value.day)+" 个经营日 · ¥"+u(Number(f.value.cash||0).toLocaleString()),1),l("small",null,"云端更新于 "+u(new Date(f.value.updatedAt).toLocaleString()),1),l("button",{class:"save-action",type:"button",onClick:z},"读取这份云档"),l("button",{class:"save-action primary",type:"button",onClick:me},"确认用当前进度覆盖云档")])):S("",!0)])),a.value==="load"?(d(),p("div",Fh,[R[32]||(R[32]=l("h2",null,"云存档",-1)),R[33]||(R[33]=l("p",{class:"save-note"},"输入另一台设备保存时使用的恢复码，先查看进度，再确认读取。",-1)),R[34]||(R[34]=l("label",{class:"save-label",for:"recovery-code-load"},"恢复码",-1)),st(l("input",{id:"recovery-code-load","onUpdate:modelValue":R[10]||(R[10]=X=>v.value=X),class:"save-input",autocomplete:"off",autocapitalize:"characters",spellcheck:"false",placeholder:"输入恢复码"},null,512),[[Rt,v.value]]),l("button",{class:"save-action",type:"button",disabled:!g(T),onClick:ue},"检查云存档",8,jh),g(T)?S("",!0):(d(),p("p",Bh,"云存档服务暂不可用，请稍后再试。")),y.value?(d(),p("p",qh,u(y.value),1)):S("",!0),f.value?(d(),p("div",Uh,[R[31]||(R[31]=l("strong",null,"云端存档预览",-1)),l("span",null,"M"+u(f.value.month)+" · 第 "+u(f.value.day)+" 个经营日 · ¥"+u(Number(f.value.cash||0).toLocaleString()),1),l("small",null,"云端更新于 "+u(new Date(f.value.updatedAt).toLocaleString()),1),l("button",{class:"save-action primary",type:"button",onClick:z},"确认读取这份云档")])):S("",!0)])):S("",!0),l("input",{ref_key:"fileInput",ref:m,class:"save-file",type:"file",accept:"application/json,.json",onChange:Y},null,544),i.value?(d(),p("div",Hh,[R[35]||(R[35]=l("strong",null,"存档预览",-1)),l("span",null,"M"+u(i.value.preview.month)+" · 第 "+u(i.value.preview.day)+" 个经营日 · ¥"+u(i.value.preview.cash.toLocaleString()),1),l("small",null,u(i.value.preview.savedAt?new Date(i.value.preview.savedAt).toLocaleString():"保存时间未知"),1),l("button",{class:"save-action primary",type:"button",onClick:re},"确认读取并继续"),l("button",{class:"save-action",type:"button",onClick:R[11]||(R[11]=X=>i.value=null)},"取消")])):S("",!0)]),e.inGame?(d(),p("footer",Kh,[l("button",{class:"save-action",type:"button",onClick:R[12]||(R[12]=X=>L.$emit("close"))},"返回游戏")])):S("",!0)],8,hh)])):S("",!0),o.value?(d(),p("div",Gh,[l("section",Wh,[R[36]||(R[36]=l("h2",{id:"new-game-confirm"},"开始新的经营？",-1)),R[37]||(R[37]=l("p",null,"本地自动存档会替换。手动备份和已收集内容会保留。",-1)),l("button",{class:"save-action primary",type:"button",onClick:ie},"开始新的游戏"),l("button",{class:"save-action",type:"button",onClick:R[13]||(R[13]=X=>o.value=!1)},"继续考虑")])])):S("",!0),y.value&&a.value==="menu"?(d(),p("p",zh,u(y.value),1)):S("",!0)],2))}},ja=He(vm,[["__scopeId","data-v-b149340f"]]),hm={class:"card card-pad"},mm={class:"between"},gm={class:"small muted"},ym={class:"chip"},bm=["src"],km={class:"counter-stats small muted"},_m={key:1,class:"small muted"},$m=["disabled"],xm={key:3,class:"small regular-visit"},Mm={key:4,class:"small regular-visit"},Cm={key:7,class:"btn block",style:{"margin-top":"10px"},type:"button",disabled:""},wm={key:0,class:"card card-pad section-card"},Em={class:"small muted"},Sm=["disabled","onClick"],Tm={key:1,class:"card card-pad section-card small muted"},Im={key:2,class:"card card-pad section-card"},Am={class:"between small"},Pm={key:0,class:"leftovers"},Rm=["onClick"],Om={key:3,class:"small notice",role:"status"},Nm={class:"card card-pad section-card small muted"},Dm={__name:"ShopPage",emits:["closed","open-panel"],setup(e,{emit:t}){const n=t,r=K(""),a=j(()=>Object.values(s.shelf||{}).reduce((b,m)=>b+m,0)),o=j(()=>s.orders),i=j(()=>El()),c=j(()=>Yt("feedback")),f={discount:"整理并打折售出",staff:"留给一起工作的伙伴",share:"分享给街坊邻居",waste:"妥善报损处理"};function v(){if(!a.value){r.value="展示柜还是空的，先去后厨制作蛋糕。";return}Oi()&&n("open-panel","game:delivery")}function h(){if(s.dayPhase!=="prep"||s.ap<c.value.ap||c.value.disabled){r.value=c.value.note;return}r.value=Vn("feedback",{})?"谢谢你把顾客的意见认真记了下来。":"现在无法收集反馈。"}function y(b){const m=Ol(b);m&&n("closed",m)}return(b,m)=>(d(),p("div",null,[l("div",hm,[l("div",mm,[l("div",null,[m[2]||(m[2]=l("div",{class:"h2",style:{margin:"0"}},"柜台营业",-1)),l("div",gm,u(g(s).month)+" 月 · 第 "+u(g(s).day)+"/"+u(g(ps))+" 个经营日",1)]),l("span",ym,"口碑 "+u(Math.round(g(s).reputation)),1)]),g(Ye)("bg-counter.webp")==="ok"?(d(),p("img",{key:0,class:"counter-art",src:g(Ae)("bg-counter.webp"),alt:"林记烘焙营业柜台"},null,8,bm)):S("",!0),l("div",km,[l("span",null,"待售 "+u(a.value)+" 个",1),l("span",null,"预约 "+u(o.value.length)+" 笔",1),l("span",null,"今日收入 ¥"+u(g(s).dayRev.toLocaleString()),1)]),g(s).dayPhase==="service-ready"?(d(),p("div",_m,"蛋糕已经摆进展示柜，准备好就开门接待。")):S("",!0),g(s).dayPhase==="prep"?(d(),p("button",{key:2,class:"btn block",style:{"margin-top":"9px"},type:"button",disabled:c.value.disabled||g(s).ap<c.value.ap,onClick:h},"顾客反馈 · "+u(c.value.note),9,$m)):S("",!0),g(s).dayPhase==="prep"&&i.value.length?(d(),p("div",xm,[m[3]||(m[3]=l("strong",null,"今日常客来访",-1)),(d(!0),p(V,null,ee(i.value,M=>(d(),p("span",{key:M.id},u(M.name)+" · 想买"+u(g(De)(M.product).name),1))),128))])):S("",!0),g(s).dayPhase==="prep"&&g(s).challenge?(d(),p("div",Mm,[m[4]||(m[4]=l("strong",null,"今日经营挑战",-1)),l("span",null,u(g(s).challenge.type==="stock"?"精准备货 · 剩货率不超过 10%":g(s).challenge.type==="new"?"新品主题日 · "+g(De)(g(s).challenge.target).name+" 销售至少 3 份":"定制专场 · 完成当天定制要求"),1)])):S("",!0),g(s).dayPhase==="service-ready"?(d(),p("button",{key:5,class:"btn primary block",style:{"margin-top":"10px"},type:"button",onClick:v},"开门营业 · 开始接待")):S("",!0),g(s).dayPhase==="service"?(d(),p("button",{key:6,class:"btn primary block",style:{"margin-top":"10px"},type:"button",onClick:m[0]||(m[0]=M=>n("open-panel","game:delivery"))},"继续全屏订单交付")):S("",!0),g(s).dayPhase==="prep"&&!a.value?(d(),p("button",Cm,"先去后厨制作蛋糕")):S("",!0)]),g(s).dayPhase==="prep"&&o.value.length?(d(),p("div",wm,[m[5]||(m[5]=l("div",{class:"h2"},"今日预约",-1)),(d(!0),p(V,null,ee(o.value,M=>(d(),p("div",{key:M.id,class:"order-row"},[l("div",null,[l("strong",null,u(M.customer)+" · "+u(g(De)(M.product).name)+" ×"+u(M.qty),1),l("div",Em,u(M.type==="定制"?"装饰："+M.due+" · 祝福："+M.blessing+" · ":"")+"预计收入 ¥"+u(M.pay),1)]),l("button",{class:"btn",type:"button",disabled:M.taken,onClick:_=>g(Ai)(M.id)},u(M.taken?"已接单":"接下预约"),9,Sm)]))),128)),m[6]||(m[6]=l("p",{class:"small muted"},"接下的预约会在营业队列中优先出现。",-1))])):S("",!0),g(s).dayPhase==="service"?(d(),p("div",Tm,"顾客正在等待。请进入全屏订单交付继续营业；离开交付页面时，耐心计时会暂停。")):S("",!0),g(s).dayPhase==="closing"?(d(),p("div",Im,[m[9]||(m[9]=l("div",{class:"h2"},"今日接待完成",-1)),l("div",Am,[m[7]||(m[7]=l("span",{class:"muted"},"营业结果",-1)),l("span",null,u(g(s).daySold)+" 个蛋糕 · ¥"+u(g(s).dayRev.toLocaleString())+" 已到账",1)]),a.value?(d(),p("div",Pm,[m[8]||(m[8]=l("div",{class:"small muted"},"选择剩余成品的处理方式",-1)),(d(!0),p(V,null,ee(g(al),(M,_)=>(d(),p("button",{key:_,class:"leftover-button",type:"button",onClick:E=>y(_)},[ye(u(M.label),1),l("span",null,u(f[_]),1)],8,Rm))),128))])):(d(),p("button",{key:1,class:"btn primary block",style:{"margin-top":"10px"},type:"button",onClick:m[1]||(m[1]=M=>y("waste"))},"打烊，进入下一经营日"))])):S("",!0),r.value?(d(),p("p",Om,u(r.value),1)):S("",!0),l("div",Nm,[l("div",null,"本月固定成本 ¥"+u(g(mi)),1),m[10]||(m[10]=l("div",{style:{"margin-top":"4px"}},"顾客超时会影响口碑，完成订单仍按原价结算。",-1))])]))}},Lm=He(Dm,[["__scopeId","data-v-837f5709"]]),Vm={class:"card card-pad"},Fm={class:"between"},jm={class:"between small muted",style:{"margin-top":"7px"}},Bm=["disabled"],qm={key:0,class:"challenge-note small"},Um={key:0,class:"card card-pad compact-card"},Hm={class:"product-list"},Km={class:"product-art"},Gm={class:"product-copy"},Wm={class:"quantity"},zm=["disabled","onClick"],Ym=["disabled","onClick"],Jm={class:"card card-pad compact-card"},Qm={class:"between"},Zm={class:"small muted"},Xm={key:0,class:"small muted",style:{"margin-top":"5px"}},e1={key:1,class:"card card-pad compact-card"},t1={key:2,class:"card card-pad compact-card"},n1={class:"small muted"},s1=["disabled"],r1={key:6,class:"card card-pad compact-card"},l1={key:0,class:"small muted"},a1={key:7,class:"small muted",role:"status"},o1={__name:"KitchenPage",emits:["open-panel"],setup(e,{emit:t}){const n=t,r=K(""),a=j(()=>Sl()),o=j(()=>rf()),i=j(()=>gr()),c=j(()=>Vt.value.map(E=>({...E,qty:s.plan[E.id]||0,price:Ft(E.id)}))),f=j(()=>s.orders.filter(E=>E.taken)),v=j(()=>s.productionMini),h=j(()=>{var E,T;return((E=s.productionResult)==null?void 0:E.quality)==="perfect"?"完美 · 售价 +10%":((T=s.productionResult)==null?void 0:T.quality)==="fine"?"精致 · 售价 +5%":"普通品质"}),y=j(()=>Object.entries(o.value).map(([E,T])=>{var w;return{id:E,name:((w=ft.find(x=>x.id===E))==null?void 0:w.name)||E,qty:T}})),b=j(()=>s.challenge?s.challenge.type==="stock"?"精准备货：预约优先，剩货率不超过 10%。":s.challenge.type==="new"?"新品主题日："+De(s.challenge.target).name+" 至少交付 3 个。":"定制专场：完成当天定制要求。":"");function m(E,T){Mi(E,(s.plan[E]||0)+T)}function M(){const E={};f.value.forEach(k=>{E[k.product]=(E[k.product]||0)+k.qty});const T=Math.max(3,Math.min(12,Math.round({1:4,2:6,3:8,4:10}[s.shopLevel]+s.reputation/35)));let w=Math.max(0,T-Object.values(E).reduce((k,H)=>k+H,0));const x=Vt.value.slice().sort((k,H)=>(s.monthSold[H.id]||0)+H.demand-((s.monthSold[k.id]||0)+k.demand));for(let k=0;k<w&&x.length;k++){const H=x[k%Math.min(3,x.length)].id;E[H]=Math.min(12,(E[H]||0)+1)}s.plan=E,oe()}function _(){s.plan={},oe()}return(E,T)=>(d(),p("div",null,[l("div",Vm,[l("div",Fm,[T[2]||(T[2]=l("div",{class:"h2",style:{margin:"0"}},"今日生产计划",-1)),l("span",{class:ve(["chip",a.value>g(_n)?"pink":"sage"])},"产能 "+u(a.value)+"/"+u(g(_n)),3)]),l("div",jm,[l("span",null,"库存 "+u(g(_s))+"/"+u(g(s).warehouseCapacity)+" 份",1),l("span",null,"体力 "+u(g(s).stamina),1)]),l("button",{class:"btn block",style:{"margin-top":"9px"},type:"button",disabled:g(s).dayPhase!=="prep",onClick:M},"智能备货 · 先满足已接预约",8,Bm),g(s).dayPhase==="prep"&&b.value?(d(),p("div",qm,[T[3]||(T[3]=l("strong",null,"今日经营挑战",-1)),l("span",null,u(b.value)+"成功后营业收入 +5%。",1)])):S("",!0)]),f.value.length?(d(),p("div",Um,[T[4]||(T[4]=l("strong",null,"已接预约",-1)),(d(!0),p(V,null,ee(f.value,w=>(d(),p("div",{key:w.id,class:"small muted"},u(g(De)(w.product).name)+" ×"+u(w.qty)+u(w.due?" · 装饰："+w.due:""),1))),128))])):S("",!0),l("div",Hm,[(d(!0),p(V,null,ee(c.value,w=>(d(),p("div",{key:w.id,class:"product-row"},[l("div",Km,[je(Fi,{id:w.id,colors:w.colors},null,8,["id","colors"])]),l("div",Gm,[l("strong",null,u(w.name),1),l("span",null,"¥"+u(w.price)+" · 产能 "+u(w.diff),1),l("span",null,"熟练度 Lv"+u(Math.round((g(s).levels[w.id]||1)*10)/10),1)]),l("div",Wm,[l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:x=>m(w.id,-1)},"−",8,zm),l("span",null,u(w.qty),1),l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:x=>m(w.id,1)},"+",8,Ym)])]))),128))]),l("div",Jm,[l("div",Qm,[T[5]||(T[5]=l("strong",null,"材料预算",-1)),l("span",Zm,"预计 "+u(Object.values(g(s).plan).reduce((w,x)=>w+x,0))+" 个蛋糕",1)]),y.value.length?S("",!0):(d(),p("div",Xm,"选择产品和数量后会列出配方用料。")),(d(!0),p(V,null,ee(y.value,w=>(d(),p("div",{key:w.id,class:"between small",style:{"margin-top":"5px"}},[l("span",null,u(w.name),1),l("span",{class:ve({missing:i.value[w.id]})},u(w.qty)+" 份 · 库存 "+u(g(s).pantry[w.id]||0)+u(i.value[w.id]?" · 缺 "+Math.ceil(i.value[w.id]):""),3)]))),128))]),v.value?(d(),p("div",e1,[...T[6]||(T[6]=[l("strong",null,"今日主打工序已准备",-1),l("p",{class:"small muted"},"请进入独立制作页面继续完成完整的食材、搅拌、烘烤和装饰流程。",-1)])])):g(s).productionResult?(d(),p("div",t1,[l("strong",null,"本批品质："+u(h.value),1),l("div",n1,u(g(s).productionResult.quality==="normal"?"基础品质，不影响批量成品。":"效果已记在主打蛋糕批次中。"),1)])):S("",!0),g(s).dayPhase==="prep"&&!g(s).productionResult?(d(),p("button",{key:3,class:"btn primary block",style:{"margin-top":"10px"},type:"button",onClick:T[0]||(T[0]=w=>n("open-panel","game:baking"))},"进入独立蛋糕制作小游戏 →")):S("",!0),g(s).dayPhase==="prep"&&g(s).productionResult?(d(),p("button",{key:4,class:"btn primary block",style:{"margin-top":"10px"},type:"button",disabled:a.value>g(_n)||Object.keys(i.value).length>0,onClick:T[1]||(T[1]=(...w)=>g(sl)&&g(sl)(...w))},"完成今日批量制作",8,s1)):S("",!0),g(s).dayPhase==="prep"&&Object.keys(g(s).plan).length?(d(),p("button",{key:5,class:"btn block",style:{"margin-top":"8px"},type:"button",onClick:_},"清空计划")):S("",!0),g(s).dayPhase==="service-ready"||g(s).dayPhase==="service"||g(s).dayPhase==="closing"?(d(),p("div",r1,[T[7]||(T[7]=l("div",{class:"h2"},"今日成品",-1)),(d(!0),p(V,null,ee(Object.keys(g(s).shelf).filter(w=>g(s).shelf[w]>0),w=>(d(),p("div",{key:w,class:"between small"},[l("span",null,u(g(De)(w).name),1),l("span",null,u(g(s).shelf[w])+" 个",1)]))),128)),g(s).dayPhase==="service-ready"?(d(),p("div",l1,"前往柜台开门营业。")):S("",!0)])):S("",!0),r.value?(d(),p("p",a1,u(r.value),1)):S("",!0),T[8]||(T[8]=l("div",{class:"small muted tips"},"设备、妈妈和伙伴提供产能；超出免费产能的部分才消耗体力。主打蛋糕小游戏只作用于这款产品的当日批次。",-1))]))}},i1=He(o1,[["__scopeId","data-v-e9585c7e"]]),u1={class:"card card-pad"},c1={class:"between"},d1={class:"chip"},f1={class:"card card-pad team-card"},p1={class:"between"},v1={class:"small muted"},h1={key:0,class:"avatar real-avatar"},m1=["src","alt"],g1={key:1},y1={key:1,class:"avatar locked-avatar"},b1={class:"partner-info"},k1={class:"partner-title"},_1={class:"chip"},$1={class:"small muted"},x1={class:"partner-actions"},M1=["disabled","onClick"],C1=["disabled","onClick"],w1={class:"card card-pad team-card"},E1={class:"assignment"},S1=["value","disabled"],T1=["value"],I1={class:"assignment"},A1=["value","disabled"],P1=["value","disabled"],R1={key:0,class:"auto-toggle"},O1=["checked","disabled"],N1={key:1,class:"locked-auto"},D1={key:2,class:"small muted",role:"status"},L1={__name:"PartnersPage",setup(e){const t=K(""),n=j(()=>Mn.map(v=>{const h=s.staff.includes(v.id);return h?{id:v.id,joined:h,name:v.name,nick:v.nick,role:v.role,skillName:v.skillName,skill:s.partnerSkill[v.id]||1,trust:Math.round(s.partnerTrust[v.id]||0),avatar:Xr(v.name)}:{id:v.id,joined:h}})),r=j(()=>xi()),a=j(()=>Pl()),o=j(()=>s.dayPhase==="prep");function i(v,h){La({...s.staffAssignments,[v]:h||null}),t.value="营业分工已保存。"}function c(v){a.value&&(La({...s.staffAssignments,auto:v.target.checked}),t.value=v.target.checked?"已启用全自动接待。":"已切回手动接待。")}function f(v,h){const y=Yt(v);if(!o.value||y.disabled||s.ap<y.ap||y.cost&&s.cash<y.cost){t.value=o.value?y.note:"请在营业前安排员工交流与培训。";return}const b=Vn(v,{partner:h});t.value=b?v==="talk"?"和伙伴聊了一会儿。":"培训完成，专业能力提升。":"暂时无法完成。"}return(v,h)=>(d(),p("div",null,[l("div",u1,[l("div",c1,[h[2]||(h[2]=l("div",null,[l("div",{class:"h2",style:{margin:"0"}},"林暖"),l("div",{class:"small muted"},"母亲 · 林记上一任经营者")],-1)),l("span",d1,"家庭默契 "+u(Math.round(g(s).momBond)),1)]),h[3]||(h[3]=l("p",{class:"small muted",style:{margin:"7px 0 0"}},"她每天提供 60 点免费产能。和妈妈的互动在店内进行。",-1))]),l("div",f1,[l("div",p1,[h[4]||(h[4]=l("div",{class:"h2",style:{margin:"0"}},"伙伴档案",-1)),l("span",v1,"已加入 "+u(r.value.length)+" / "+u(g(Mn).length),1)]),(d(!0),p(V,null,ee(n.value,y=>(d(),p("article",{key:y.id,class:"partner-row"},[y.joined?(d(),p("div",h1,[y.avatar?(d(),p("img",{key:0,src:y.avatar,alt:y.name},null,8,m1)):(d(),p("span",g1,u(y.name.slice(0,1)),1))])):(d(),p("div",y1,"?")),l("div",b1,[y.joined?(d(),p(V,{key:0},[l("div",k1,[l("strong",null,u(y.name),1),l("span",_1,u(y.role),1)]),l("div",$1,"信赖 "+u(y.trust)+" · "+u(y.skillName)+"专业 Lv"+u(y.skill),1),l("div",x1,[l("button",{class:"btn",type:"button",disabled:!o.value||g(s).ap<1,onClick:b=>f("talk",y.id)},"员工交流 · 1 行动力",8,M1),l("button",{class:"btn",type:"button",disabled:!o.value||g(s).ap<2||g(s).cash<400||y.skill>=5,onClick:b=>f("train",y.id)},"培训 · 2 行动力 / ¥400",8,C1)])],64)):(d(),p(V,{key:1},[h[5]||(h[5]=l("strong",null,"未解锁",-1)),h[6]||(h[6]=l("div",{class:"small muted"},"继续经营，等待伙伴加入林记。",-1))],64))])]))),128))]),l("div",w1,[h[13]||(h[13]=l("div",{class:"h2"},"营业分工",-1)),h[14]||(h[14]=l("p",{class:"small muted"},"伙伴可以分担找蛋糕和打包。专业等级越高，负责工位的处理时间越短。",-1)),l("label",E1,[h[8]||(h[8]=l("span",null,"找蛋糕",-1)),l("select",{value:g(s).staffAssignments.picker||"",disabled:!o.value,onChange:h[0]||(h[0]=y=>i("picker",y.target.value))},[h[7]||(h[7]=l("option",{value:""},"自己负责",-1)),(d(!0),p(V,null,ee(r.value,y=>(d(),p("option",{key:y.id,value:y.id},u(y.nick)+" · Lv"+u(g(s).partnerSkill[y.id]||1),9,T1))),128))],40,S1)]),l("label",I1,[h[10]||(h[10]=l("span",null,"打包",-1)),l("select",{value:g(s).staffAssignments.packer||"",disabled:!o.value,onChange:h[1]||(h[1]=y=>i("packer",y.target.value))},[h[9]||(h[9]=l("option",{value:""},"自己负责",-1)),(d(!0),p(V,null,ee(r.value,y=>(d(),p("option",{key:y.id,value:y.id,disabled:y.id===g(s).staffAssignments.picker},u(y.nick)+" · Lv"+u(g(s).partnerSkill[y.id]||1),9,P1))),128))],40,A1)]),a.value?(d(),p("label",R1,[l("input",{type:"checkbox",checked:g(s).staffAssignments.auto,disabled:!o.value,onChange:c},null,40,O1),h[11]||(h[11]=l("span",null,[l("strong",null,"全自动接待"),l("small",null,"员工完成找蛋糕、打包和递交；每天可挑战一项经营目标。")],-1))])):(d(),p("div",N1,[...h[12]||(h[12]=[l("span",{class:"locked-avatar"},"?",-1),l("span",{class:"small muted"},"全自动接待：店铺 Lv3，并有 3 位专业 Lv3 伙伴后开放。",-1)])])),t.value?(d(),p("p",D1,u(t.value),1)):S("",!0)])]))}},V1=He(L1,[["__scopeId","data-v-5ddd734b"]]),F1={class:"lab"},j1={class:"lab-head"},B1={class:"lab-sub"},q1={key:0,class:"card card-pad result"},U1={class:"result-title"},H1={class:"small muted"},K1=["src"],G1={class:"scores"},W1={class:"feedback"},z1={class:"result-actions"},Y1=["disabled"],J1={key:1,class:"small muted"},Q1=["disabled"],Z1={key:0,class:"product-list"},X1=["onClick"],eg={class:"product-info"},tg={class:"small muted"},ng={key:1,class:"card card-pad small muted"},sg=["disabled","onClick"],rg={class:"product-info"},lg={class:"small muted"},ag={class:"chip"},og={key:2,class:"report-list"},ig={class:"small muted"},ug={key:0,class:"small muted"},cg={key:3,class:"card card-pad small muted"},dg={key:2,class:"card card-pad form"},fg={class:"small muted"},pg={class:"hint"},vg={class:"field"},hg=["onClick"],mg={class:"field"},gg=["onClick"],yg={class:"small muted"},bg={class:"field"},kg={class:"field-title"},_g=["onClick"],$g={class:"field"},xg=["onClick"],Mg={class:"field"},Cg=["onClick"],wg=["disabled"],Eg={class:"small muted"},Sg={key:3,class:"card card-pad form"},Tg={class:"field"},Ig=["onClick"],Ag={class:"field"},Pg=["onClick"],Rg={class:"field"},Og=["onClick"],Ng={class:"field"},Dg=["onClick"],Lg=["disabled"],Vg={class:"small muted"},Fg={key:4,class:"card card-pad form"},jg={class:"small muted"},Bg=["value"],qg={key:0,class:"small feedback-line"},Ug=["disabled"],Hg={class:"small muted"},Kg={key:5,class:"small notice"},Gg={__name:"ResearchLab",setup(e){const t=K("home"),n=K(""),r=K([]),a=K(-1),o=K(-1),i=K(-1),c=K(1),f=K(""),v=K(-1),h=K(""),y=K(""),b=K(!1),m=j(()=>Ue.filter(z=>z.month>0)),M=j(()=>Ue.filter(z=>s.unlocked.includes(z.id)&&(s.levels[z.id]||1)<5)),_=j(()=>Ue.map(z=>({product:z,reports:s.career.labReports[z.id]||{}})).filter(z=>z.reports.development||z.reports.improvement)),E=j(()=>hr[n.value]),T=j(()=>{var z;return((z=s.labPending)==null?void 0:z.type)==="signature"?tr("osmanthus").src:""}),w=j(()=>r.value.length>0&&a.value>=0&&o.value>=0&&i.value>=0),x=j(()=>r.value.length>0&&a.value>=0&&o.value>=0&&i.value>=0),k=j(()=>{var z;return v.value===((z=Us[f.value])==null?void 0:z.correct)?2:1});function H(z){y.value=z}function ie(z){if(!s.labPending){if(z.id==="signature"){if(s.month<26)return H("M26 起开放外婆配方复原。");t.value="signature"}else n.value=z.id,t.value="develop";r.value=[],a.value=-1,o.value=-1,i.value=-1,c.value=1,y.value=""}}function q(z){r.value=r.value.includes(z)?r.value.filter(U=>U!==z):[...r.value,z]}function J(){const z=tl({productId:n.value,ingredients:r.value,direction:a.value,ratio:o.value,process:i.value,decoration:c.value});z.ok?H("试吃完成：本次样品已计入原料消耗。"):H(z.message)}function Y(){const z=tl({productId:"signature",type:"signature",ingredients:r.value,sugar:a.value,filling:o.value,garnish:i.value});z.ok?H("复原试吃完成：本次样品已计入原料消耗。"):H(z.message)}function re(){const z=_i();H(z.message),z.ok&&(t.value="home")}function ne(){const z=s.labPending;z&&(nl(),n.value=z.productId,r.value=z.ingredients.slice(),z.type==="signature"?(a.value=z.sugar,o.value=z.filling,i.value=z.garnish,t.value="signature"):(a.value=z.direction,o.value=z.ratio,i.value=z.process,c.value=z.decoration,t.value="develop"),H("保留了本次试做思路，修改后重试会再消耗一份样品。"))}function P(){nl(),t.value="home",H("试吃结果已收起，已消耗的样品不返还。")}function N(z){s.labPending||(f.value=z.id,v.value=-1,h.value="",y.value="",t.value="improve")}function ue(){if(b.value||v.value<0)return;b.value=!0;const z=hf(f.value,v.value);b.value=!1,h.value=z.feedback||"",z.ok?(H(z.message),t.value="home"):z.retry&&(v.value=-1)}function ge(){t.value="home",y.value=""}function me(z){return z.type==="signature"?"外婆配方复原":z.type==="improvement"?`配方改良 · Lv${z.levelAfter}`:`${z.refined?"精制上架":"新品上架"} · ${z.score} 分`}return(z,U)=>(d(),p("section",F1,[l("header",j1,[l("div",null,[U[1]||(U[1]=l("div",{class:"lab-title"},"林记烘焙实验室",-1)),l("div",B1,"行动力 "+u(g(s).ap)+"/"+u(g(s).maxAp)+" · 分类原料 "+u(g(_s))+" 份 · 试做消耗所选蛋糕配方用料的四分之一",1)]),t.value!=="home"&&!g(s).labPending?(d(),p("button",{key:0,class:"back",type:"button",onClick:ge},"返回")):S("",!0)]),g(s).labPending?(d(),p("div",q1,[l("div",U1,u(g(s).labPending.passed?"试吃合格":"还需要调整"),1),l("div",H1,u(g(De)(g(s).labPending.productId).name)+" · 本次 "+u(g(s).labPending.score)+" 分",1),T.value?(d(),p("img",{key:0,class:"signature-cg",src:T.value,alt:"桂花栗子蛋糕复原插画"},null,8,K1)):S("",!0),l("div",G1,[(d(),p(V,null,ee([{key:"flavor",name:"风味"},{key:"texture",name:"口感"},{key:"appearance",name:"外观"},{key:"cost",name:"成本控制"}],O=>l("div",{key:O.key,class:"score"},[l("span",null,u(O.name),1),l("strong",null,u(g(s).labPending.scores[O.key]),1)])),64))]),l("ul",W1,[(d(!0),p(V,null,ee(g(s).labPending.feedback,O=>(d(),p("li",{key:O},u(O),1))),128))]),l("div",z1,[g(s).labPending.passed?(d(),p("button",{key:0,class:"btn primary block",type:"button",disabled:g(s).ap<1||g(s).phase!=="playing",onClick:re},u(g(s).labPending.type==="signature"?"完成复原":"正式上架")+" · 再消耗 1 点行动力 ",9,Y1)):S("",!0),g(s).labPending.passed&&g(s).ap<1?(d(),p("div",J1,"行动力不足，结果已保存，明天可以继续。")):S("",!0),l("button",{class:"btn block",type:"button",disabled:g(s).phase!=="playing",onClick:ne},"按反馈调整并重试 · 再用 1 份样品",8,Q1),l("button",{class:"text-button",type:"button",onClick:P},"收起结果")])])):t.value==="home"?(d(),p(V,{key:1},[U[3]||(U[3]=l("div",{class:"card card-pad intro"},[l("strong",null,"从配方到上架"),l("div",{class:"small muted"},"选配方、做试验、看试吃反馈。合格品可以生产，精制品以更高熟练度起步。")],-1)),U[4]||(U[4]=l("div",{class:"section-title"},"配方改良",-1)),M.value.length?(d(),p("div",Z1,[(d(!0),p(V,null,ee(M.value,O=>(d(),p("button",{key:O.id,class:"card product-row",type:"button",onClick:Q=>N(O)},[l("span",eg,[l("strong",null,u(O.name),1),l("span",tg,"当前 Lv"+u(g(s).levels[O.id]||1),1)]),U[2]||(U[2]=l("span",{class:"chip"},"诊断问题",-1))],8,X1))),128))])):(d(),p("div",ng,"目前没有可改良的产品。")),U[5]||(U[5]=l("div",{class:"section-title"},"新品研发",-1)),(d(!0),p(V,null,ee(m.value,O=>(d(),p("button",{key:O.id,class:"card product-row",type:"button",disabled:O.month>g(s).month||g(s).unlocked.includes(O.id),onClick:Q=>ie(O)},[l("span",rg,[l("strong",null,u(O.name),1),l("span",lg,u(O.id==="signature"?"M26 · 外婆旧配方复原":`M${O.month} 起 · ${O.desc}`),1)]),l("span",ag,u(g(s).unlocked.includes(O.id)?"已上架":O.month>g(s).month?`M${O.month}开放`:O.id==="signature"?"复原":"开始实验"),1)],8,sg))),128)),U[6]||(U[6]=l("div",{class:"section-title"},"实验档案",-1)),_.value.length?(d(),p("div",og,[(d(!0),p(V,null,ee(_.value,O=>(d(),p("div",{key:O.product.id,class:"card card-pad report-row"},[l("strong",null,u(O.product.name),1),(d(),p(V,null,ee(["development","improvement"],Q=>{var te;return l("div",{key:Q,class:"report-entry"},[O.reports[Q]?(d(),p(V,{key:0},[l("span",null,u(me(O.reports[Q])),1),l("span",ig,"第 "+u(O.reports[Q].run)+" 轮 · M"+u(O.reports[Q].month),1),(te=O.reports[Q].feedback)!=null&&te.length?(d(),p("div",ug,u(O.reports[Q].feedback.join(" ")),1)):S("",!0)],64)):S("",!0)])}),64))]))),128))])):(d(),p("div",cg,"完成实验后，报告会保存到这里并跨周目保留。"))],64)):t.value==="develop"&&E.value?(d(),p("div",dg,[l("h2",null,u(g(De)(n.value).name)+" · 新品设计",1),l("p",fg,u(E.value.theme)+" "+u(E.value.focus),1),l("div",pg,"图鉴线索："+u((g(Ne).codex[n.value]||{}).hint||g(De)(n.value).desc),1),l("div",vg,[U[7]||(U[7]=l("div",{class:"field-title"},"风味方向",-1)),(d(!0),p(V,null,ee(g(si),(O,Q)=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:a.value===Q}]),onClick:te=>a.value=Q},u(O),11,hg))),128))]),l("div",mg,[U[8]||(U[8]=l("div",{class:"field-title"},[ye("核心食材 "),l("span",{class:"small muted"},"可多选")],-1)),(d(!0),p(V,null,ee(g(Zr)(n.value),O=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:r.value.includes(O)}]),onClick:Q=>q(O)},u(O),11,gg))),128)),l("div",yg,"配方提示："+u((g(Ne).codex[n.value]||{}).hint||""),1)]),l("div",bg,[l("div",kg,u(E.value.ratioLabel),1),(d(!0),p(V,null,ee(g(ri),(O,Q)=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:o.value===Q}]),onClick:te=>o.value=Q},u(O),11,_g))),128))]),l("div",$g,[U[9]||(U[9]=l("div",{class:"field-title"},"制作工艺",-1)),(d(!0),p(V,null,ee(E.value.processes,(O,Q)=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:i.value===Q}]),onClick:te=>i.value=Q},u(O),11,xg))),128))]),l("div",Mg,[U[10]||(U[10]=l("div",{class:"field-title"},[ye("装饰取舍 "),l("span",{class:"small muted"},"越丰富，外观越高，成本分越低")],-1)),(d(!0),p(V,null,ee(g(li),(O,Q)=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:c.value===Q}]),onClick:te=>c.value=Q},u(O)+" · 外观 "+u([72,90,100][Q])+" / 成本 "+u(g(ai)[Q]),11,Cg))),128))]),l("button",{class:"btn primary block",type:"button",disabled:!w.value||g(s).ap<1||!g(Xt)(n.value,.25)||g(s).dayPhase!=="prep"||g(s).phase!=="playing",onClick:J},"开始试吃 · 1 点行动力",8,wg),l("div",Eg,u(w.value?g(Xt)(n.value,.25)?g(s).ap<1?"当前行动力不足。":g(s).dayPhase!=="prep"?"营业阶段不能试做，请先结束营业日。":"":"配方材料不足，请先采购。":"请先选择风味、食材、主料比例和制作工艺。")+"失败消耗 1 点行动力和四分之一份配方材料；合格后上架再消耗 1 点行动力。",1)])):t.value==="signature"?(d(),p("div",Sg,[U[15]||(U[15]=l("h2",null,"外婆的桂花栗子蛋糕 · 复原试验",-1)),U[16]||(U[16]=l("p",{class:"small muted"},"手记线索：「栗子甜则少放糖，桂花香淡则后撒。」先选核心材料，再完成三项判断。",-1)),l("div",Tg,[U[11]||(U[11]=l("div",{class:"field-title"},"核心食材",-1)),(d(!0),p(V,null,ee(g(Zr)("signature"),O=>(d(),p("button",{key:O,type:"button",class:ve(["choice",{chosen:r.value.includes(O)}]),onClick:Q=>q(O)},u(O),11,Ig))),128))]),l("div",Ag,[U[12]||(U[12]=l("div",{class:"field-title"},"栗子甜度",-1)),(d(),p(V,null,ee(["减少额外糖量","维持标准糖量","再增加一些糖"],(O,Q)=>l("button",{key:O,type:"button",class:ve(["choice",{chosen:a.value===Q}]),onClick:te=>a.value=Q},u(O),11,Pg)),64))]),l("div",Rg,[U[13]||(U[13]=l("div",{class:"field-title"},"桂花冻的处理",-1)),(d(),p(V,null,ee(["趁热拌进栗子泥","冷却后单独夹层","趁热浸入戚风胚"],(O,Q)=>l("button",{key:O,type:"button",class:ve(["choice",{chosen:o.value===Q}]),onClick:te=>o.value=Q},u(O),11,Og)),64))]),l("div",Ng,[U[14]||(U[14]=l("div",{class:"field-title"},"金桂的加入时间",-1)),(d(),p(V,null,ee(["烘烤前加入","蛋糕冷却后撒","装盒前现撒"],(O,Q)=>l("button",{key:O,type:"button",class:ve(["choice",{chosen:i.value===Q}]),onClick:te=>i.value=Q},u(O),11,Dg)),64))]),l("button",{class:"btn primary block",type:"button",disabled:!x.value||g(s).ap<1||!g(Xt)("signature",.25)||g(s).dayPhase!=="prep"||g(s).phase!=="playing",onClick:Y},"试吃复原配方 · 1 点行动力",8,Lg),l("div",Vg,u(x.value?g(Xt)("signature",.25)?g(s).ap<1?"当前行动力不足。":g(s).dayPhase!=="prep"?"营业阶段不能试做，请先结束营业日。":"":"配方材料不足，请先采购。":"请选齐复原食材和三项判断。")+"失败消耗 1 点行动力和四分之一份配方材料，复原成功再消耗 1 点行动力。",1)])):t.value==="improve"?(d(),p("div",Fg,[l("h2",null,u(g(De)(f.value).name)+" · 改良诊断",1),l("p",jg,u(g(Us)[f.value].question),1),(d(!0),p(V,null,ee(g(Us)[f.value].options,(O,Q)=>(d(),p("label",{key:O,class:"answer"},[st(l("input",{"onUpdate:modelValue":U[0]||(U[0]=te=>v.value=te),type:"radio",value:Q},null,8,Bg),[[pd,v.value,void 0,{number:!0}]]),l("span",null,u(O),1)]))),128)),h.value?(d(),p("p",qg,u(h.value),1)):S("",!0),l("button",{class:"btn primary block",type:"button",disabled:v.value<0||g(s).ap<k.value||!g(Xt)(f.value,.25)||b.value||g(s).dayPhase!=="prep"||g(s).phase!=="playing",onClick:ue},"提交改良试验 · 失败 1 / 成功 2 点行动力",8,Ug),l("div",Hg,u(v.value<0?"请选择一个改良方案。":g(Xt)(f.value,.25)?g(s).ap<k.value?`当前行动力不足：本次至少需要 ${k.value} 点。`:g(s).dayPhase!=="prep"?"营业阶段不能进行改良。":"":"配方材料不足，请先采购。")+"试验消耗四分之一份配方材料；选错消耗 1 点行动力，可免费重选；选对消耗 2 点行动力并提升 1 级。",1)])):S("",!0),y.value?(d(),p("p",Kg,u(y.value),1)):S("",!0)]))}},Wg=He(Gg,[["__scopeId","data-v-28a122e9"]]),zg={key:1,class:"card card-pad"},Yg={class:"small muted"},Jg={class:"between small"},Qg={class:"small muted"},Zg=["disabled"],Xg={key:0,class:"branch-row"},ey={class:"between small"},ty={class:"small muted"},ny=["disabled"],sy={class:"card card-pad"},ry={class:"between"},ly={class:"chip"},ay={class:"card card-pad",style:{"margin-top":"10px"}},oy={class:"between",style:{"margin-bottom":"8px"}},iy={class:"small muted",style:{"margin-bottom":"8px"}},uy={key:0,class:"chip pink",style:{"font-size":"10px"}},cy={class:"card card-pad",style:{"margin-top":"10px"}},dy={class:"between"},fy={class:"chip"},py={class:"between small"},vy={class:"between small"},hy={class:"between small"},my={class:"card card-pad",style:{"margin-top":"10px"}},gy={key:0,class:"empty"},yy={class:"d"},by={class:"x"},ky={key:3,class:"small",style:{color:"var(--berry)",margin:"10px 2px 0"},role:"status"},_y={__name:"ManagePage",props:{initialSection:{type:String,default:"overview"}},emits:["open-panel"],setup(e,{emit:t}){const n=e,r=t,a=K(n.initialSection),o=K("");let i=0;Pt(()=>n.initialSection,b=>a.value=b);const c=j(()=>Cn.find(b=>!s.cities.includes(b.id)&&!s.surveyed.includes(b.id))),f=j(()=>Yt("survey")),v=j(()=>Yt("branch"));function h(b){const m=Yt(b);if(s.dayPhase!=="prep"||m.disabled||s.ap<m.ap||s.cash<m.cost){y(s.dayPhase!=="prep"?"请在营业前筹备。":m.note);return}Vn(b,{})?y(b==="survey"?"城市考察完成，可以安排开店。":"新店筹备完成。"):y("暂时无法完成这项筹备。")}function y(b){o.value=b,clearTimeout(i),i=setTimeout(()=>o.value="",2200)}return(b,m)=>{var M;return d(),p("div",null,[a.value==="lab"?(d(),Se(Wg,{key:0})):a.value==="branch"?(d(),p("div",zg,[m[3]||(m[3]=l("div",{class:"h2"},"城市考察与分店筹备",-1)),l("p",Yg,"在准备阶段安排考察和开店。下一站："+u(((M=c.value)==null?void 0:M.name)||"所有城市已纳入版图"),1),l("div",Jg,[l("span",null,u(f.value.name),1),l("span",null,"行动力 "+u(f.value.ap)+" · ¥"+u(f.value.cost),1)]),l("div",Qg,u(f.value.note),1),l("button",{class:"btn block",type:"button",disabled:g(s).dayPhase!=="prep"||f.value.disabled||g(s).ap<f.value.ap,onClick:m[0]||(m[0]=_=>h("survey"))},"开始城市考察",8,Zg),g(s).surveyed.length?(d(),p("div",Xg,[l("div",ey,[l("strong",null,u(v.value.name),1),l("span",null,"行动力 "+u(v.value.ap)+" · ¥"+u(v.value.cost),1)]),l("div",ty,u(v.value.note),1),l("button",{class:"btn primary block",type:"button",disabled:g(s).dayPhase!=="prep"||v.value.disabled||g(s).ap<v.value.ap,onClick:m[1]||(m[1]=_=>h("branch"))},"筹备并开店",8,ny)])):S("",!0)])):(d(),p(V,{key:2},[l("div",sy,[l("div",ry,[m[4]||(m[4]=l("div",null,[l("div",{class:"h2",style:{margin:"0"}},"经营手账"),l("div",{class:"small muted"},"记录阶段目标、经营结果与重要收藏。")],-1)),l("span",ly,"行动力 "+u(g(s).ap)+"/"+u(g(s).maxAp),1)]),l("button",{class:"btn primary block",style:{"margin-top":"10px"},type:"button",onClick:m[2]||(m[2]=_=>r("open-panel","codex"))},"打开产品图鉴、顾客档案与相册")]),l("div",ay,[l("div",oy,[m[5]||(m[5]=l("div",{class:"h2",style:{margin:"0"}},"阶段目标",-1)),l("span",{class:ve(["chip",g(en).done>=g(en).need?"sage":""])},u(g(en).done)+" / "+u(g(en).need||"—"),3)]),l("div",iy,u(g(yr).name)+" · 完成 "+u(g(en).need)+" 项即可进入下一阶段。",1),(d(!0),p(V,null,ee(g(en).list,_=>(d(),p("div",{key:_.text,class:ve(["goal",{done:_.done}])},[m[6]||(m[6]=l("span",{class:"dot"},null,-1)),l("span",null,u(_.text),1),_.expand?(d(),p("span",uy,"扩张")):S("",!0)],2))),128))]),l("div",cy,[l("div",dy,[m[7]||(m[7]=l("div",{class:"h2"},"本月经营",-1)),l("span",fy,"第 "+u(g(s).day)+"/5 日",1)]),l("div",py,[m[8]||(m[8]=l("span",{class:"muted"},"本月已到账",-1)),l("span",null,"¥"+u(g(s).monthRev.toLocaleString()),1)]),l("div",vy,[m[9]||(m[9]=l("span",{class:"muted"},"本月销量",-1)),l("span",null,u(Object.values(g(s).monthSold).reduce((_,E)=>_+E,0))+" 个",1)]),l("div",hy,[m[10]||(m[10]=l("span",{class:"muted"},"口碑 / 知名度",-1)),l("span",null,u(Math.round(g(s).reputation))+" / "+u(Math.round(g(s).popularity)),1)])]),l("div",my,[m[11]||(m[11]=l("div",{class:"h2"},"最近发生的事",-1)),g(s).log.length?S("",!0):(d(),p("div",gy,"还没有记录。")),(d(!0),p(V,null,ee(g(s).log.slice(0,12),(_,E)=>(d(),p("div",{key:E,class:ve(["logline",_.tone])},[l("span",yy,u(_.month)+"月"+u(_.day)+"日",1),l("span",by,u(_.text),1)],2))),128))])],64)),o.value?(d(),p("p",ky,u(o.value),1)):S("",!0)])}}},$y=He(_y,[["__scopeId","data-v-baa859ee"]]),xy={class:"world"},My=["src","alt"],Cy={class:"world-heading"},wy={class:"world-eyebrow"},Ey={class:"world-title"},Sy={class:"world-subtitle"},Ty=["onClick"],Iy={class:"world-status"},Ay={key:1,class:"world-toast",role:"status"},Py={key:2,class:"world-travel"},Ry={class:"world-travel-head"},Oy={class:"world-travel-grid"},Ny=["title","onClick"],Dy=["src"],Ly={class:"world-action-sheet"},Vy={key:0},Fy={class:"world-action-buttons"},jy=["disabled"],By={__name:"SceneMapPage",props:{scene:{type:String,default:"shop"}},emits:["change-scene","open-panel","rest-day"],setup(e,{emit:t}){const n=e,r=t,a={shop:{name:"林记烘焙",sub:"熟悉的木门后，总有蛋糕香",img:"bg-shop.webp",icon:"🏠"},kitchen:{name:"烘焙后厨",sub:"今天也要做出好吃的蛋糕",img:"bg-kitchen.webp",icon:"🥣"},street:{name:"栖云镇老街",sub:"沿着青石板路，去熟悉的地方",img:"bg-street.webp",icon:"🌿"},home:{name:"林念的家",sub:"家里的灯总为你留着",img:"bg-home.webp",icon:"🪴"},cafe:{name:"街角咖啡馆",sub:"一杯咖啡与一点新灵感",img:"bg-cafe.webp",icon:"☕"},park:{name:"栖云镇公园",sub:"在花影里散步，遇见熟悉的人",img:"bg-park.webp",icon:"🍃"},river:{name:"栖云河岸",sub:"桥边晚风与藏在水声里的故事",img:"bg-park.webp",icon:"🌊"},market:{name:"小镇市集",sub:"季节活动的摊位已经摆好",img:"bg-market.webp",icon:"🎪"},studio:{name:"设计工作室",sub:"配色、包装与有趣的创意",img:"bg-studio.webp",icon:"🎨"},store:{name:"品牌新店",sub:"林记走向更远的地方",img:"bg-store.webp",icon:"🏬"}},o=j(()=>Object.entries(a).map(([x,k])=>({id:x,...k,gate:We(x)}))),i=j(()=>a[n.scene]||a.shop),c=j(()=>n.scene==="shop"?"bg-shop-lv"+s.shopLevel+".webp":i.value.img),f=j(()=>Ye(c.value)==="ok"?c.value:i.value.img),v=j(()=>{const x={1:{counter:[56,55],mom:[22,70],book:[79,80],kitchen:[87,38],door:[85,93]},2:{counter:[57,57],mom:[27,76],book:[17,83],kitchen:[82,40],door:[85,92]},3:{counter:[64,58],mom:[20,69],book:[84,83],kitchen:[82,40],door:[84,93]},4:{counter:[78,59],mom:[20,67],book:[27,47],kitchen:[79,40],door:[84,92]}}[s.shopLevel],k={shop:[{id:"counter",x:x.counter[0],y:x.counter[1],text:"柜台 · 预约与营业",kind:"panel",value:"shop",section:"counter"},...s.dayIndex===1||s.dayIndex%3===1||s.month%4===0?[{id:"mom",x:x.mom[0],y:x.mom[1],text:"和妈妈聊聊",kind:"action",value:"momchat"}]:[],{id:"book",x:x.book[0],y:x.book[1],text:"装修册 · 店铺升级",kind:"panel",value:"renovation"},{id:"kitchen",x:x.kitchen[0],y:x.kitchen[1],text:"去后厨 →",kind:"scene",value:"kitchen"},{id:"door",x:x.door[0],y:x.door[1],text:"出门 →",kind:"scene",value:"street"}],kitchen:[{id:"workbench",x:52,y:55,text:"操作台 · 排产",kind:"panel",value:"kitchen"},{id:"baking",x:49,y:74,text:"制作蛋糕",kind:"panel",value:"game:baking"},{id:"lab",x:75,y:31,text:"实验台 · 研发",kind:"panel",value:"game:research",unlock:"lab"},{id:"devices",x:21,y:41,text:"设备区",kind:"panel",value:"feature",section:"devices"},{id:"pantry",x:73,y:84,text:"食材区 · 库存",kind:"panel",value:"feature",section:"pantry"},{id:"staff",x:25,y:88,text:"员工排班板",kind:"panel",value:"partners",unlock:"staff"},{id:"back",x:9,y:55,text:"← 回前厅",kind:"scene",value:"shop"}],street:[{id:"supplier",x:83,y:52,text:"食材铺 · 采购",kind:"panel",value:"supplier"},{id:"sq",x:57,y:67,text:"找苏晴",kind:"action",value:"sqchat"},{id:"bakery",x:12,y:52,text:"← 林记",kind:"scene",value:"shop"},{id:"park",x:29,y:79,text:"公园 →",kind:"scene",value:"park"},{id:"home",x:74,y:91,text:"回家 →",kind:"scene",value:"home"},{id:"cafe",x:73,y:34,text:"咖啡店",kind:"scene",value:"cafe"},{id:"studio",x:20,y:34,text:"设计工作室",kind:"scene",value:"studio"},{id:"market",x:22,y:91,text:"小镇市集",kind:"scene",value:"market"},{id:"store",x:78,y:77,text:"品牌新店",kind:"scene",value:"store"}],store:[{id:"expansion",x:54,y:67,text:"新店规划桌 · 城市与分店",kind:"panel",value:"manage",section:"branch"},{id:"staff",x:40,y:49,text:"员工管理",kind:"panel",value:"partners"},{id:"figures",x:75,y:84,text:"多门店经营数据",kind:"panel",value:"feature",section:"branch"},{id:"exit",x:8,y:91,text:"← 回栖云镇",kind:"scene",value:"street"}],market:[{id:"stall",x:48,y:58,text:"林记摊位 · 参加市集",kind:"panel",value:"game:market"},{id:"calendar",x:76,y:77,text:"本季活动",kind:"panel",value:"feature",section:"calendar"},{id:"back",x:10,y:90,text:"← 回老街",kind:"scene",value:"street"}],cafe:[{id:"collab",x:52,y:56,text:"联名活动 · 咖啡与蛋糕",kind:"panel",value:"game:cafe"},{id:"coffee",x:22,y:74,text:"喝一杯热饮",kind:"action",value:"coffee"},{id:"owner",x:75,y:75,text:"与许沐禾聊天",kind:"panel",value:"feature",section:"cafe"},{id:"back",x:10,y:90,text:"← 回老街",kind:"scene",value:"street"}],park:[{id:"walk",x:51,y:56,text:"在公园散步",kind:"action",value:"walk"},{id:"flowers",x:74,y:75,text:"拍摄花影",kind:"panel",value:"feature",section:"park"},{id:"sq",x:21,y:73,text:"和苏晴聊聊",kind:"action",value:"sqchat"},{id:"river",x:53,y:89,text:"去河边 →",kind:"scene",value:"river"},{id:"back",x:10,y:90,text:"← 回老街",kind:"scene",value:"street"}],river:[{id:"views",x:50,y:58,text:"河边风景探索",kind:"panel",value:"feature",section:"river"},{id:"stories",x:60,y:77,text:"河岸特殊事件",kind:"panel",value:"feature",section:"river"},{id:"back",x:10,y:90,text:"← 回公园",kind:"scene",value:"park"}],studio:[{id:"design",x:52,y:55,text:"蛋糕与包装设计",kind:"panel",value:"feature",section:"studio"},{id:"album",x:52,y:76,text:"已收藏的设计稿",kind:"panel",value:"feature",section:"designs"},{id:"back",x:10,y:90,text:"← 回老街",kind:"scene",value:"street"}],home:[{id:"bedroom",x:49,y:66,text:"卧室 · 休息",kind:"rest"},{id:"wardrobe",x:72,y:42,text:"衣柜 · 换装",kind:"panel",value:"feature",section:"wardrobe"},{id:"back",x:10,y:90,text:"← 去街上",kind:"scene",value:"street"}]};return k[n.scene]||k.shop}),h=K(!1),y=K(null),b=K("");let m;Pt(()=>n.scene,()=>{y.value=null,h.value=!1});function M(x){b.value=x,clearTimeout(m),m=setTimeout(()=>{b.value=""},2400)}function _(x){const k=We(x);if(!k.open)return M(k.reason);y.value=null,h.value=!1,Li(x),r("change-scene",x)}const E=j(()=>!y.value||y.value.kind!=="action"?null:y.value.value==="momchat"?{ap:1,cost:0,disabled:!1,note:"和妈妈聊聊经营经验"}:Yt(y.value.value));function T(x){if(x.kind==="scene")return _(x.value);if(x.unlock&&!We(x.unlock).open)return M(We(x.unlock).reason);if(x.kind==="rest"){r("open-panel","feature","bedroom");return}if(x.kind==="panel")return r("open-panel",x.value,x.section||"overview");y.value=x}function w(){const x=y.value;if(!x||s.phase!=="playing")return;if(s.dayPhase!=="prep")return M("今天已经开门，打烊后再行动。");const k=E.value;if(!k||k.disabled||s.ap<k.ap||s.cash<k.cost)return M((k==null?void 0:k.note)||"现在暂时无法行动。");(x.value==="momchat"?Vn("talk",{partner:"mom"}):Vn(x.value,{}))?(M(x.text+" · 已完成"),y.value=null):M("暂时无法执行，请检查行动力或触发条件。")}return(x,k)=>{var H,ie,q,J;return d(),p("section",xy,[l("div",{class:ve(["world-canvas","world-"+e.scene])},[g(Ye)(f.value)!=="no"?(d(),p("img",{key:0,class:"world-background",src:g(Ae)(f.value),alt:i.value.name},null,8,My)):S("",!0),k[5]||(k[5]=l("div",{class:"world-vignette","aria-hidden":"true"},null,-1)),l("header",Cy,[l("div",null,[l("span",wy,u(e.scene==="shop"?"HOME":"QIYUN TOWN")+" · 第 "+u(g(s).month)+" 月",1),l("h1",Ey,u(i.value.name),1),l("div",Sy,u(i.value.sub),1)]),l("button",{class:"world-compass",type:"button","aria-label":"打开地点地图",onClick:k[0]||(k[0]=Y=>h.value=!h.value)},"地图")]),(d(!0),p(V,null,ee(v.value,Y=>(d(),p("button",{key:Y.id,class:ve(["world-hotspot",{"world-hotspot-locked":Y.unlock&&!g(We)(Y.unlock).open||Y.kind==="scene"&&!g(We)(Y.value).open}]),type:"button",style:ot({left:Y.x+"%",top:Y.y+"%",transform:Y.x>80?"translate(-100%,-50%)":Y.x<15?"translate(0,-50%)":"translate(-50%,-50%)"}),onClick:re=>T(Y)},u(Y.unlock&&!g(We)(Y.unlock).open||Y.kind==="scene"&&!g(We)(Y.value).open?"🔒 ":"")+u(Y.text),15,Ty))),128)),l("div",Iy,[l("span",null,u(g(yr).name),1),l("span",null,"阶段目标 "+u(g(en).done)+"/"+u(g(en).need||"—"),1),l("span",null,"口碑 "+u(Math.round(g(s).reputation)),1)]),b.value?(d(),p("div",Ay,u(b.value),1)):S("",!0),h.value?(d(),p("div",Py,[l("div",Ry,[k[4]||(k[4]=l("span",null,"选择地点",-1)),l("button",{type:"button","aria-label":"关闭地点地图",onClick:k[1]||(k[1]=Y=>h.value=!1)},"✕")]),l("div",Oy,[(d(!0),p(V,null,ee(o.value,Y=>(d(),p("button",{key:Y.id,type:"button",class:ve(["world-travel-place",{current:e.scene===Y.id,locked:!Y.gate.open}]),title:Y.gate.reason,onClick:re=>_(Y.id)},[l("img",{src:g(Ae)(Y.img),alt:""},null,8,Dy),l("span",null,u(Y.gate.open?Y.icon:"🔒")+" "+u(Y.name),1)],10,Ny))),128))])])):S("",!0),y.value?(d(),p("div",{key:3,class:"world-action-mask",onClick:k[3]||(k[3]=at(Y=>y.value=null,["self"]))},[l("div",Ly,[l("strong",null,u(y.value.text),1),l("span",null,u((H=E.value)==null?void 0:H.note),1),E.value?(d(),p("small",Vy,"消耗 "+u(E.value.ap)+" 点行动力"+u(E.value.cost?" · ¥"+E.value.cost:""),1)):S("",!0),l("div",Fy,[l("button",{class:"world-action-cancel",type:"button",onClick:k[2]||(k[2]=Y=>y.value=null)},"取消"),l("button",{class:"world-action-confirm",type:"button",disabled:g(s).dayPhase!=="prep"||((ie=E.value)==null?void 0:ie.disabled)||g(s).ap<(((q=E.value)==null?void 0:q.ap)||0)||g(s).cash<(((J=E.value)==null?void 0:J.cost)||0),onClick:w},"开始行动",8,jy)])])])):S("",!0)],2)])}}},qy=He(By,[["__scopeId","data-v-519df9c8"]]),Uy={class:"scene-feature"},Hy={key:0,class:"feature-message",role:"status"},Ky={class:"feature-preview"},Gy=["disabled"],Wy={key:0,class:"feature-help"},zy={class:"feature-help"},Yy={class:"feature-list"},Jy={key:0},Qy=["disabled","onClick"],Zy={class:"outfit-grid"},Xy=["onClick"],eb=["src","alt"],tb={class:"feature-select"},nb={class:"feature-select"},sb={class:"feature-select"},rb={class:"feature-select"},lb={class:"feature-preview"},ab=["disabled"],ob={key:0,class:"feature-help"},ib=["disabled","onClick"],ub={class:"feature-npc"},cb={class:"feature-help"},db={class:"feature-preview"},fb={class:"feature-help"},pb={class:"feature-help"},vb={__name:"SceneFeaturePage",props:{section:{type:String,default:"pantry"}},emits:["open-panel","rest-day"],setup(e,{emit:t}){const n=t,r=K(""),a=un({shape:"圆形",color:"奶油白",decoration:"草莓与花朵",packaging:"牛皮纸礼盒"}),o=j(()=>Di()),i=j(()=>o.value.materials.map(y=>({...ft.find(b=>b.id===y),stock:s.pantry[y]||0}))),c={pantry:"食材区 · 原料库存",devices:"设备区 · 烘焙升级",wardrobe:"衣柜 · 日常穿搭",bedroom:"卧室 · 夜晚休息",studio:"设计工作台",designs:"设计作品收藏",river:"河岸风景与事件",park:"花影与风景相册",cafe:"与许沐禾聊天",calendar:"本季小镇日历",branch:"品牌新店经营"};function f(y){const b=y();r.value=(b==null?void 0:b.message)||(b?"操作已完成。":"当前无法操作。")}function v(y){const b=vi(y);r.value=b?"设备升级完成，生产数据已保存。":"资金不足，或当前不是营业准备阶段。"}function h(){f(()=>rp({...a}))}return(y,b)=>(d(),p("section",Uy,[l("h3",null,u(c[e.section]||"小镇生活"),1),r.value?(d(),p("p",Hy,u(r.value),1)):S("",!0),e.section==="bedroom"?(d(),p(V,{key:1},[b[13]||(b[13]=l("p",{class:"feature-help"},"回到自己的房间，结束今天，明早继续经营。还没开门的日子也可以选择休息；若已经备货，剩余蛋糕将按打折方式处理。",-1)),l("p",Ky,[ye("今天：第 "+u(g(s).month)+" 月第 "+u(g(s).day)+" 日",1),b[12]||(b[12]=l("br",null,null,-1)),ye("营业阶段："+u({prep:"准备营业","service-ready":"已备货，待开门",service:"正在接待顾客",closing:"已打烊"}[g(s).dayPhase]||g(s).dayPhase),1)]),l("button",{class:"feature-primary",disabled:!["prep","service-ready","closing"].includes(g(s).dayPhase),onClick:b[0]||(b[0]=m=>n("rest-day"))},"休息 · 进入下一天",8,Gy),g(s).dayPhase==="service"?(d(),p("p",Wy,"柜台还有顾客，请先完成交付。")):S("",!0)],64)):e.section==="pantry"?(d(),p(V,{key:2},[l("p",zy,"当前仓储 "+u(g(_s))+" / "+u(g(s).warehouseCapacity)+" 份。制作蛋糕、研发和活动共用这份库存。",1),l("div",Yy,[(d(!0),p(V,null,ee(g(ft),m=>(d(),p("div",{key:m.id,class:"feature-line"},[l("span",null,[ye(u(m.name)+" ",1),m.month>g(s).month?(d(),p("small",Jy,"第 "+u(m.month)+" 月解锁",1)):S("",!0)]),l("b",{class:ve({low:(g(s).pantry[m.id]||0)<2})},u(Number(g(s).pantry[m.id]||0).toFixed(1).replace(/\.0$/,""))+" 份",3)]))),128))]),l("button",{class:"feature-primary",onClick:b[1]||(b[1]=m=>n("open-panel","supplier"))},"去食材铺补货")],64)):e.section==="devices"?(d(),p(V,{key:3},[b[14]||(b[14]=l("p",{class:"feature-help"},"升级消耗真实金币。设备效果直接影响产能、冷藏与打包效率，保留在经营存档中。",-1)),(d(!0),p(V,null,ee(g(Ml),m=>{var M;return d(),p("div",{key:m.id,class:"feature-row"},[l("div",null,[l("strong",null,u(m.name),1),l("small",null,"Lv"+u(g(ks)(m.id))+" · "+u(((M=g(gn)(m.id))==null?void 0:M.text)||"已满级"),1)]),l("button",{disabled:!g(gn)(m.id)||g(s).cash<g(gn)(m.id).cost||g(s).dayPhase!=="prep",onClick:_=>v(m.id)},u(g(gn)(m.id)?"升级 ¥"+g(gn)(m.id).cost:"已满级"),9,Qy)])}),128))],64)):e.section==="wardrobe"?(d(),p(V,{key:4},[b[15]||(b[15]=l("p",{class:"feature-help"},"从已解锁的服装里挑一套。换装不消耗行动力，选择会保存到本局档案。",-1)),l("div",Zy,[(d(),p(V,null,ee([{id:"auto",title:"按场合换装",img:"ln-sprite-in.webp"},{id:"daily",title:"小镇日常",img:"ln-sprite-out.webp"},{id:"bakery",title:"烘焙工作服",img:"ln-sprite-in.webp"}],m=>l("button",{key:m.id,class:ve(["outfit",{active:g(s).outfit===m.id}]),onClick:M=>f(()=>({ok:g(sp)(m.id),message:"已换上「"+m.title+"」。"}))},[l("img",{src:g(Ae)(m.img),alt:m.title},null,8,eb),l("span",null,u(m.title),1)],10,Xy)),64))])],64)):e.section==="studio"?(d(),p(V,{key:5},[b[25]||(b[25]=l("p",{class:"feature-help"},"完成一套蛋糕与包装视觉方案，需要行动力和装饰料，可为林记积累品牌经验。",-1)),l("label",tb,[b[17]||(b[17]=ye("蛋糕造型",-1)),st(l("select",{"onUpdate:modelValue":b[2]||(b[2]=m=>a.shape=m)},[...b[16]||(b[16]=[l("option",null,"圆形",-1),l("option",null,"方形",-1),l("option",null,"双层",-1),l("option",null,"花环形",-1)])],512),[[Ss,a.shape]])]),l("label",nb,[b[19]||(b[19]=ye("主体配色",-1)),st(l("select",{"onUpdate:modelValue":b[3]||(b[3]=m=>a.color=m)},[...b[18]||(b[18]=[l("option",null,"奶油白",-1),l("option",null,"樱花粉",-1),l("option",null,"抹茶绿",-1),l("option",null,"巧克力棕",-1)])],512),[[Ss,a.color]])]),l("label",sb,[b[21]||(b[21]=ye("表面装饰",-1)),st(l("select",{"onUpdate:modelValue":b[4]||(b[4]=m=>a.decoration=m)},[...b[20]||(b[20]=[l("option",null,"草莓与花朵",-1),l("option",null,"巧克力碎",-1),l("option",null,"坚果与焦糖",-1),l("option",null,"季节鲜果",-1)])],512),[[Ss,a.decoration]])]),l("label",rb,[b[23]||(b[23]=ye("礼盒包装",-1)),st(l("select",{"onUpdate:modelValue":b[5]||(b[5]=m=>a.packaging=m)},[...b[22]||(b[22]=[l("option",null,"牛皮纸礼盒",-1),l("option",null,"粉色丝带礼盒",-1),l("option",null,"鼠尾草绿包装",-1),l("option",null,"节日限定包装",-1)])],512),[[Ss,a.packaging]])]),l("p",lb,[ye("方案预览："+u(a.color)+" · "+u(a.shape)+"蛋糕 · "+u(a.decoration),1),b[24]||(b[24]=l("br",null,null,-1)),ye(u(a.packaging),1)]),l("button",{class:"feature-primary",disabled:g(s).dayPhase!=="prep"||g(s).ap<1||(g(s).pantry.decor||0)<1,onClick:h},"保存设计方案",8,ab),l("button",{class:"feature-secondary",onClick:b[6]||(b[6]=m=>n("open-panel","feature","designs"))},"查看以往作品")],64)):e.section==="designs"?(d(),p(V,{key:6},[b[26]||(b[26]=l("p",{class:"feature-help"},"设计稿在存档中永久保留，可作为定制订单与联名包装的创意记录。",-1)),g(s).designWorks.length?S("",!0):(d(),p("p",ob,"还没有作品。去设计工作台完成第一份设计吧。")),(d(!0),p(V,null,ee([...g(s).designWorks].reverse(),m=>(d(),p("div",{key:m.id,class:"feature-row feature-design"},[l("div",null,[l("strong",null,u(m.color)+" · "+u(m.shape)+"蛋糕",1),l("small",null,u(m.decoration)+" / "+u(m.packaging)+" · 第"+u(m.month)+"月"+u(m.day)+"日",1)])]))),128))],64)):e.section==="park"||e.section==="river"?(d(),p(V,{key:7},[b[28]||(b[28]=l("p",{class:"feature-help"},"风景照片每个月每个地点可收藏一次，花费 1 点行动力。",-1)),l("button",{class:"feature-primary",onClick:b[7]||(b[7]=m=>f(()=>g(tp)(e.section)))},"📷 拍摄"+u(e.section==="river"?"河岸晚风":"公园花影"),1),e.section==="river"?(d(),p(V,{key:0},[b[27]||(b[27]=l("h4",null,"河岸特殊事件",-1)),(d(!0),p(V,null,ee(g(Vi),m=>(d(),p("div",{key:m.id,class:"feature-row feature-story"},[l("div",null,[l("strong",null,u(m.title),1),l("small",null,u(g(s).sceneEvents.includes(m.id)?"已收集 · "+m.reward:m.unlock()?m.detail:"尚未满足触发条件"),1)]),l("button",{disabled:!m.unlock()||g(s).sceneEvents.includes(m.id)||g(s).dayPhase!=="prep"||g(s).ap<1,onClick:M=>f(()=>g(np)(m.id))},u(g(s).sceneEvents.includes(m.id)?"已完成":"触发"),9,ib)]))),128))],64)):S("",!0)],64)):e.section==="cafe"?(d(),p(V,{key:8},[l("div",ub,[b[29]||(b[29]=l("strong",null,"许沐禾",-1)),l("small",null,"栖木咖啡主理人 · 咖啡店好感 "+u(g(s).cafeRelation),1),b[30]||(b[30]=l("p",null,"“咖啡与甜点的搭配，像是两个人互相照亮。你的蛋糕很适合这里。”",-1))]),l("button",{class:"feature-primary",onClick:b[8]||(b[8]=m=>f(g(lp)))},"聊天 · 1 行动力"),l("button",{class:"feature-secondary",onClick:b[9]||(b[9]=m=>n("open-panel","game:cafe"))},"一起设计联名套餐")],64)):e.section==="calendar"?(d(),p(V,{key:9},[l("p",cb,"第 "+u(g(s).month)+" 月 · "+u(o.value.title),1),l("p",db,[ye("地点："+u(o.value.place),1),b[31]||(b[31]=l("br",null,null,-1)),ye(u(o.value.detail),1)]),b[32]||(b[32]=l("h4",null,"提前准备的材料",-1)),(d(!0),p(V,null,ee(i.value,m=>(d(),p("div",{key:m.id,class:"feature-line"},[l("span",null,u(m.name),1),l("strong",null,"现有 "+u(m.stock)+" 份",1)]))),128)),l("button",{class:"feature-primary",onClick:b[10]||(b[10]=m=>n("open-panel","supplier"))},"前往采购")],64)):e.section==="branch"?(d(),p(V,{key:10},[l("p",fb,"当前 "+u(g(s).storeCount)+" 家门店 · 品牌 "+u(Math.round(g(s).brand))+" · 已开设城市 "+u(g(s).cities.length)+" 个",1),(d(!0),p(V,null,ee(g(Cn).filter(m=>g(s).cities.includes(m.id)),m=>(d(),p("div",{key:m.id,class:"feature-line"},[l("span",null,u(m.name),1),b[33]||(b[33]=l("strong",null,"已营业",-1))]))),128)),b[34]||(b[34]=l("p",{class:"feature-preview"},"拓展新城市需要考察、经营资金与口碑；分店收入与主店共享经营存档。",-1)),l("button",{class:"feature-primary",onClick:b[11]||(b[11]=m=>n("open-panel","manage","branch"))},"进入多门店管理"),l("p",pb,"品牌解锁状态："+u(g(We)("store").open?"已开放":g(We)("store").reason),1)],64)):S("",!0)]))}},hb=He(vb,[["__scopeId","data-v-b1114109"]]),mb={class:"phone-body",role:"dialog","aria-label":"林念的手机"},gb={class:"phone-top"},yb={class:"phone-tabs","aria-label":"手机功能"},bb=["onClick"],kb={key:0},_b={class:"phone-content"},$b={key:0,class:"phone-notice",role:"status"},xb={class:"phone-card"},Mb={class:"phone-card"},Cb={key:0,class:"phone-card"},wb={key:0,class:"phone-empty"},Eb=["disabled","onClick"],Sb={key:0,class:"phone-empty"},Tb={class:"phone-card-title"},Ib={class:"phone-sub"},Ab={class:"phone-card"},Pb={key:0},Rb={class:"phone-stats"},Ob={key:0,class:"phone-empty"},Nb={class:"phone-entry"},Db={class:"phone-entry"},Lb={class:"phone-stats"},Vb={class:"phone-entry"},Fb={class:"phone-entry"},jb={key:0,class:"phone-empty"},Bb=["onClick"],qb=["onClick"],Ub={key:0,class:"phone-empty"},Hb={class:"phone-foot"},Kb={__name:"PhonePage",emits:["close","navigate","open-panel"],setup(e,{emit:t}){const n=t,r=[["people","人物"],["online","线上接单"],["orders","订单详情"],["calendar","日历"],["collections","收藏"],["finance","经营数据"],["notices","通知"]],a=K("people"),o=K(""),i=K(""),c=j(()=>{var w;return[...s.orders||[],...((w=s.service)==null?void 0:w.tickets)||[]]}),f=j(()=>c.value.filter(w=>{const x=o.value.trim().toLowerCase();return!x||String(w.orderNo||w.id).toLowerCase().includes(x)||String(w.customer||"").includes(x)})),v=j(()=>s.orders.filter(w=>["线上","定制","节日"].includes(w.type))),h=j(()=>Di()),y=j(()=>h.value.materials.map(w=>({...ft.find(x=>x.id===w),stock:s.pantry[w]||0}))),b=j(()=>(s.dayRev||0)-(s.daySpend||0)),m=j(()=>[...(s.notices||[]).filter(w=>!w.seen),...s.orders.filter(w=>!w.taken).length?[{id:"pending-orders",title:"待接的线上订单",detail:`还有 ${s.orders.filter(w=>!w.taken).length} 笔订单等待确认。`,target:"online"}]:[],...y.value.some(w=>w.stock<2)?[{id:"low-stock",title:"节日材料提醒",detail:`${h.value.title}即将用到的材料不足，可提前采购。`,target:"supplier"}]:[]]);function M(w){const x=Ai(w.id);i.value=x?w.taken?"已接受该订单，准备好蛋糕后会进入待交付列表。":"已取消接受。":"当前不是营业准备阶段，不能修改订单。"}function _(w){if(w==="online"||w==="orders"){a.value=w;return}if(w==="supplier"){n("close"),n("open-panel","supplier");return}const x=We(w);if(!x.open){i.value=x.reason;return}n("navigate",w)}function E(w){!w.seen&&s.notices.some(x=>x.id===w.id)&&(w.seen=!0,oe()),w.target&&_(w.target)}function T(w){return w.status==="delivered"||w.status==="done"?"已交付":w.status==="waiting"||w.status==="packing"?"待取货":w.taken?"已接单 · 待制作":"待接单"}return(w,x)=>(d(),p("div",{class:"phone-mask",onClick:x[9]||(x[9]=at(k=>n("close"),["self"]))},[l("section",mb,[l("header",gb,[x[10]||(x[10]=l("div",null,[l("span",null,"QIYUN · 林念的手机"),l("h2",null,"今天想做点什么？")],-1)),l("button",{type:"button","aria-label":"关闭手机",onClick:x[0]||(x[0]=k=>n("close"))},"✕")]),l("nav",yb,[(d(),p(V,null,ee(r,k=>l("button",{key:k[0],type:"button",class:ve({active:a.value===k[0]}),onClick:H=>a.value=k[0]},[ye(u(k[1]),1),k[0]==="notices"&&m.value.length?(d(),p("i",kb,u(m.value.length),1)):S("",!0)],10,bb)),64))]),l("main",_b,[i.value?(d(),p("p",$b,u(i.value),1)):S("",!0),a.value==="people"?(d(),p(V,{key:1},[x[14]||(x[14]=l("h3",null,"认识的人",-1)),l("article",xb,[x[11]||(x[11]=l("strong",null,"林暖 · 妈妈",-1)),l("p",null,"前任店主，家庭默契 "+u(Math.round(g(s).momBond))+"。在店里和妈妈聊聊，可以听到她的经营建议。",1),l("button",{onClick:x[1]||(x[1]=k=>_("shop"))},"回林记烘焙")]),l("article",Mb,[x[12]||(x[12]=l("strong",null,"苏晴 · 重要的朋友",-1)),l("p",null,"本月互动 "+u(g(s).sqchatMonth===g(s).month?"已完成":"尚未完成")+"。公园和河边藏着更多共同回忆。",1),l("button",{onClick:x[2]||(x[2]=k=>_("park"))},"去公园")]),(d(!0),p(V,null,ee(g(Mn),k=>(d(),p("article",{key:k.id,class:"phone-card"},[l("strong",null,u(g(s).staff.includes(k.id)?k.name:"尚未认识的伙伴"),1),l("p",null,u(g(s).staff.includes(k.id)?k.role+" · 信赖 "+Math.round(g(s).partnerTrust[k.id]||0):"继续经营和探索，解锁这位伙伴的故事。"),1)]))),128)),g(We)("cafe").open?(d(),p("article",Cb,[x[13]||(x[13]=l("strong",null,"许沐禾 · 咖啡店主理人",-1)),l("p",null,"合作好感 "+u(g(s).cafeRelation)+"。喜欢研究咖啡与甜点搭配。",1),l("button",{onClick:x[3]||(x[3]=k=>_("cafe"))},"去咖啡店")])):S("",!0)],64)):a.value==="online"?(d(),p(V,{key:2},[x[16]||(x[16]=l("h3",null,"线上接单",-1)),x[17]||(x[17]=l("p",{class:"phone-sub"},"订单由每日经营系统生成；接单后要制作对应商品，前往柜台交付。",-1)),v.value.length?S("",!0):(d(),p("p",wb,"今天暂时没有新的线上、定制或节日订单。")),(d(!0),p(V,null,ee(v.value,k=>(d(),p("article",{key:k.id,class:"phone-card"},[l("strong",null,u(k.orderNo)+" · "+u(k.type),1),l("p",null,[ye(u(k.customer)+"："+u(g(Fe)(k.product))+" ×"+u(k.qty),1),x[15]||(x[15]=l("br",null,null,-1)),ye(u(k.due||k.blessing||"按约定品质制作")+" · 报酬 ¥"+u(k.pay),1)]),l("button",{disabled:g(s).dayPhase!=="prep",onClick:H=>M(k)},u(k.taken?"已接受 · 点击撤销":"接受订单"),9,Eb)]))),128))],64)):a.value==="orders"?(d(),p(V,{key:3},[x[23]||(x[23]=l("h3",null,"订单详情",-1)),st(l("input",{"onUpdate:modelValue":x[4]||(x[4]=k=>o.value=k),class:"phone-search",type:"search",placeholder:"搜索订单号 / 顾客","aria-label":"搜索订单"},null,512),[[Rt,o.value]]),f.value.length?S("",!0):(d(),p("p",Sb,"没有匹配的订单。已完成且结束营业的订单可在经营记录中查看。")),(d(!0),p(V,null,ee(f.value,k=>(d(),p("article",{key:k.id+"-"+(k.kind||""),class:"phone-card"},[l("div",Tb,[l("strong",null,u(k.orderNo||k.id),1),l("span",null,u(T(k)),1)]),l("p",null,[ye("顾客："+u(k.customer||"到店顾客")+" · "+u(k.type||"普通"),1),x[18]||(x[18]=l("br",null,null,-1)),ye("蛋糕："+u(g(Fe)(k.product))+" ×"+u(k.qty),1),x[19]||(x[19]=l("br",null,null,-1)),ye("规格："+u(k.qty>1?"共 "+k.qty+" 份":"标准规格"),1),x[20]||(x[20]=l("br",null,null,-1)),ye("特殊要求："+u(k.due||k.blessing||"按标准配方制作"),1),x[21]||(x[21]=l("br",null,null,-1)),ye("材料："+u(Object.entries(g(cn)[k.product]||{}).map(([H,ie])=>{var q;return(((q=g(ft).find(J=>J.id===H))==null?void 0:q.name)||H)+"×"+ie}).join("、")),1),x[22]||(x[22]=l("br",null,null,-1)),ye("报酬：¥"+u(k.pay||0),1)])]))),128)),l("button",{class:"phone-primary",onClick:x[5]||(x[5]=k=>{n("close"),n("open-panel","game:delivery")})},"进入独立订单交付小游戏")],64)):a.value==="calendar"?(d(),p(V,{key:4},[l("h3",null,"第 "+u(g(s).month)+" 月 · "+u(h.value.title),1),l("p",Ib,"第 "+u(g(s).day)+" / 5 个经营日 · "+u(h.value.place),1),l("article",Ab,[x[24]||(x[24]=l("strong",null,"本季活动",-1)),l("p",null,u(h.value.detail),1),g(s).day===5?(d(),p("p",Pb,"明天将进入新的经营月，记得提前补齐材料。")):S("",!0)]),x[25]||(x[25]=l("h3",null,"材料准备清单",-1)),(d(!0),p(V,null,ee(y.value,k=>(d(),p("div",{key:k.id,class:"phone-material"},[l("span",null,u(k.name),1),l("b",{class:ve({missing:k.stock<2})},"库存 "+u(k.stock),3)]))),128)),l("button",{class:"phone-primary",onClick:x[6]||(x[6]=k=>_("supplier"))},"去食材铺采购")],64)):a.value==="collections"?(d(),p(V,{key:5},[x[26]||(x[26]=l("h3",null,"收藏 · 旅行与回忆",-1)),l("div",Rb,[l("span",null,"风景 "+u(g(s).scenePhotos.length),1),l("span",null,"河岸故事 "+u(g(s).sceneEvents.length)+"/5",1),l("span",null,"设计 "+u(g(s).designWorks.length),1)]),x[27]||(x[27]=l("h3",null,"风景相册",-1)),g(s).scenePhotos.length?S("",!0):(d(),p("p",Ob,"公园和河边可以拍摄第一张风景照。")),(d(!0),p(V,null,ee([...g(s).scenePhotos].reverse(),k=>(d(),p("div",{key:k.id,class:"phone-entry"},"📷 "+u(k.title)+" · 第"+u(k.month)+"月",1))),128)),x[28]||(x[28]=l("h3",null,"苏晴的河岸回忆",-1)),(d(!0),p(V,null,ee(g(s).sceneEvents,k=>(d(),p("div",{key:k,class:"phone-entry"},"♡ "+u({walk:"第一次散步",lost:"遗失的物品",rain:"雨天的小插曲",festival:"河岸灯会",bridge:"旧桥边的回忆"}[k]),1))),128)),x[29]||(x[29]=l("h3",null,"研发与活动记录",-1)),l("div",Nb,"已掌握 "+u(g(s).unlocked.length)+" 款蛋糕配方 · 制作记录 "+u(g(s).bakingRecords.length),1),l("div",Db,"市集 "+u(g(s).activityRecords.market.length)+" 次 · 咖啡店联名 "+u(g(s).activityRecords.cafe.length)+" 次",1),l("button",{class:"phone-primary",onClick:x[7]||(x[7]=k=>{n("close"),n("open-panel","codex")})},"查看完整图鉴 / CG / 结局收藏")],64)):a.value==="finance"?(d(),p(V,{key:6},[x[30]||(x[30]=l("h3",null,"每日经营数据",-1)),l("div",Lb,[l("span",null,"今日收入 ¥"+u(g(s).dayRev),1),l("span",null,"今日支出 ¥"+u(g(s).daySpend),1),l("span",null,"净额 ¥"+u(b.value),1)]),l("div",Vb,"今日销售 "+u(g(s).daySold)+" 份 · 累计完成订单 "+u(g(s).doneOrders)+" 笔",1),l("div",Fb,"本月营业额 ¥"+u(g(s).monthRev)+" · 本月总支出 ¥"+u(g(s).monthCost),1),x[31]||(x[31]=l("h3",null,"最近经营日",-1)),g(s).dailyLedger.length?S("",!0):(d(),p("p",jb,"完成第一天营业后开始记录日报。")),(d(!0),p(V,null,ee(g(s).dailyLedger.slice(0,12),k=>(d(),p("div",{key:k.month+"-"+k.day,class:"phone-ledger"},[l("span",null,u(k.month)+"月"+u(k.day)+"日 · 卖出 "+u(k.sold)+" 份",1),l("b",{class:ve({missing:k.rev-k.cost<0})},"净 ¥"+u(k.rev-k.cost),3)]))),128))],64)):a.value==="notices"?(d(),p(V,{key:7},[x[32]||(x[32]=l("h3",null,"消息与特别提醒",-1)),x[33]||(x[33]=l("p",{class:"phone-sub"},"点击消息可直接前往对应场景；尚未开放的地点会提示解锁条件。",-1)),(d(!0),p(V,null,ee(m.value,k=>(d(),p("article",{key:k.id,class:"phone-card phone-alert"},[l("strong",null,u(k.title),1),l("p",null,u(k.detail),1),l("button",{onClick:H=>E(k)},"查看并前往 →",8,Bb)]))),128)),(d(!0),p(V,null,ee(g(s).notices.filter(k=>k.seen).slice(0,25),k=>(d(),p("article",{key:k.id,class:"phone-card"},[l("strong",null,u(k.title)+" · 已读",1),l("p",null,u(k.detail),1),l("button",{onClick:H=>E(k)},"前往 →",8,qb)]))),128)),!g(s).notices.length&&!m.value.length?(d(),p("p",Ub,"暂时没有新消息。经营与探索后会收到提醒。")):S("",!0)],64)):S("",!0)]),l("footer",Hb,[x[34]||(x[34]=l("span",null,"林记烘焙 · 让每一天都有一点甜",-1)),l("button",{onClick:x[8]||(x[8]=k=>n("close"))},"返回游戏")])])]))}},Gb=He(Kb,[["__scopeId","data-v-b8cbc150"]]),Wb={class:"card card-pad"},zb={class:"between"},Yb={class:"chip"},Jb=["disabled"],Qb={class:"card ingredient-list"},Zb={class:"small muted"},Xb={class:"stepper"},e0=["disabled","onClick"],t0=["disabled","onClick"],n0=["value","disabled","onInput","onBlur"],s0=["disabled","onClick"],r0=["disabled","onClick"],l0={key:0,class:"small",role:"status"},a0={class:"purchase-footer"},o0=["disabled"],i0={__name:"SupplierPage",setup(e){const t=un({}),n=K(""),r=j(()=>ft.filter(v=>v.month<=s.month)),a=j(()=>r.value.reduce((v,h)=>v+(t[h.id]||0)*h.price,0));function o(v,h){t[v]=Math.max(0,Math.min(99,(t[v]||0)+h))}function i(v,h){const y=String(h.target.value||"").replace(/[^0-9]/g,"");t[v]=Math.max(0,Math.min(99,Number(y)||0)),h.target.value=String(t[v]||0)}function c(){Object.keys(t).forEach(v=>{t[v]=0}),Object.assign(t,af()),n.value="已按今天的生产计划填入缺料数量。"}function f(){const v=lf(t);n.value=v.message,v.ok&&Object.keys(t).forEach(h=>{t[h]=0})}return(v,h)=>(d(),p("div",null,[l("div",Wb,[l("div",zb,[h[0]||(h[0]=l("div",{class:"h2"},"食材铺",-1)),l("span",Yb,"仓库 "+u(g(_s))+"/"+u(g(s).warehouseCapacity),1)]),h[1]||(h[1]=l("p",{class:"small muted"},"选好今天要用的原料，一次结账。数量可以直接输入，也能用 ±5 快速调。采购消耗 1 点行动力；二周目优惠在首笔采购时抵扣，最高 ¥300。",-1)),l("button",{class:"btn",type:"button",disabled:g(s).dayPhase!=="prep",onClick:c},"按生产计划补齐缺料",8,Jb)]),l("div",Qb,[(d(!0),p(V,null,ee(r.value,y=>(d(),p("div",{key:y.id,class:"ingredient"},[l("div",null,[l("strong",null,u(y.name),1),l("div",Zb,"库存 "+u(g(s).pantry[y.id]||0)+" · ¥"+u(y.price)+" / 份",1)]),l("div",Xb,[l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:b=>o(y.id,-5)},"−5",8,e0),l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:b=>o(y.id,-1)},"−",8,t0),l("input",{class:"qty",type:"number",inputmode:"numeric",min:"0",max:"99",value:t[y.id]||0,disabled:g(s).dayPhase!=="prep",onInput:b=>i(y.id,b),onBlur:b=>i(y.id,b)},null,40,n0),l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:b=>o(y.id,1)},"+",8,s0),l("button",{type:"button",disabled:g(s).dayPhase!=="prep",onClick:b=>o(y.id,5)},"+5",8,r0)])]))),128))]),n.value?(d(),p("p",l0,u(n.value),1)):S("",!0),l("div",a0,[l("span",null,"合计 ¥"+u(a.value),1),l("button",{class:"btn primary",type:"button",disabled:g(s).dayPhase!=="prep"||g(s).ap<1||a.value<=0,onClick:f},"确认采购 · 1 点行动力",8,o0)])]))}},u0=He(i0,[["__scopeId","data-v-0c0a0343"]]),c0={class:"card card-pad"},d0={class:"between"},f0={class:"chip"},p0={class:"small muted"},v0=["disabled"],h0={class:"card card-pad section-card"},m0={class:"small muted"},g0=["disabled","onClick"],y0={class:"card card-pad section-card"},b0={class:"small muted"},k0=["disabled","onClick"],_0={__name:"RenovationPage",setup(e){const t=j(()=>ds.find(o=>o.lv===s.shopLevel+1)),n=j(()=>Ml.map(o=>({...o,tier:ks(o.id),next:gn(o.id)}))),r=j(()=>$l.map(o=>({...o,owned:s.decorations.includes(o.id),available:s.shopLevel>=o.shopLevel})));function a(){if(s.dayPhase!=="prep")return;const o=Yt("decorate");!o.disabled&&s.ap>=o.ap&&s.cash>=o.cost&&Vn("decorate",{})}return(o,i)=>(d(),p("div",null,[l("div",c0,[l("div",d0,[i[0]||(i[0]=l("div",{class:"h2"},"店铺升级",-1)),l("span",f0,u(g(Cd)(g(s).shopLevel).name),1)]),l("div",p0,"舒适度 "+u(g(el))+"/4 · 自然客流 +"+u(g(el)*2)+"%",1),l("button",{class:"btn primary block",style:{"margin-top":"10px"},type:"button",disabled:g(s).dayPhase!=="prep"||!t.value||g(Yt)("decorate").disabled||g(s).ap<2,onClick:a},u(t.value?"升级到 "+t.value.name+" · ¥"+t.value.cost+" · 2 点行动力":"已达到最高等级"),9,v0)]),l("div",h0,[i[1]||(i[1]=l("div",{class:"h2"},"装饰",-1)),(d(!0),p(V,null,ee(r.value,c=>(d(),p("div",{key:c.id,class:"row-item"},[l("div",null,[l("strong",null,u(c.name),1),l("div",m0,"改善店内环境 · 店铺等级 "+u(c.shopLevel)+" · ¥"+u(c.cost),1)]),l("button",{class:"btn",type:"button",disabled:g(s).dayPhase!=="prep"||c.owned||!c.available||g(s).cash<c.cost||g(s).phase!=="playing",onClick:f=>g(bf)(c.id)},u(c.owned?"已购":c.available?"购买":"等级不足"),9,g0)]))),128))]),l("div",y0,[i[2]||(i[2]=l("div",{class:"between"},[l("div",{class:"h2"},"设备"),l("span",{class:"small muted"},"升级后立即生效")],-1)),(d(!0),p(V,null,ee(n.value,c=>{var f;return d(),p("div",{key:c.id,class:"row-item"},[l("div",null,[l("strong",null,u(c.name)+" · "+u(c.tier)+"/3",1),l("div",b0,u(c.desc)+" · "+u(((f=c.next)==null?void 0:f.text)||"已经满级"),1)]),l("button",{class:"btn",type:"button",disabled:g(s).dayPhase!=="prep"||!c.next||g(s).cash<c.next.cost,onClick:v=>g(vi)(c.id)},u(c.next?"¥"+c.next.cost:"满级"),9,k0)])}),128))])]))}},$0=He(_0,[["__scopeId","data-v-8ca6b519"]]),x0=["aria-label"],M0={class:"mg-frame"},C0=["src"],w0={class:"mg-top"},E0={class:"mg-title"},S0={class:"t"},T0={key:0,class:"s"},I0={class:"mg-slot"},A0={class:"mg-body"},P0={__name:"MiniShell",props:{bg:{type:String,required:!0},title:{type:String,default:""},sub:{type:String,default:""}},emits:["exit"],setup(e){const t=e,n=Ae(t.bg+".webp"),r=Ye(t.bg+".webp")==="ok"?n:Ae(t.bg+".png");return(a,o)=>(d(),p("div",{class:"mg",role:"region","aria-label":e.title+"独立游戏界面"},[l("div",M0,[l("img",{class:"mg-bg",src:g(r),alt:""},null,8,C0),o[1]||(o[1]=l("div",{class:"mg-shade"},null,-1)),l("header",w0,[l("button",{class:"mg-back",type:"button",onClick:o[0]||(o[0]=i=>a.$emit("exit")),"aria-label":"返回"},"←"),l("div",E0,[l("div",S0,u(e.title),1),e.sub?(d(),p("div",T0,u(e.sub),1)):S("",!0)]),l("div",I0,[Jl(a.$slots,"top",{},void 0)])]),l("div",A0,[Jl(a.$slots,"default",{},void 0)])])],8,x0))}},$s=He(P0,[["__scopeId","data-v-9fb4ab19"]]),R0={key:0,class:"game-scroll"},O0={class:"game-card"},N0={class:"game-stats"},D0={key:0,class:"game-message"},L0={key:0,class:"customer-queue"},V0=["disabled","onClick"],F0={class:"customer"},j0={class:"customer-name"},B0={class:"patience"},q0={class:"case"},U0=["disabled","onClick"],H0=["src","alt"],K0={class:"delivery-bar game-card"},G0={class:"game-row"},W0={key:0,class:"game-lead"},z0={key:1,class:"custom-options"},Y0={class:"game-section"},J0={class:"choice-grid"},Q0=["onClick"],Z0={class:"choice-grid"},X0=["onClick"],ek={key:2,class:"game-message",role:"status"},tk={class:"game-grid"},nk=["disabled"],sk=["disabled"],rk=["disabled"],lk={class:"phone-screen game-card"},ak={class:"game-row"},ok={class:"game-row"},ik={key:0,class:"order-detail"},uk={key:3,class:"packing-mask"},ck={class:"game-card pack-card"},dk=["src"],fk={class:"game-progress"},pk={class:"game-lead game-center"},vk={key:4,class:"game-scroll"},hk={class:"game-card"},mk={class:"game-stats"},Ds=3600,gk={__name:"DeliveryGame",props:{paused:{type:Boolean,default:!1}},emits:["exit"],setup(e,{emit:t}){const n=e,r=t,a=K("intro"),o=K(""),i=K(""),c=K(""),f=K(0),v=K(""),h=K(!1),y=K(""),b=K(null),m=K(!1),M=K(!1),_=K(0),E=K(0),T=K(!1),w=K(!1),x=["粉色小花","清爽配色","简洁裱花"],k=["生日快乐","愿你每天都有好心情","把今天的甜分享给你"],H={plain:"圆形浅黄色戚风胚，外层抹薄薄的白奶油，顶端只有奶油花。",strawberry:"圆形白奶油蛋糕，顶部摆三颗红草莓，侧面能看到草莓果肉夹层。",chocolate:"深棕色圆形蛋糕，巧克力奶油抹面，顶上撒细碎的可可巧克力屑。",taro:"淡紫色圆蛋糕，夹着芋泥，顶端有焦糖杏仁薄脆。",matcha:"浅绿色茶香奶油蛋糕，顶部点缀蜜红豆颗粒。",mango:"金黄色圆形慕斯，顶部有芒果丁和切成薄片的芒果。",tiramisu:"方形蛋糕，表面深棕色可可粉，侧面白色奶酪层清晰可见。",fig:"白奶油蛋糕，顶部的紫红色无花果果瓣排成花形。",seasonal:"圆形奶油蛋糕，顶部装饰多种当季水果，颜色丰富。",custom:"双层圆形奶油蛋糕，有精致裱花、庆祝小牌和专属装饰。",festival:"红棕色奶油蛋糕，顶部布满节庆糖珠和糖花。",signature:"棕黄色圆形蛋糕，表层栗子奶油呈螺旋纹，撒有细小金桂。"},ie=j(()=>{var I;return((I=s.service)==null?void 0:I.tickets)||[]}),q=j(()=>{var I;return ie.value.find(D=>{var F;return D.id===((F=s.service)==null?void 0:F.activeTicketId)})||ie.value[((I=s.service)==null?void 0:I.current)||0]||null}),J=j(()=>ie.value.findIndex(I=>{var D;return I.id===((D=q.value)==null?void 0:D.id)})),Y=j(()=>{if(!s.service)return[];const I=Math.max(1,Math.min(3,s.shopLevel));return s.service.tickets.slice(s.service.current,s.service.current+I).filter(D=>!["delivered","unavailable"].includes(D.status))}),re=j(()=>{var I;return((I=q.value)==null?void 0:I.kind)==="appointment"}),ne=j(()=>Vt.value.map(I=>({...I,qty:s.shelf[I.id]||0}))),P=I=>Ye(`cake-${I}.webp`)==="ok"?Ae(`cake-${I}.webp`):"",N=j(()=>ie.value.filter(I=>I.status==="delivered")),ue=j(()=>N.value.length),ge=j(()=>N.value.reduce((I,D)=>I+D.qty,0)),me=j(()=>N.value.reduce((I,D)=>I+Number(D.revenue||0),0)),z=j(()=>q.value?Math.max(0,Math.min(100,q.value.remaining/Math.max(1,q.value.patience)*100)):0),U=j(()=>q.value?H[q.value.product]||`我想要一份${Fe(q.value.product)}。`:""),O=j(()=>q.value?re.value?`你好，我来取预订的蛋糕，订单编号是 ${q.value.orderNo}。`:`你好，想要这种蛋糕：${U.value} 请给我 ${q.value.qty} 份。`:""),Q={waiting:"等候",searching:"找货中",found:"待打包",packing:"打包中",ready:"待递交",delivered:"已交付",unavailable:"已结束"},te=j(()=>q.value?q.value.status==="waiting"?"核对蛋糕并取货":q.value.status==="searching"?"员工正在找货":q.value.status==="found"?"开始打包":q.value.status==="packing"?"继续打包动画":q.value.status==="ready"?"递交蛋糕 · 收款":"处理下一位顾客":"");function A(){if(s.dayPhase==="service-ready"&&!s.service&&!Oi())return v.value="请先制作蛋糕、接好预约单，再开始柜台接待。";if(!s.service){v.value=s.dayPhase==="closing"?"今天营业已经结束。":"当前不能开始营业，请先在后厨制作蛋糕。";return}if(!q.value){a.value="result";return}Hn(q.value.id),a.value="play",v.value="根据顾客描述挑选蛋糕；预约顾客请先在手机里核对订单。",["packing","ready"].includes(q.value.status)&&pe()}function L(I){M.value||!Hn(I.id)||(o.value="",m.value=!1,b.value=null,i.value="",c.value="",["packing","ready"].includes(I.status)&&pe())}function R(){var D,F;const I=y.value.trim().toUpperCase();b.value=ie.value.find(se=>{var W;return((W=se.orderNo)==null?void 0:W.toUpperCase())===I})||null,v.value=b.value?"订单已找到，请核对蛋糕、数量和特别要求。":"没有找到这个编号，请核对后再试。",m.value=((D=b.value)==null?void 0:D.id)===((F=q.value)==null?void 0:F.id)}function X(I){M.value||!q.value||q.value.status!=="waiting"||(o.value=I,v.value=`已选${Fe(I)}，柜台现有 ${s.shelf[I]||0} 份。`)}function le(){const I=q.value;if(!(!I||M.value)){if(I.kind==="appointment"&&!m.value){v.value="预约取货必须先在手机里输入订单编号并核对详情。";return}if(I.status==="waiting"){if(!o.value)return v.value="先从右侧展示柜选择一款蛋糕。";if(o.value!==I.product){f.value+=1,o.value="",v.value="这款蛋糕的外观或口味不符合需求，请重新看描述。";return}if((s.shelf[I.product]||0)<I.qty)return v.value="该款库存不足，请登记缺货结束这笔未成交订单。";const D=Bf(I.id,o.value,I.qty);v.value=D.message;return}if(I.status==="searching")return v.value="找货还在进行中，稍等片刻。";if(I.status==="found"){const D=qf(I.id,I.type==="定制"?i.value:null,I.type==="定制"?c.value:null);if(!D.ok)return v.value=D.message;v.value=D.message,pe();return}if(I.status==="packing")return pe();if(I.status==="ready")return $();v.value="请从当前等候队列里选择一位顾客。"}}function pe(){M.value=!0,_.value+=1,E.value=0,T.value=!1,w.value=!1,v.value="需要完整播放一遍打包动画，完成后才能递交。"}function be(){M.value&&(T.value=!0)}function Le(){w.value=!0,v.value="打包素材加载失败，请重试。未完成动画不会交付蛋糕。"}function it(){const I=q.value;if(!I||I.status!=="ready")return;M.value=!1,T.value=!1;const D=ll(I.id);if(!D.ok){v.value=D.message;return}v.value=D.message,o.value="",m.value=!1,b.value=null,y.value="",i.value="",c.value="",q.value?Hn(q.value.id):(s.deliveryDay=s.dayIndex,oe(),a.value="result")}function $(){const I=q.value;if(!I||M.value)return;const D=ll(I.id);if(!D.ok)return v.value=D.message;v.value=D.message,o.value="",m.value=!1,b.value=null,y.value="",q.value?Hn(q.value.id):(s.deliveryDay=s.dayIndex,oe(),a.value="result")}function C(){const I=q.value;!I||M.value||Kf(I.id)&&(f.value+=1,v.value="缺货已记录，当前订单不会扣除库存。",o.value="",m.value=!1,b.value=null,y.value="",q.value?Hn(q.value.id):(s.deliveryDay=s.dayIndex,oe(),a.value="result"))}let B=0,Z=0;function G(){var F;const I=performance.now();if(a.value!=="play"||n.paused||document.hidden||h.value){Z=I;return}const D=Z?Math.min(.2,(I-Z)/1e3):0;Z=I,!(D<=0)&&(Hf(D),M.value&&T.value&&!w.value&&(E.value=Math.min(Ds,E.value+D*1e3),E.value>=Ds&&((F=q.value)==null?void 0:F.status)==="ready"&&it()))}return Pt(()=>n.paused,(I,D)=>{D&&!I&&M.value&&pe()}),Sn(()=>{Z=performance.now(),B=window.setInterval(G,50)}),ys(()=>{B&&window.clearInterval(B)}),(I,D)=>(d(),Se($s,{bg:"minigame-delivery",title:"订单交付",sub:a.value==="play"?"已完成 "+ue.value+" / "+ie.value.length+" 单 · 今日 ¥"+g(s).dayRev:"顾客点单与预约取货",onExit:D[5]||(D[5]=F=>r("exit"))},{default:En(()=>[a.value==="intro"?(d(),p("div",R0,[l("div",O0,[D[6]||(D[6]=l("h3",{class:"game-title"},"接待今日顾客",-1)),D[7]||(D[7]=l("p",{class:"game-lead"},"普通客人会描述蛋糕外观，预约客人会报真实订单编号。取货、找货和打包都会推进耐心计时；离开游戏或切后台时会暂停。",-1)),l("div",N0,[l("span",null,"货架现货 "+u(Object.values(g(s).shelf).reduce((F,se)=>F+se,0))+" 份",1),l("span",null,"预约订单 "+u(g(s).orders.filter(F=>F.taken).length)+" 笔",1)]),v.value?(d(),p("p",D0,u(v.value),1)):S("",!0),l("button",{class:"game-btn primary",style:{width:"100%","margin-top":"10px"},type:"button",onClick:A},u(g(s).service?"继续当日营业":"开始柜台营业"),1)])])):S("",!0),a.value==="play"&&q.value?(d(),p(V,{key:1},[Y.value.length>1?(d(),p("div",L0,[(d(!0),p(V,null,ee(Y.value,F=>(d(),p("button",{key:F.id,class:ve(["queue-ticket",{active:F.id===q.value.id,unhappy:F.unhappy}]),type:"button",disabled:M.value,onClick:se=>L(F)},[l("span",null,u(F.customer),1),l("small",null,u(F.qty)+" 份 · "+u(Q[F.status])+u(F.unhappy?" · 有些着急":""),1),l("i",null,[l("b",{style:ot({width:Math.max(0,F.remaining/Math.max(1,F.patience)*100)+"%"})},null,4)])],10,V0))),128))])):S("",!0),l("div",F0,[l("span",j0,u(q.value.customer)+" · "+u(re.value?"预约取货":"到店购买")+" · "+u(J.value+1)+"/"+u(ie.value.length),1),l("p",null,u(O.value),1),l("div",B0,[l("i",{style:ot({width:z.value+"%"})},null,4)]),l("small",null,u(q.value.unhappy?"顾客有点着急，但仍会等你":"耐心倒计时")+" · "+u(Math.ceil(q.value.remaining))+" 秒",1)]),l("div",q0,[(d(!0),p(V,null,ee(ne.value,F=>(d(),p("button",{key:F.id,class:ve(["cake-cell",{active:o.value===F.id,empty:F.qty<q.value.qty}]),type:"button",disabled:M.value||q.value.status!=="waiting",onClick:se=>X(F.id)},[P(F.id)?(d(),p("img",{key:0,src:P(F.id),alt:F.name},null,8,H0)):S("",!0),l("span",null,u(g(Fe)(F.id)),1),l("small",null,u(F.qty<q.value.qty?"缺货":"剩 "+F.qty),1)],10,U0))),128))]),l("div",K0,[l("div",G0,[l("span",null,"当前需求 "+u(q.value.qty)+" 份",1),l("span",null,u(o.value?g(Fe)(o.value):"请选择展示柜蛋糕"),1)]),q.value.status==="searching"?(d(),p("div",W0,u(g(s).staffAssignments.picker?"员工正在找蛋糕":"正在核对展示柜")+" · 还需 "+u(Math.ceil(q.value.findRemaining||0))+" 秒 ",1)):S("",!0),q.value.status==="found"&&q.value.type==="定制"?(d(),p("div",z0,[l("div",Y0,"预约要求 · 装饰："+u(q.value.due)+" · 祝福："+u(q.value.blessing),1),l("div",J0,[(d(),p(V,null,ee(x,F=>l("button",{key:F,class:ve(["game-btn",{selected:i.value===F}]),type:"button",onClick:se=>i.value=F},u(F),11,Q0)),64))]),l("div",Z0,[(d(),p(V,null,ee(k,F=>l("button",{key:F,class:ve(["game-btn",{selected:c.value===F}]),type:"button",onClick:se=>c.value=F},u(F),11,X0)),64))])])):S("",!0),v.value?(d(),p("p",ek,u(v.value),1)):S("",!0),l("div",tk,[l("button",{class:"game-btn",type:"button",disabled:M.value,onClick:D[0]||(D[0]=F=>h.value=!0)},"📱 手机订单",8,nk),l("button",{class:"game-btn",type:"button",disabled:M.value,onClick:C},"登记缺货",8,sk),l("button",{class:"game-btn primary",type:"button",disabled:M.value||q.value.status==="searching",onClick:le},u(te.value),9,rk)])])],64)):S("",!0),h.value?(d(),p("div",{key:2,class:"phone-backdrop",onClick:D[3]||(D[3]=at(F=>h.value=!1,["self"]))},[l("section",lk,[l("div",ak,[D[8]||(D[8]=l("h3",{class:"game-title"},"📱 手机 · 订单详情",-1)),l("button",{class:"game-btn",type:"button",onClick:D[1]||(D[1]=F=>h.value=!1)},"返回柜台")]),l("div",ok,[st(l("input",{"onUpdate:modelValue":D[2]||(D[2]=F=>y.value=F),class:"order-input",type:"search",placeholder:"输入预约订单编号",onKeyup:Jr(R,["enter"])},null,544),[[Rt,y.value]]),l("button",{class:"game-btn primary",type:"button",onClick:R},"查询")]),b.value?(d(),p("div",ik,[l("b",null,u(b.value.orderNo)+" · "+u(b.value.customer),1),l("p",null,"蛋糕："+u(g(Fe)(b.value.product))+" × "+u(b.value.qty),1),l("p",null,"外观："+u(H[b.value.product]||"按该产品图鉴所示制作"),1),l("p",null,"规格："+u(b.value.qty)+" 份 · "+u(b.value.type),1),l("p",null,"装饰："+u(b.value.due||"按标准配方"),1),l("p",null,"祝福："+u(b.value.blessing||"无"),1),l("p",null,"取货：第 "+u(g(s).month)+" 月第 "+u(g(s).day)+" 日",1),l("p",null,"状态："+u(Q[b.value.status]||b.value.status),1)])):S("",!0),D[9]||(D[9]=l("div",{class:"game-section"},"当日预约单",-1)),(d(!0),p(V,null,ee(ie.value.filter(F=>F.kind==="appointment"),F=>(d(),p("div",{key:F.id,class:"order-list"},[l("span",null,u(F.orderNo)+" · "+u(F.customer),1),l("span",null,u(Q[F.status]||F.status),1)]))),128)),D[10]||(D[10]=l("p",{class:"game-lead"},"核对当前顾客的预约单后，回到柜台选取蛋糕。",-1))])])):S("",!0),M.value?(d(),p("div",uk,[l("div",ck,[D[11]||(D[11]=l("h3",{class:"game-title"},"蛋糕正在打包……",-1)),(d(),p("img",{key:_.value,src:g(Ae)("minigame-packing.gif")+"?once="+_.value,alt:"草莓蛋糕完整打包动画",onLoad:be,onError:Le},null,40,dk)),l("div",fk,[l("i",{style:ot({width:Math.round(E.value/Ds*100)+"%"})},null,4)]),l("p",pk,u(w.value?"动画加载失败，暂不交付。":T.value?(Math.max(0,Ds-E.value)/1e3).toFixed(1)+" 秒 · 完整播放一遍后递交":"正在加载打包动画……"),1),w.value?(d(),p("button",{key:0,class:"game-btn",style:{width:"100%"},type:"button",onClick:pe},"重新加载动画")):S("",!0)])])):S("",!0),a.value==="result"?(d(),p("div",vk,[l("div",hk,[D[12]||(D[12]=l("h3",{class:"game-title"},"今日柜台结算",-1)),l("div",mk,[l("span",null,"完成交付 "+u(ge.value)+" 份",1),l("span",null,"本局收入 ¥"+u(me.value),1),l("span",null,"选错／缺货 "+u(f.value)+" 次",1),l("span",null,"订单完成 "+u(ue.value)+" / "+u(ie.value.length),1)]),D[13]||(D[13]=l("p",{class:"game-lead"},"交付和缺货处理均已记入经营数据。已完成订单不会因刷新重复结算。",-1)),l("button",{class:"game-btn primary",style:{width:"100%"},type:"button",onClick:D[4]||(D[4]=F=>r("exit"))},"返回蛋糕店")])])):S("",!0)]),_:1},8,["sub"]))}},yk=He(gk,[["__scopeId","data-v-10c6b5b8"]]),bk={key:0,class:"game-banner"},kk={class:"game-scroll"},_k={key:0,class:"game-card"},$k={class:"game-title"},xk={class:"game-stats"},Mk={key:0,class:"game-message"},Ck={key:1,class:"game-card"},wk={class:"game-row"},Ek=["onClick"],Sk=["onClick"],Tk={class:"game-grid"},Ik=["onClick"],Ak=["src"],Pk={class:"game-grid"},Rk=["onClick"],Ok={key:2,class:"game-card"},Nk={class:"game-title"},Dk={class:"game-grid"},Lk=["disabled","onClick"],Vk=["src"],Fk={class:"game-grid"},jk=["onClick"],Bk={key:0,class:"game-lead"},qk={key:3,class:"game-card"},Uk={class:"game-title"},Hk={class:"game-stats"},Kk={key:4,class:"game-message"},Gk={__name:"MarketGame",emits:["exit"],setup(e,{emit:t}){const n=t,r=K("intro"),a=K(""),o=K({}),i=K(["","",""]),c=K(""),f=K(90);let v;const h=j(()=>s.marketRun),y=j(()=>Ei()),b=j(()=>{var P;return Object.entries(((P=h.value)==null?void 0:P.inventory)||{}).map(([N,ue])=>({id:N,qty:ue,price:Ft(N)}))}),m=j(()=>b.value.filter(P=>(s.shelf[P.id]||0)>P.qty)),M=j(()=>Vt.value.filter(P=>(s.shelf[P.id]||0)>0)),_=j(()=>["春日甜品市集","夏日水果节","秋日丰收集市","冬日暖心甜品节"][Math.floor((s.month-1)%12/3)]),E=P=>Ye(`cake-${P}.webp`)==="ok"?Ae(`cake-${P}.webp`):"",T=j(()=>{var P;return((P=h.value)==null?void 0:P.sold)||0}),w=j(()=>{var P;return((P=h.value)==null?void 0:P.revenue)||0}),x=j(()=>h.value?Math.round(h.value.score/Math.max(1,h.value.customerIndex)*100):100);function k(){if(s.marketRun&&!s.marketRun.completed){r.value="play",J(!0);return}r.value="prep",o.value=Object.fromEntries(M.value.map(P=>[P.id,Math.min(2,s.shelf[P.id]||0)])),i.value=["","",""],c.value=""}function H(P,N){o.value={...o.value,[P]:Math.max(0,Math.min(s.shelf[P]||0,(o.value[P]||0)+N))}}function ie(P){if(!c.value)return a.value="先点选上方商品，再点击希望摆放的摊位位置。";i.value[P]=c.value,a.value="展示位置已安排，可继续调整。"}function q(){const P=Object.fromEntries(Object.entries(o.value).filter(([,ge])=>ge>0));if(!Object.keys(P).length)return a.value="至少带一款蛋糕去市集。";if(!i.value.some(ge=>ge&&P[ge]))return a.value="先将商品布置到至少一个摊位展示位置。";if(Object.keys(P).some(ge=>!i.value.includes(ge)))return a.value="调拨的每种蛋糕都必须放到展示位置（最多三款），请调整备货。";const N=If({inventory:P,theme:_.value});if(!N.ok)return a.value=N.message;const ue=s.marketRun;ue.stand=i.value.filter(ge=>P[ge]),ue.endsAt=Date.now()+9e4,oe(),r.value="play",a.value="市集开张！看清客人需要的口味与数量。",J()}function J(P=!1){var N;if(clearInterval(v),(N=h.value)!=null&&N.endsAt||(h.value.endsAt=Date.now()+9e4,oe()),v=setInterval(()=>{var ue;if(f.value=Math.max(0,Math.ceil((((ue=h.value)==null?void 0:ue.endsAt)-Date.now())/1e3)),f.value<=0){for(clearInterval(v);s.marketRun&&!s.marketRun.completed;)Vr();r.value="result",a.value="活动时间结束，收摊结算。"}},250),f.value=Math.max(0,Math.ceil((h.value.endsAt-Date.now())/1e3)),P&&f.value<=0){for(;s.marketRun&&!s.marketRun.completed;)Vr();r.value="result"}}function Y(P){if(r.value!=="play"||!y.value)return;const N=Af(P);a.value=N.message,h.value.completed&&(clearInterval(v),r.value="result")}function re(P){const N=Pf(P);a.value=N.message}function ne(){Vr(),a.value="客人没有买到想要的蛋糕，满意度降低。",h.value.completed&&(clearInterval(v),r.value="result")}return Sn(()=>{s.marketRun&&!s.marketRun.completed&&(r.value="intro",a.value="发现上次未结束的市集，可继续营业。")}),ys(()=>clearInterval(v)),(P,N)=>(d(),Se($s,{bg:"minigame-market",title:"小镇市集",sub:r.value==="play"?_.value+" · 剩余 "+f.value+" 秒":_.value,onExit:N[1]||(N[1]=ue=>n("exit"))},{default:En(()=>{var ue,ge,me,z,U,O,Q,te,A;return[r.value==="play"&&y.value?(d(),p("div",bk,[l("b",null,u(y.value.customer),1),N[2]||(N[2]=ye("：想买 ",-1)),l("b",null,u(g(Fe)(y.value.product)),1),ye(" × "+u(y.value.qty)+" 份！",1),N[3]||(N[3]=l("br",null,null,-1)),l("small",null,"营业额 ¥"+u(w.value)+" · 销量 "+u(T.value)+" · 满意度 "+u(x.value)+"%",1)])):S("",!0),l("div",kk,[r.value==="intro"?(d(),p("div",_k,[l("h3",$k,u(_.value),1),N[4]||(N[4]=l("p",{class:"game-lead"},"先从店内库存调拨蛋糕，再安排摊位展示位置。开张后需要在 90 秒内接待顾客，错卖会影响满意度。",-1)),l("div",xk,[l("span",null,"今日货架 "+u(Object.values(g(s).shelf).reduce((L,R)=>L+R,0))+" 份",1),l("span",null,"本月活动积分 "+u(g(s).marketPoints||0),1)]),a.value?(d(),p("p",Mk,u(a.value),1)):S("",!0),l("button",{class:"game-btn primary",type:"button",style:{width:"100%","margin-top":"8px"},onClick:k},u(h.value&&!h.value.completed?"继续市集":"准备市集商品"),1)])):S("",!0),r.value==="prep"?(d(),p("div",Ck,[N[6]||(N[6]=l("h3",{class:"game-title"},"备货与布置摊位",-1)),N[7]||(N[7]=l("p",{class:"game-lead"},"调拨数量不能超过主店真实库存。展示位置会影响实际可售商品，点击商品再点位置进行陈列。",-1)),N[8]||(N[8]=l("div",{class:"game-section"},"① 选择调拨数量",-1)),(d(!0),p(V,null,ee(M.value,L=>(d(),p("div",{key:L.id,class:"game-row"},[l("span",null,u(g(Fe)(L.id))+" · 现货 "+u(g(s).shelf[L.id]),1),l("div",wk,[l("button",{class:"game-btn",type:"button",onClick:R=>H(L.id,-1)},"−",8,Ek),l("b",null,u(o.value[L.id]||0),1),l("button",{class:"game-btn",type:"button",onClick:R=>H(L.id,1)},"＋",8,Sk)])]))),128)),N[9]||(N[9]=l("div",{class:"game-section"},"② 选择陈列商品",-1)),l("div",Tk,[(d(!0),p(V,null,ee(M.value.filter(L=>o.value[L.id]>0),L=>(d(),p("button",{key:L.id,type:"button",class:ve(["game-btn game-tile",{selected:c.value===L.id}]),onClick:R=>c.value=L.id},[E(L.id)?(d(),p("img",{key:0,src:E(L.id),alt:""},null,8,Ak)):S("",!0),l("small",null,u(g(Fe)(L.id)),1)],10,Ik))),128))]),N[10]||(N[10]=l("div",{class:"game-section"},"③ 放入三个展示位置",-1)),l("div",Pk,[(d(!0),p(V,null,ee(i.value,(L,R)=>(d(),p("button",{key:R,class:"game-btn",type:"button",onClick:X=>ie(R)},[ye("位置 "+u(R+1),1),N[5]||(N[5]=l("br",null,null,-1)),ye(u(L?g(Fe)(L):"点击放置"),1)],8,Rk))),128))]),l("button",{class:"game-btn primary",type:"button",style:{width:"100%"},onClick:q},"布置完成 · 开始营业")])):S("",!0),r.value==="play"?(d(),p("div",Ok,[l("h3",Nk,"摊位销售 · "+u(((ue=h.value)==null?void 0:ue.customerIndex)+1)+" / "+u((ge=h.value)==null?void 0:ge.demands.length),1),N[11]||(N[11]=l("p",{class:"game-lead"},"按需求点击展示台上的蛋糕，系统会自动检查数量、收款并从现货扣除。",-1)),l("div",Dk,[(d(!0),p(V,null,ee([...new Set(((me=h.value)==null?void 0:me.stand)||Object.keys(((z=h.value)==null?void 0:z.inventory)||{}))],L=>{var R,X,le,pe;return d(),p("button",{key:L,type:"button",class:"game-btn game-tile",disabled:!(((X=(R=h.value)==null?void 0:R.inventory)==null?void 0:X[L])>0),onClick:be=>Y(L)},[E(L)?(d(),p("img",{key:0,src:E(L),alt:""},null,8,Vk)):S("",!0),l("span",null,u(g(Fe)(L)),1),l("small",null,"摊位 "+u(((pe=(le=h.value)==null?void 0:le.inventory)==null?void 0:pe[L])||0)+" 份",1)],8,Lk)}),128))]),N[12]||(N[12]=l("div",{class:"game-section"},"补货 · 从主店调拨（运费 ¥5/份）",-1)),l("div",Fk,[(d(!0),p(V,null,ee(m.value,L=>(d(),p("button",{key:L.id,class:"game-btn",type:"button",onClick:R=>re(L.id)},"＋ "+u(g(Fe)(L.id)),9,jk))),128)),m.value.length?S("",!0):(d(),p("span",Bk,"店里没有剩余现货可调拨。"))]),l("button",{class:"game-btn",style:{width:"100%"},type:"button",onClick:ne},"无法满足 · 放弃这笔订单")])):S("",!0),r.value==="result"?(d(),p("div",qk,[l("h3",Uk,"市集收摊 · "+u(((U=h.value)==null?void 0:U.score)>=(((O=h.value)==null?void 0:O.target)||99)?"达成目标":"继续努力"),1),l("div",Hk,[l("span",null,"卖出 "+u(T.value)+" 份",1),l("span",null,"活动收入 ¥"+u(w.value),1),l("span",null,"成交顾客 "+u(((Q=h.value)==null?void 0:Q.score)||0)+" 位",1),l("span",null,"失误 "+u(((te=h.value)==null?void 0:te.misses)||0)+" 次",1),l("span",null,"目标 "+u(((A=h.value)==null?void 0:A.target)||0)+" 单",1),l("span",null,"活动积分 "+u(g(s).marketPoints||0),1)]),N[13]||(N[13]=l("p",{class:"game-lead"},"销售与库存已同步到主店，活动记录已存入收藏系统。",-1)),l("button",{class:"game-btn primary",style:{width:"100%"},type:"button",onClick:N[0]||(N[0]=L=>n("exit"))},"回到小镇")])):S("",!0),a.value&&r.value!=="intro"?(d(),p("div",Kk,u(a.value),1)):S("",!0)])]}),_:1},8,["sub"]))}},Wk={key:0,class:"game-banner"},zk={class:"game-scroll"},Yk={key:0,class:"game-card"},Jk={class:"game-title"},Qk={class:"game-stats"},Zk={key:0,class:"game-message"},Xk={key:1,class:"game-card"},e_={class:"game-title"},t_={class:"game-grid four"},n_=["onClick"],s_=["src"],r_={class:"game-grid"},l_=["onClick"],a_={class:"game-row"},o_={class:"game-stats"},i_={class:"game-row"},u_={class:"game-grid two"},c_=["onClick"],d_={class:"game-lead"},f_={key:2,class:"game-card"},p_={class:"game-stats"},v_={key:3,class:"game-message"},h_={__name:"CafeGame",emits:["exit"],setup(e,{emit:t}){const n=t,r=[{id:"americano",name:"美式咖啡",profile:"bold",note:"深烘浓香"},{id:"latte",name:"拿铁",profile:"mellow",note:"温柔奶香"},{id:"cappuccino",name:"卡布奇诺",profile:"mellow",note:"绵密奶泡"},{id:"mocha",name:"摩卡",profile:"bold",note:"巧克力香"},{id:"iced",name:"冰咖啡",profile:"fresh",note:"清爽明亮"}],a={bold:"浓郁醇厚",mellow:"温柔奶香",fresh:"轻盈清爽"},o=K("intro"),i=K(""),c=K("latte"),f=K(0),v=K(""),h=K("奶油白礼盒"),y=K(""),b=j(()=>s.cafeRun),m=j(()=>Ti()),M=j(()=>Vt.value.map(re=>({...re,stock:s.shelf[re.id]||0})).filter(re=>re.stock>0)),_=j(()=>r.find(re=>re.id===c.value)),E=j(()=>["春日花园下午茶","夏日水果特调","秋日暖心咖啡","冬日巧克力时光"][Math.floor((s.month-1)%12/3)]),T=j(()=>i.value&&Si(i.value,c.value)),w=j(()=>i.value?Math.round(Ft(i.value)*1.25+65):0),x=re=>Ye(`cake-${re}.webp`)==="ok"?Ae(`cake-${re}.webp`):"";function k(){if(b.value&&!b.value.completed){o.value="play",i.value=b.value.menu.product,c.value=b.value.menu.coffee;return}o.value="setup",y.value="选择真实库存里的蛋糕，再设计咖啡、售价和包装。"}function H(re){i.value=re,f.value||(f.value=Math.round(Ft(re)*1.2+18))}function ie(){if(!i.value)return y.value="请先选择一款有库存的蛋糕。";if(!T.value)return y.value="口味冲突：尝试把清爽蛋糕搭配冰咖啡、浓郁蛋糕搭配美式或摩卡。";if(f.value<1||!Number.isFinite(Number(f.value)))return y.value="请输入有效套餐价格。";const re=Nf({product:i.value,coffee:c.value,price:f.value,theme:E.value});if(!re.ok)return y.value=re.message;s.cafeRun.menu.name=String(v.value||`${Fe(i.value)}下午茶`).slice(0,20),s.cafeRun.menu.packing=h.value,oe(),o.value="play",y.value="套餐开始营业。根据顾客口味要求，随时调整组合。"}function q(){if(!i.value)return y.value="先为顾客选择蛋糕。";const re=Df({product:i.value,coffee:c.value});if(y.value=re.message,b.value.completed){o.value="result";return}re.ok&&(i.value="",c.value="latte")}function J(){Lf(),y.value="这位客人暂时没能买到喜欢的组合。",b.value.completed&&(o.value="result")}function Y(){var re;(re=b.value)!=null&&re.menu&&(b.value.menu.price=Math.max(1,b.value.menu.price-10),oe(),y.value="本次套餐售价已下调 ¥10。")}return(re,ne)=>{var P;return d(),Se($s,{bg:"minigame-cafe",title:"咖啡店联名",sub:o.value==="play"?"已接待 "+(((P=b.value)==null?void 0:P.customerIndex)||0)+" / 3 位客人":E.value,onExit:ne[3]||(ne[3]=N=>n("exit"))},{default:En(()=>{var N,ue,ge,me,z,U,O,Q,te;return[o.value==="play"&&m.value?(d(),p("div",Wk,[l("b",null,u(m.value.customer),1),ne[4]||(ne[4]=ye("：想要一份",-1)),l("b",null,u(a[m.value.profile]),1),ne[5]||(ne[5]=ye("的蛋糕和咖啡搭配。",-1)),ne[6]||(ne[6]=l("br",null,null,-1)),l("small",null,"今日联名收益 ¥"+u(((N=b.value)==null?void 0:N.revenue)||0)+" · 客人偏好明确，请仔细搭配",1)])):S("",!0),l("div",zk,[o.value==="intro"?(d(),p("div",Yk,[l("h3",Jk,u(E.value),1),ne[7]||(ne[7]=l("p",{class:"game-lead"},"和咖啡店联合设计套餐，先选蛋糕、咖啡与价格，营业时根据三位顾客的喜好重新搭配。每笔成交都会扣除店内蛋糕，并计算咖啡制作成本。",-1)),l("div",Qk,[l("span",null,"合作经验 "+u(g(s).cafeCollab),1),l("span",null,"可用蛋糕 "+u(M.value.reduce((A,L)=>A+L.stock,0))+" 份",1)]),y.value?(d(),p("p",Zk,u(y.value),1)):S("",!0),l("button",{class:"game-btn primary",style:{width:"100%","margin-top":"8px"},type:"button",onClick:k},u(b.value&&!b.value.completed?"继续联名活动":"设计联名套餐"),1)])):S("",!0),o.value==="setup"||o.value==="play"?(d(),p("div",Xk,[l("h3",e_,u(o.value==="setup"?"① 设计联名组合":"挑选这位客人的套餐"),1),ne[11]||(ne[11]=l("div",{class:"game-section"},"左侧蛋糕 · 来自店铺实际库存",-1)),l("div",t_,[(d(!0),p(V,null,ee(M.value,A=>(d(),p("button",{key:A.id,type:"button",class:ve(["game-btn game-tile",{selected:i.value===A.id}]),onClick:L=>H(A.id)},[x(A.id)?(d(),p("img",{key:0,src:x(A.id),alt:""},null,8,s_)):S("",!0),l("span",null,u(g(Fe)(A.id)),1),l("small",null,"库存 "+u(A.stock),1)],10,n_))),128))]),ne[12]||(ne[12]=l("div",{class:"game-section"},"右侧咖啡",-1)),l("div",r_,[(d(),p(V,null,ee(r,A=>l("button",{key:A.id,type:"button",class:ve(["game-btn",{selected:c.value===A.id}]),onClick:L=>c.value=A.id},[ye(u(A.name),1),ne[8]||(ne[8]=l("br",null,null,-1)),l("small",null,u(A.note),1)],10,l_)),64))]),l("div",a_,[ne[9]||(ne[9]=l("strong",null,"中央组合区域",-1)),l("span",null,u(T.value?"✓ 风味协调":"尚需调整搭配"),1)]),l("div",o_,[l("span",null,u(i.value?g(Fe)(i.value):"尚未选蛋糕"),1),l("span",null,"＋ "+u(_.value.name),1)]),o.value==="setup"?(d(),p(V,{key:0},[ne[10]||(ne[10]=l("div",{class:"game-section"},"② 套餐命名、价格与包装",-1)),st(l("input",{class:"name-input","onUpdate:modelValue":ne[0]||(ne[0]=A=>v.value=A),maxlength:"20",placeholder:"套餐名称（可选）"},null,512),[[Rt,v.value]]),l("div",i_,[l("span",null,"定价（建议不高于 ¥"+u(w.value)+"）",1),st(l("input",{class:"game-number",type:"number",min:"1",inputmode:"numeric","onUpdate:modelValue":ne[1]||(ne[1]=A=>f.value=A)},null,512),[[Rt,f.value,void 0,{number:!0}]])]),l("div",u_,[(d(),p(V,null,ee(["奶油白礼盒","樱花粉丝带","鼠尾草绿礼盒","焦糖色纸袋"],A=>l("button",{key:A,type:"button",class:ve(["game-btn",{selected:h.value===A}]),onClick:L=>h.value=A},u(A),11,c_)),64))]),l("button",{class:"game-btn primary",style:{width:"100%"},type:"button",onClick:ie},"确认套餐 · 开始联名")],64)):(d(),p(V,{key:1},[l("p",d_,"套餐统一售价 ¥"+u((ge=(ue=b.value)==null?void 0:ue.menu)==null?void 0:ge.price)+" · "+u((z=(me=b.value)==null?void 0:me.menu)==null?void 0:z.packing)+"。顾客口味不同，可以重新挑选蛋糕与饮品。",1),l("div",{class:"game-grid"},[l("button",{class:"game-btn",type:"button",onClick:Y},"售价 −¥10"),l("button",{class:"game-btn",type:"button",onClick:J},"本单暂不成交"),l("button",{class:"game-btn primary",type:"button",onClick:q},"确认组合交付")])],64))])):S("",!0),o.value==="result"?(d(),p("div",f_,[ne[13]||(ne[13]=l("h3",{class:"game-title"},"联名活动结算",-1)),l("div",p_,[l("span",null,"售出 "+u(((U=b.value)==null?void 0:U.sold)||0)+" 套",1),l("span",null,"活动收入 ¥"+u(((O=b.value)==null?void 0:O.revenue)||0),1),l("span",null,"顾客满意 "+u(((Q=b.value)==null?void 0:Q.score)||0)+" / 3",1),l("span",null,"搭配失误 "+u(((te=b.value)==null?void 0:te.misses)||0)+" 次",1),l("span",null,"累计合作经验 "+u(g(s).cafeCollab),1),l("span",null,"本月主题 "+u(E.value),1)]),ne[14]||(ne[14]=l("p",{class:"game-lead"},"套餐、交易记录和营业收益已归入主游戏经营数据与收藏记录。",-1)),l("button",{class:"game-btn primary",type:"button",style:{width:"100%"},onClick:ne[2]||(ne[2]=A=>n("exit"))},"返回咖啡店")])):S("",!0),y.value&&o.value!=="intro"?(d(),p("div",v_,u(y.value),1)):S("",!0)])]}),_:1},8,["sub"])}}},m_=He(h_,[["__scopeId","data-v-9acf249e"]]),g_={key:0,class:"game-banner"},y_={class:"game-progress"},b_={class:"game-scroll"},k_={key:0,class:"game-card"},__={class:"game-grid"},$_=["onClick"],x_=["src","alt"],M_={class:"game-row"},C_={class:"game-lead"},w_={class:"game-lead"},E_={key:0,class:"game-message"},S_={key:1,class:"game-card"},T_={class:"game-lead"},I_={class:"game-grid"},A_=["onClick"],P_=["disabled"],R_={key:2,class:"game-card"},O_={class:"game-progress"},N_={class:"game-center"},D_={key:3,class:"game-card"},L_={class:"game-row"},V_={class:"game-grid",style:{flex:"1",margin:"0"}},F_=["onClick"],j_={class:"game-progress"},B_={class:"game-center"},q_={key:4,class:"game-card"},U_={class:"game-center"},H_=["src"],K_={class:"game-grid two"},G_=["onClick"],W_={key:5,class:"game-card"},z_={class:"game-title"},Y_={class:"game-center"},J_=["src"],Q_={class:"game-stats"},Z_={key:6,class:"game-message"},X_={__name:"BakingGame",emits:["exit"],setup(e,{emit:t}){const n=t,r=K("intro"),a=K(Object.keys(s.plan)[0]||"strawberry"),o=K(Math.max(1,s.plan[a.value]||2)),i=K([]),c=K(0),f=K(0),v=K(175),h=K(""),y=K(0),b=K({materials:0,mix:0,oven:0,garnish:0}),m=K(""),M=K(null);let _;const E=j(()=>cn[a.value]||{}),T=j(()=>Object.keys(E.value)),w=j(()=>[...new Set([...T.value,"base","dairy","decor","cocoa","strawberry","matcha","mango","chestnut"])].map(U=>ft.find(O=>O.id===U)).filter(Boolean)),x=U=>{var O;return((O=ft.find(Q=>Q.id===U))==null?void 0:O.name)||U},k=U=>Ye(`cake-${U}.webp`)==="ok"?Ae(`cake-${U}.webp`):"",H=j(()=>["奶油裱花","新鲜草莓","巧克力碎","芒果果粒","抹茶红豆","桂花栗子","坚果薄脆","时令鲜果"]),ie=j(()=>({plain:"奶油裱花",strawberry:"新鲜草莓",chocolate:"巧克力碎",mango:"芒果果粒",matcha:"抹茶红豆",signature:"桂花栗子",taro:"坚果薄脆",seasonal:"时令鲜果",fig:"时令鲜果",festival:"奶油裱花",custom:"奶油裱花",tiramisu:"巧克力碎"})[a.value]||"奶油裱花"),q=j(()=>r.value==="ingredients"?20:r.value==="mix"?40:r.value==="oven"?60:r.value==="decoration"?85:r.value==="result"?100:0);function J(){!s.productionMini||r.value==="intro"||r.value==="result"||(s.productionMini.checkpoint={phase:r.value,picked:[...i.value],mix:c.value,bake:f.value,heat:v.value,garnish:h.value,wrong:y.value,scores:{...b.value}},oe())}function Y(){const U=s.productionMini,O=U==null?void 0:U.checkpoint;return!U||!O||!["ingredients","mix","oven","decoration"].includes(O.phase)?!1:(a.value=U.product,o.value=s.plan[U.product]||o.value,i.value=[...O.picked||[]],c.value=Number(O.mix)||0,f.value=Number(O.bake)||0,v.value=Number(O.heat)||175,h.value=O.garnish||"",y.value=Number(O.wrong)||0,b.value={materials:0,mix:0,oven:0,garnish:0,...O.scores},r.value=O.phase,m.value="已恢复上次完成的操作步骤，可以接着制作。",!0)}function re(){if(s.dayPhase!=="prep")return m.value="今天已经完成制作，请在下一个营业日再来。";if(!Y()){if(!s.unlocked.includes(a.value))return m.value="配方还未解锁。";if(Mi(a.value,o.value),Object.keys(gr()).length)return m.value="材料不足，请先到街上的食材铺采购，再来制作。";if(Sl()>_n.value)return m.value="今天的产能不足，请降低排产数量。";if(!Xt(a.value))return m.value="请先补齐这款蛋糕所需的材料。";if(!s.productionMini&&!wf())return m.value="请先完成排产后再开始制作。";s.productionMini.product!==a.value&&(a.value=s.productionMini.product),i.value=[],y.value=0,m.value="按配方逐一准备原料。其他批次会由店里的伙伴协助完成。",r.value="ingredients",J()}}function ne(U){if(!i.value.includes(U)){if(!T.value.includes(U)){y.value++,m.value=`${x(U)}不是本次配方需要的原料。`;return}if(U!==T.value[i.value.length]){y.value++,m.value=`请按操作单的顺序放入：先取${x(T.value[i.value.length])}。`,J();return}if((s.pantry[U]||0)+(s.legacyStock||0)<E.value[U]*o.value){m.value=`${x(U)}余量不足，请检查排产或购买材料。`;return}i.value=[...i.value,U],m.value=`${x(U)}已放到操作台。`,J()}}function P(){if(i.value.length!==T.value.length)return m.value="还有食材没有放到操作台。";b.value.materials=Math.max(40,100-y.value*15),m.value="按住搅拌按钮，到绿色的最佳区间（72%～86%）松开。",r.value="mix",J()}function N(){_&&(clearInterval(_),_=void 0,J())}function ue(U){_||(_=setInterval(()=>{const O=U==="mix"?c:f;O.value=Math.min(100,O.value+1.8),O.value>=100&&N()},46))}function ge(){if(N(),c.value<8)return m.value="再多搅拌一会儿才能成型。";b.value.mix=Math.max(0,100-Math.abs(c.value-79)*2.8),r.value="oven",m.value="设定炉温，再按住烘烤按钮，在 72%～86% 停止。",J()}function me(){if(N(),f.value<8)return m.value="蛋糕胚还没有烤熟。";b.value.oven=Math.max(0,100-Math.abs(f.value-79)*2.8-Math.abs(v.value-175)*1.4),r.value="decoration",m.value="依据目标蛋糕的外观，选择最合适的顶部装饰。",J()}function z(){if(!h.value)return m.value="还没有完成装饰。";b.value.garnish=h.value===ie.value?100:45;const U=Math.round(b.value.materials*.3+b.value.mix*.25+b.value.oven*.25+b.value.garnish*.2),O=Ef(U,!1,h.value);if(!O.ok){m.value=O.msg||O.message;return}M.value={score:U,bonus:O.bonus||0,name:Fe(a.value),qty:s.dayMade,grade:U>=90?"优秀":U>=70?"良好":"普通"},oe(),r.value="result"}return Sn(Y),ys(N),(U,O)=>(d(),Se($s,{bg:"minigame-production",title:"蛋糕制作",sub:r.value==="intro"?"每日制作 · 一天只需完成一次":"制作进度 "+q.value+"%",onExit:O[4]||(O[4]=Q=>n("exit"))},{default:En(()=>[r.value!=="intro"&&r.value!=="result"?(d(),p("div",g_,[ye(u(g(Fe)(a.value))+" · "+u({ingredients:"准备材料",mix:"搅拌蛋糕胚",oven:"烘烤定型",decoration:"完成装饰"}[r.value])+" ",1),l("div",y_,[l("i",{style:ot({width:q.value+"%"})},null,4)])])):S("",!0),l("div",b_,[r.value==="intro"?(d(),p("div",k_,[O[6]||(O[6]=l("h3",{class:"game-title"},"今天的主打蛋糕",-1)),O[7]||(O[7]=l("p",{class:"game-lead"},"选择配方并安排数量。完成一次材料、搅拌、烘烤和装饰操作，即可为今天整批蛋糕定级。",-1)),l("div",__,[(d(!0),p(V,null,ee(g(Vt),Q=>(d(),p("button",{key:Q.id,type:"button",class:ve(["game-btn game-tile",{selected:a.value===Q.id}]),onClick:te=>{a.value=Q.id,o.value=g(s).plan[Q.id]||2}},[k(Q.id)?(d(),p("img",{key:0,src:k(Q.id),alt:Q.name},null,8,x_)):S("",!0),l("span",null,u(g(Fe)(Q.id)),1),l("small",null,"难度 "+u(Q.diff),1)],10,$_))),128))]),l("div",M_,[O[5]||(O[5]=l("strong",null,"制作数量",-1)),st(l("input",{class:"game-number",type:"number",min:"1",max:"12","onUpdate:modelValue":O[0]||(O[0]=Q=>o.value=Q)},null,512),[[Rt,o.value,void 0,{number:!0}]])]),l("p",C_,"配方原料："+u(Object.entries(E.value).map(([Q,te])=>x(Q)+" ×"+te*o.value).join("、")),1),l("p",w_,"已有排产 "+u(Object.values(g(s).plan).reduce((Q,te)=>Q+te,0))+" 份 · 体力 "+u(g(s).stamina)+" · 优秀额外奖励 ¥30",1),m.value?(d(),p("div",E_,u(m.value),1)):S("",!0),l("button",{class:"game-btn primary",type:"button",style:{width:"100%","margin-top":"10px"},onClick:re},"进入操作台")])):S("",!0),r.value==="ingredients"?(d(),p("div",S_,[O[9]||(O[9]=l("h3",{class:"game-title"},"① 备齐制作材料",-1)),l("p",T_,"按顺序取用："+u(T.value.map(x).join(" → "))+"。已取 "+u(i.value.length)+" / "+u(T.value.length)+" 种",1),l("div",I_,[(d(!0),p(V,null,ee(w.value,Q=>(d(),p("button",{key:Q.id,type:"button",class:ve(["game-btn",{selected:i.value.includes(Q.id)}]),onClick:te=>ne(Q.id)},[ye(u(Q.name),1),O[8]||(O[8]=l("br",null,null,-1)),ye("仓库 "+u(g(s).pantry[Q.id]||0),1)],10,A_))),128))]),l("button",{class:"game-btn primary",type:"button",style:{width:"100%"},disabled:i.value.length<T.value.length,onClick:P},"原料齐了 · 开始搅拌",8,P_)])):S("",!0),r.value==="mix"?(d(),p("div",R_,[O[10]||(O[10]=l("h3",{class:"game-title"},"② 掌握搅拌程度",-1)),O[11]||(O[11]=l("p",{class:"game-lead"},"绿色区间是理想程度；过早和过晚都会降低松软度。",-1)),l("div",O_,[l("i",{style:ot({width:c.value+"%",background:c.value>=72&&c.value<=86?"#719776":"#d1aa78"})},null,4)]),l("div",N_,u(Math.round(c.value))+"%",1),l("button",{class:"game-btn primary",type:"button",style:{width:"100%","touch-action":"none"},onPointerdown:O[1]||(O[1]=at(Q=>ue("mix"),["prevent"])),onPointerup:N,onPointercancel:N,onPointerleave:N},"按住搅拌 · 松开停止",32),l("button",{class:"game-btn",type:"button",style:{width:"100%","margin-top":"7px"},onClick:ge},"确认搅拌结果 →")])):S("",!0),r.value==="oven"?(d(),p("div",D_,[O[13]||(O[13]=l("h3",{class:"game-title"},"③ 炉温和烘烤时间",-1)),l("div",L_,[O[12]||(O[12]=l("span",null,"设定温度",-1)),l("div",V_,[(d(),p(V,null,ee([160,175,190],Q=>l("button",{key:Q,type:"button",class:ve(["game-btn",{selected:v.value===Q}]),onClick:te=>v.value=Q},u(Q)+"°C",11,F_)),64))])]),l("div",j_,[l("i",{style:ot({width:f.value+"%",background:f.value>=72&&f.value<=86?"#719776":"#d1aa78"})},null,4)]),l("div",B_,"烘烤 "+u(Math.round(f.value))+"%",1),l("button",{class:"game-btn primary",type:"button",style:{width:"100%","touch-action":"none"},onPointerdown:O[2]||(O[2]=at(Q=>ue("bake"),["prevent"])),onPointerup:N,onPointercancel:N,onPointerleave:N},"按住烘烤计时 · 松开停炉",32),l("button",{class:"game-btn",type:"button",style:{width:"100%","margin-top":"7px"},onClick:me},"蛋糕胚出炉 →")])):S("",!0),r.value==="decoration"?(d(),p("div",q_,[O[14]||(O[14]=l("h3",{class:"game-title"},"④ 选择表面装饰",-1)),O[15]||(O[15]=l("p",{class:"game-lead"},"参考成品外观，选择适合的装饰，选错也可以继续完成。",-1)),l("div",U_,[k(a.value)?(d(),p("img",{key:0,src:k(a.value),style:{height:"115px","max-width":"60%","object-fit":"contain"},alt:"目标蛋糕"},null,8,H_)):S("",!0)]),l("div",K_,[(d(!0),p(V,null,ee(H.value,Q=>(d(),p("button",{key:Q,type:"button",class:ve(["game-btn",{selected:h.value===Q}]),onClick:te=>h.value=Q},u(Q),11,G_))),128))]),l("button",{class:"game-btn primary",type:"button",style:{width:"100%"},onClick:z},"完成制作并入库")])):S("",!0),r.value==="result"&&M.value?(d(),p("div",W_,[l("h3",z_,"制作完成 · "+u(M.value.grade),1),l("div",Y_,[k(a.value)?(d(),p("img",{key:0,src:k(a.value),style:{height:"130px","max-width":"75%","object-fit":"contain"},alt:"完成蛋糕"},null,8,J_)):S("",!0)]),l("div",Q_,[l("span",null,"综合得分 "+u(M.value.score),1),l("span",null,"成品 "+u(M.value.name),1),l("span",null,"今日累计制作 "+u(M.value.qty)+" 份",1),l("span",null,"额外奖励 ¥"+u(M.value.bonus),1)]),O[16]||(O[16]=l("p",{class:"game-lead"},"已入库，可用于订单、市集和联名。今天完成一次制作小游戏即可。",-1)),l("button",{class:"game-btn primary",type:"button",style:{width:"100%"},onClick:O[3]||(O[3]=Q=>n("exit"))},"返回烘焙后厨")])):S("",!0),m.value&&r.value!=="intro"&&r.value!=="result"?(d(),p("div",Z_,u(m.value),1)):S("",!0)])]),_:1},8,["sub"]))}},e2={class:"game-scroll"},t2={key:0,class:"game-card"},n2={class:"game-stats"},s2={class:"game-grid two"},r2=["disabled","onClick"],l2=["src"],a2={key:1,class:"game-card"},o2={class:"game-title"},i2={class:"game-lead"},u2={class:"game-grid four"},c2=["onClick"],d2={class:"game-grid two"},f2=["onClick"],p2={class:"game-grid two"},v2=["onClick"],h2={class:"game-grid"},m2=["onClick"],g2={class:"game-grid"},y2=["onClick"],b2={class:"game-section"},k2={class:"game-grid"},_2=["onClick"],$2={class:"game-grid"},x2=["onClick"],M2={class:"game-lead"},C2={key:2,class:"game-card"},w2={class:"game-title"},E2={class:"game-center"},S2=["src"],T2={class:"game-stats"},I2={key:0},A2={key:3,class:"game-card game-center"},P2={key:4,class:"game-message"},R2={__name:"ResearchGame",emits:["exit"],setup(e,{emit:t}){const n=t,r=K("intro"),a=K(""),o=K("戚风"),i=K("鲜奶油"),c=K([]),f=K(0),v=K(1),h=K(1),y=K(1),b=K(""),m=K(""),M=K(null),_=j(()=>Ue.filter(P=>P.month>0&&!s.unlocked.includes(P.id))),E=j(()=>hr[a.value]),T=j(()=>Zr(a.value)),w=j(()=>Ue.find(P=>P.id===a.value)),x=P=>Ye(`cake-${P}.webp`)==="ok"?Ae(`cake-${P}.webp`):"",k=j(()=>["冬日暖心","春日花园","夏日果香","秋日收获"][Math.floor((s.month-1)%12/3)]);function H(P){if(s.labPending)return m.value="先处理保留的试吃结果，再开始新实验。";const N=Ue.find(ue=>ue.id===P);if(!N||N.month>s.month)return m.value=`这款配方要第 ${(N==null?void 0:N.month)||"?"} 个月才能研发。`;a.value=P,c.value=[],b.value=N.name,m.value="根据目标风味，先选四类食材，再调整制作细节。",r.value="compose"}function ie(P){c.value=c.value.includes(P)?c.value.filter(N=>N!==P):[...c.value,P]}function q(){if(!c.value.length)return m.value="请至少选择一种特色原料。";const P=vf({productId:a.value,type:a.value==="signature"?"signature":void 0,ingredients:c.value,base:o.value,cream:i.value,direction:f.value,ratio:v.value,process:h.value,decoration:y.value,sugar:f.value,filling:v.value,garnish:h.value});if(!P.ok)return m.value=P.message;M.value={...s.labPending},r.value="result",m.value="已消耗 1 点行动力与四分之一配方原料。"}function J(){const P=_i();if(!P.ok)return m.value=P.message;sf(a.value,b.value||w.value.name),m.value="新配方已永久收藏，能用于制作、交付、市集和联名。",r.value="unlocked"}function Y(){s.labPending&&nl(),r.value="compose",m.value="已保留选择，修改后可再次试做（重新消耗少量原料）。"}function re(){var P;s.labPending&&(a.value=s.labPending.productId,b.value=((P=Ue.find(N=>N.id===a.value))==null?void 0:P.name)||"",M.value={...s.labPending},r.value="result")}const ne=j(()=>Vt.value.length);return(P,N)=>(d(),Se($s,{bg:"minigame-research",title:"配方研发",sub:k.value+" · 已有配方 "+ne.value+" 款",onExit:N[2]||(N[2]=ue=>n("exit"))},{default:En(()=>{var ue,ge,me,z,U,O,Q,te;return[l("div",e2,[r.value==="intro"?(d(),p("div",t2,[N[3]||(N[3]=l("h3",{class:"game-title"},"从灵感到新配方",-1)),N[4]||(N[4]=l("p",{class:"game-lead"},"选择研发目标，在配方本里组合蛋糕胚、奶油、风味材料和装饰，反复试做。实验真正消耗食材与行动力，成功后永久解锁商品。",-1)),l("div",n2,[l("span",null,"研发行动力 "+u(g(s).ap),1),l("span",null,"已收藏 "+u(ne.value)+" / "+u(g(Ue).length),1)]),g(s).labPending?(d(),p("button",{key:0,class:"game-btn primary",type:"button",style:{width:"100%",margin:"10px 0"},onClick:re},"继续上次试吃（"+u(g(s).labPending.score)+" 分）",1)):S("",!0),N[5]||(N[5]=l("div",{class:"game-section"},"可研发目标及解锁时间",-1)),l("div",s2,[(d(!0),p(V,null,ee(_.value,A=>(d(),p("button",{key:A.id,type:"button",class:"game-btn game-tile",disabled:A.month>g(s).month||!!g(s).labPending,onClick:L=>H(A.id)},[x(A.id)?(d(),p("img",{key:0,src:x(A.id),alt:""},null,8,l2)):S("",!0),l("span",null,u(A.name),1),l("small",null,u(A.month>g(s).month?`第 ${A.month} 月开放`:"可开始试做"),1)],8,r2))),128))])])):S("",!0),r.value==="compose"?(d(),p("div",a2,[l("h3",o2,u((ue=w.value)==null?void 0:ue.name)+" · 配方本",1),l("p",i2,[ye("研发主题："+u((ge=E.value)==null?void 0:ge.theme),1),N[6]||(N[6]=l("br",null,null,-1)),ye("提示："+u((me=E.value)==null?void 0:me.focus),1)]),N[7]||(N[7]=l("div",{class:"game-section"},"① 蛋糕胚",-1)),l("div",u2,[(d(),p(V,null,ee(["原味","巧克力","抹茶","戚风"],A=>l("button",{key:A,class:ve(["game-btn",{selected:o.value===A}]),type:"button",onClick:L=>o.value=A},u(A),11,c2)),64))]),N[8]||(N[8]=l("div",{class:"game-section"},"② 奶油与夹心",-1)),l("div",d2,[(d(),p(V,null,ee(["鲜奶油","巧克力奶油","栗子泥","芝士"],A=>l("button",{key:A,class:ve(["game-btn",{selected:i.value===A}]),type:"button",onClick:L=>i.value=A},u(A),11,f2)),64))]),N[9]||(N[9]=l("div",{class:"game-section"},"③ 水果与风味 · 可多选",-1)),l("div",p2,[(d(!0),p(V,null,ee(T.value,A=>(d(),p("button",{key:A,class:ve(["game-btn",{selected:c.value.includes(A)}]),type:"button",onClick:L=>ie(A)},u(A),11,v2))),128))]),N[10]||(N[10]=l("div",{class:"game-section"},"④ 表面装饰",-1)),l("div",h2,[(d(!0),p(V,null,ee(g(li),(A,L)=>(d(),p("button",{key:A,class:ve(["game-btn",{selected:y.value===L}]),type:"button",onClick:R=>y.value=L},u(A),11,m2))),128))]),N[11]||(N[11]=l("div",{class:"game-section"},"风味方向",-1)),l("div",g2,[(d(!0),p(V,null,ee(g(si),(A,L)=>(d(),p("button",{key:A,class:ve(["game-btn",{selected:f.value===L}]),type:"button",onClick:R=>f.value=L},u(A),11,y2))),128))]),l("div",b2,u(((z=E.value)==null?void 0:z.ratioLabel)||"主料比例"),1),l("div",k2,[(d(!0),p(V,null,ee(g(ri),(A,L)=>(d(),p("button",{key:A,class:ve(["game-btn",{selected:v.value===L}]),type:"button",onClick:R=>v.value=L},u(A),11,_2))),128))]),N[12]||(N[12]=l("div",{class:"game-section"},"制作工艺",-1)),l("div",$2,[(d(!0),p(V,null,ee(((U=E.value)==null?void 0:U.processes)||[],(A,L)=>(d(),p("button",{key:A,class:ve(["game-btn",{selected:h.value===L}]),type:"button",onClick:R=>h.value=L},u(A),11,x2))),128))]),l("p",M2,"核心原料线索："+u((g(_l)[a.value]||[]).flat().length)+" 种 · 实验消耗四分之一配方材料与 1 点行动力。",1),l("button",{class:"game-btn primary",style:{width:"100%"},type:"button",onClick:q},"开始试做 · 查看品鉴")])):S("",!0),r.value==="result"&&M.value?(d(),p("div",C2,[l("h3",w2,u(M.value.passed?"试吃合格 · 可以上架":"研发线索 · 需要调整"),1),l("div",E2,[x(M.value.productId)?(d(),p("img",{key:0,src:x(M.value.productId),style:{height:"110px","max-width":"70%","object-fit":"contain"},alt:"试做成品"},null,8,S2)):S("",!0)]),l("div",T2,[l("span",null,"综合 "+u(M.value.score)+" 分",1),l("span",null,"口味 "+u((O=M.value.scores)==null?void 0:O.flavor),1),l("span",null,"口感 "+u((Q=M.value.scores)==null?void 0:Q.texture),1),l("span",null,"外观 "+u((te=M.value.scores)==null?void 0:te.appearance),1)]),(d(!0),p(V,null,ee(M.value.feedback,(A,L)=>(d(),p("p",{key:L,class:"game-lead"},"• "+u(A),1))),128)),M.value.passed?(d(),p("div",I2,[N[13]||(N[13]=l("div",{class:"game-section"},"给新蛋糕命名",-1)),st(l("input",{class:"game-number",style:{width:"100%","text-align":"left",padding:"0 10px","box-sizing":"border-box"},"onUpdate:modelValue":N[0]||(N[0]=A=>b.value=A),maxlength:"20","aria-label":"新配方名称"},null,512),[[Rt,b.value]]),l("button",{class:"game-btn primary",style:{width:"100%","margin-top":"9px"},type:"button",onClick:J},"确认上架 · 消耗 1 点行动力")])):S("",!0),l("button",{class:"game-btn",style:{width:"100%","margin-top":"8px"},type:"button",onClick:Y},"调整搭配后再试")])):S("",!0),r.value==="unlocked"?(d(),p("div",A2,[N[14]||(N[14]=l("h3",{class:"game-title"},"🎂 新配方研发成功",-1)),l("p",null,u(g(Fe)(a.value)),1),N[15]||(N[15]=l("p",{class:"game-lead"},"已加入永久配方收藏，未来生产与经营均可使用。",-1)),l("button",{class:"game-btn primary",style:{width:"100%"},type:"button",onClick:N[1]||(N[1]=A=>n("exit"))},"返回后厨")])):S("",!0),m.value?(d(),p("div",P2,u(m.value),1)):S("",!0)])]}),_:1},8,["sub"]))}},O2={class:"practice-mask"},N2=["aria-label"],D2={class:"practice-banner"},L2={class:"hint"},V2={class:"quantity"},F2=["disabled"],j2={key:1,class:"phone-mock"},B2=["onClick"],q2={class:"phone-content"},U2={class:"practice-task"},H2={key:0,class:"mock-counter"},K2={key:1,class:"mock-counter"},G2={key:4,class:"practice-progress"},W2={__name:"TutorialPractice",props:{step:{type:String,required:!0}},emits:["done"],setup(e,{emit:t}){const n=e,r=t,a=K(s.tutorialPractice===n.step?Number(s.tutorialPracticeProgress||0):0),o=K(2),i=K("通知"),c=["通知","订单","日历","收藏"],f={counter:["从柜台旁取一份原味奶油蛋糕。","核对客人的需求，再把蛋糕装进纸盒。","把纸盒递给客人，完成一次接待。"],production:["选择戚风胚和奶油，先备好基础材料。","轻轻搅拌，让面糊保持细腻。","观察烤箱火候，在合适的时候出炉。","抹平奶油，给蛋糕加上简单装饰。"],phone:["打开通知，留意今天的店务提醒。","打开订单，查看客人预订的蛋糕。","浏览日历或收藏，确认重要日程和回忆。"]},v=j(()=>({counter:{title:"前厅练习 · 接待客人",hint:"这是一笔练习订单，不会扣除成品或增加收入。",image:"柜台"},production:{title:"后厨练习 · 做一份蛋糕",hint:"练习材料、搅拌、烘烤和装饰，不会消耗库存。",image:"后厨"},purchase:{title:"街道练习 · 采购原料",hint:"可以直接输入数量；这次练习不会扣款或改变仓库。",image:"食材铺"},phone:{title:"手机练习 · 查看店务",hint:"不同页面各自记录通知、订单、日历与收藏。",image:"手机"}})[n.step]||{title:"新手练习",hint:"",image:""}),h=j(()=>f[n.step]||[]);function y(){a.value+=1,s.tutorialPracticeProgress=a.value,oe(),(n.step==="purchase"||a.value>=h.value.length)&&r("done",n.step)}function b(){o.value<1||o.value>99||y()}function m(M){i.value=M;const _=c.indexOf(M);(_<0||_===a.value)&&y()}return(M,_)=>(d(),p("div",O2,[l("section",{class:"practice-card",role:"dialog","aria-modal":"true","aria-label":v.value.title},[l("div",D2,[l("span",null,"林暖带你认识 · "+u(v.value.image),1)]),l("h1",null,u(v.value.title),1),l("p",L2,u(v.value.hint),1),e.step==="purchase"?(d(),p(V,{key:0},[_[2]||(_[2]=l("div",{class:"practice-task"},"给明天的练习准备 2 份基础烘焙包。",-1)),l("label",V2,[_[1]||(_[1]=ye("采购数量 ",-1)),st(l("input",{"onUpdate:modelValue":_[0]||(_[0]=E=>o.value=E),type:"number",inputmode:"numeric",min:"1",max:"99"},null,512),[[Rt,o.value,void 0,{number:!0}]])]),l("button",{class:"practice-action",type:"button",disabled:o.value<1||o.value>99,onClick:b},"确认练习采购",8,F2)],64)):e.step==="phone"?(d(),p("div",j2,[l("nav",null,[(d(),p(V,null,ee(c,E=>l("button",{key:E,type:"button",class:ve({active:i.value===E}),onClick:T=>m(E)},u(E),11,B2)),64))]),l("div",q2,u(i.value==="订单"?"练习订单 LJ-TEST · 原味奶油蛋糕 × 2":i.value==="日历"?"明天：准备营业日":i.value==="收藏"?"这里会保存图鉴、剧情和照片":"欢迎来到林记烘焙，记得查看当天安排。"),1)])):(d(),p(V,{key:2},[l("div",U2,u(h.value[Math.min(a.value,h.value.length-1)]),1),e.step==="counter"?(d(),p("div",H2,[_[3]||(_[3]=l("span",null,"原味奶油蛋糕 × 1",-1)),l("b",null,u(["取出蛋糕","装盒","递交"][Math.min(a.value,2)]),1)])):(d(),p("div",K2,[l("span",null,u(["戚风胚 · 奶油","搅拌均匀","烘烤出炉","抹面装饰"][Math.min(a.value,3)]),1),_[4]||(_[4]=l("b",null,"练习材料",-1))]))],64)),e.step!=="purchase"&&e.step!=="phone"?(d(),p("button",{key:3,class:"practice-action",type:"button",onClick:y},u(a.value+1>=h.value.length?"完成练习":"下一步"),1)):S("",!0),h.value.length?(d(),p("div",G2,"练习 "+u(Math.min(a.value+1,h.value.length))+" / "+u(h.value.length),1)):S("",!0)],8,N2)]))}},z2=He(W2,[["__scopeId","data-v-4d414a03"]]),Y2={class:"app"},J2={key:1,class:"topbar game-in"},Q2={class:"m serif"},Z2={class:"topbar-actions"},X2={class:"purse"},e$={key:2,class:"scroll scene-scroll game-in"},t$={class:"between scene-meta"},n$={class:"small muted"},s$={class:"chip"},r$=["disabled"],l$={class:"scene-panel"},a$={class:"scene-panel-head"},o$={class:"small muted"},i$={class:"scene-panel-content"},u$={key:13,class:"mask"},c$={class:"sheet"},d$={class:"sheet-foot tut-foot"},f$={class:"sheet"},p$={class:"sheet-head"},v$={class:"t serif"},h$={class:"small muted"},m$={class:"sheet-body"},g$={class:"card card-pad"},y$={class:"between small",style:{"margin-bottom":"6px"}},b$={class:"between small",style:{"margin-bottom":"6px"}},k$={class:"between small",style:{"margin-bottom":"6px"}},_$={class:"between small"},$$={key:0,class:"card card-pad",style:{"margin-top":"12px"}},x$={class:"h2"},M$={class:"between small",style:{"margin-bottom":"6px"}},C$={class:"between small",style:{"margin-bottom":"6px"}},w$={class:"between small",style:{"margin-bottom":"6px"}},E$={class:"between small"},S$={class:"between small",style:{"margin-top":"6px"}},T$={key:0,class:"delta"},I$={key:0,class:"mrep"},A$={class:"mrep-b"},P$={key:1,class:"mrep"},R$={class:"mrep-b"},O$={key:2,class:"mrep"},N$={class:"mrep-b"},D$={key:3,class:"small",style:{color:"var(--berry)",margin:"10px 0 0"}},L$={class:"sheet-foot"},V$={key:15,class:"mask"},F$={class:"sheet"},j$={class:"sheet-body",style:{"padding-top":"22px"}},B$={class:"small muted serif"},q$={class:"serif",style:{"font-size":"20px",margin:"6px 0 10px","line-height":"1.5"}},U$={key:0,style:{"font-size":"14px","line-height":"1.85",color:"var(--caramel-soft)",margin:"0 0 18px"}},H$={class:"card card-pad"},K$={class:"between small",style:{"margin-bottom":"6px"}},G$={class:"between small",style:{"margin-bottom":"6px"}},W$={class:"between small"},z$={key:1,class:"card card-pad",style:{"margin-top":"12px"}},Y$={class:"pn"},J$={class:"muted small"},Q$={class:"pt"},Z$={class:"sheet-foot"},X$={__name:"App",setup(e){const t=K("shop"),n=K(!1),r=K(!1),a=K(""),o=K(""),i=K(!1),c=K("pantry"),f=K("overview"),v=K("counter");function h(te,A="overview"){if(typeof te=="string"&&te.indexOf("game:")===0){o.value=te.slice(5);return}a.value=te,te==="manage"&&(f.value=A),te==="shop"&&(v.value=A),te==="feature"&&(c.value=A)}function y(te){We(te).open&&(Li(te),i.value=!1,t.value=te)}function b(){const te=Wf();te&&(m(),t.value="home",N(te))}function m(){a.value="",f.value="overview",v.value="counter"}const M=K(null),_=K(!1),E=K(null),T=K(null),w=K(!1),x=new URLSearchParams(location.search).get("dev")==="1",k=j(()=>s.phase==="ended"&&s.ending&&!qe.events.length&&!w.value?s.ending:null),H=j(()=>s.ending&&Ln.some(te=>!te.final&&te.short.key===s.ending.key)),ie=j(()=>qe.events.length);function q(te={}){n.value=!0,r.value=!1,t.value="shop",a.value=te.panel||"",i.value=!1,f.value=te.section||"overview";const A=s.tutorialPromptPending||!s.tutorialSeen&&s.month===1&&s.played.includes("EVT_PROLOGUE_01");A&&(s.tutorialPromptPending=!0,_.value=!0,oe()),!s.tutorialPractice&&!A&&qe.events.length&&(M.value=qe.events[0]),!s.tutorialPractice&&!A&&(s.productionMini||s.productionResult?o.value="baking":s.labPending?o.value="research":s.dayPhase==="service"&&s.service?o.value="delivery":s.marketRun&&!s.marketRun.completed?o.value="market":s.cafeRun&&!s.cafeRun.completed&&(o.value="cafe"))}function J(){oe(),n.value=!1,r.value=!1,a.value="",i.value=!1,M.value=null,E.value=null,T.value=null,w.value=!1}function Y(){if(s.tutorialPractice||!qe.events.length)return;const te=qe.events[0];te.kind==="tutorial"&&(te.id.includes("KITCHEN")?t.value="kitchen":te.id.includes("STREET")||te.id.includes("PHONE")?t.value="street":t.value="shop"),M.value=te}function re(){const te=M.value;if(qe.events.shift(),M.value=null,oe(),(te==null?void 0:te.id)==="EVT_PROLOGUE_01"&&!s.tutorialSeen){s.tutorialPromptPending=!0,_.value=!0,oe();return}const A={EVT_TUTORIAL_FRONT:"counter",EVT_TUTORIAL_KITCHEN:"production",EVT_TUTORIAL_STREET:"purchase",EVT_TUTORIAL_PHONE:"phone"}[te==null?void 0:te.id];if(A){s.tutorialPractice=A,s.tutorialPracticeProgress=0,oe();return}const L=qe.events[0];L&&(L.month===s.month||L.kind==="tutorial")&&setTimeout(Y,200),!L&&!s.tutorialSeen&&s.month===1&&s.played.includes("EVT_PROLOGUE_01")&&(_.value=!0)}function ne(te){s.tutorialPractice===te&&(s.tutorialPractice=null,s.tutorialPracticeProgress=0,s.tutorialProgress+=1,oe(),setTimeout(Y,180))}function P(te){_.value=!1,Xf(te),Y()}function N(te){E.value=te,te.day===ps&&(T.value=s.report)}function ue(){E.value=null,T.value=null,qe.events.length&&Y()}function ge(){mf()&&(t.value="shop",a.value="",w.value=!1,ol(),Y())}function me(){w.value=!0}function z(){yf()&&(w.value=!1,E.value=null,T.value=null,ol(),Y())}function U(){M.value||E.value||gf()&&(M.value=null,T.value=null,E.value=null,Y())}Pt(()=>s.autoStory,te=>{te&&(s.autoStory=!1,setTimeout(()=>{!M.value&&qe.events.length&&Y()},90))});const O=[["home","卧室与衣柜开放","经营一天后，可以回家休息、更换林念的日常服装。","home"],["park","公园开放","苏晴提起了小镇公园，空闲时可以去散步、拍照。","park"],["river","河岸开放","公园尽头的小路通向河边，那里有新的故事。","river"],["lab","实验台开放","基础配方逐渐熟练，现在可以在后厨研发新口味。","kitchen"],["studio","设计工作室开放","完成定制订单后，叶星河邀请林念尝试蛋糕与包装设计。","studio"],["cafe","咖啡店开放","栖木咖啡的许沐禾发来了合作邀请。","cafe"],["staff","员工排班板开放","第一位伙伴加入后，可以安排岗位和培训。","kitchen"],["market","小镇市集开放","林记烘焙收到了参加季节市集的邀请。","market"],["store","品牌新店开放","林念已经有能力规划更远处的品牌门店。","store"]];Pt(()=>[s.dayIndex,s.month,s.shopLevel,s.brand,s.customOrders,s.staff.length,s.sqchatMonth,s.sceneVisits.park],()=>{O.forEach(([te,A,L,R])=>{We(te).open&&!s.unlockNotified.includes(te)&&(s.unlockNotified.push(te),rn(A,L,R))})},{immediate:!0});const Q=j(()=>{if(!k.value)return[];const te=Mn.filter(L=>s.staff.includes(L.id)).map(L=>({name:L.nick,role:L.role,...Va(L.id)||{}})),A=Va("mom");return A&&te.push({name:"林暖",role:"母亲",...A}),te.filter(L=>L.title)});return Sn(()=>{Qd()}),(te,A)=>(d(),p("div",Y2,[n.value?S("",!0):(d(),Se(ja,{key:0,onEnter:q})),n.value?(d(),p("div",J2,[l("div",Q2,[ye(u(g(Or)(g(s).month))+" ",1),l("small",null,"第 "+u(g(s).month)+" / 36 月 · 第 "+u(g(s).day)+" / "+u(g(ps))+" 日",1)]),l("div",Z2,[l("div",X2,[A[12]||(A[12]=l("span",{class:"y"},"¥",-1)),ye(u(g(s).cash.toLocaleString()),1)]),l("button",{class:"topbar-save",type:"button",onClick:A[0]||(A[0]=L=>r.value=!0)},"设置")])])):S("",!0),n.value?(d(),p("div",e$,[l("div",t$,[l("span",n$,u(g(yr).name),1),l("span",s$,"行动力 "+u(g(s).ap)+" · 体力 "+u(g(s).stamina),1)]),x&&g(s).phase==="playing"?(d(),p("button",{key:0,class:"btn",type:"button",style:{width:"100%",margin:"0 0 8px"},disabled:!!M.value||!!E.value,onClick:U},"开发者后门 · 跳到下个月",8,r$)):S("",!0),je(qy,{scene:t.value,onChangeScene:A[1]||(A[1]=L=>t.value=L),onOpenPanel:h},null,8,["scene"]),a.value?(d(),p("div",{key:1,class:"scene-panel-mask",onClick:at(m,["self"])},[l("section",l$,[l("header",a$,[l("div",null,[l("div",o$,"林记烘焙 · "+u(g(Or)(g(s).month)),1),l("strong",null,u({shop:"柜台营业",kitchen:"后厨操作台",partners:"员工排班板",manage:"经营手账",codex:"图鉴与相册",supplier:"食材采购",renovation:"店铺升级",feature:"小镇互动"}[a.value]||"经营"),1)]),l("button",{type:"button",class:"scene-panel-close",onClick:m},"✕")]),l("div",i$,[a.value==="shop"?(d(),Se(Lm,{key:0,onClosed:N,onOpenPanel:h})):a.value==="renovation"?(d(),Se($0,{key:1})):a.value==="supplier"?(d(),Se(u0,{key:2})):a.value==="kitchen"?(d(),Se(i1,{key:3,onOpenPanel:h})):a.value==="partners"?(d(),Se(V1,{key:4})):a.value==="manage"?(d(),Se($y,{key:5,"initial-section":f.value,onOpenPanel:h},null,8,["initial-section"])):a.value==="codex"?(d(),Se(ji,{key:6,"initial-segment":f.value==="collection"?"collection":"product"},null,8,["initial-segment"])):a.value==="feature"?(d(),Se(hb,{key:7,section:c.value,onOpenPanel:h,onRestDay:b},null,8,["section"])):S("",!0)])])])):S("",!0)])):S("",!0),n.value&&!o.value?(d(),p("button",{key:3,class:"phone-fab",type:"button","aria-label":"打开常驻手机",onClick:A[2]||(A[2]=L=>i.value=!0)},[...A[13]||(A[13]=[l("span",null,"▣",-1),l("small",null,"手机",-1)])])):S("",!0),n.value&&i.value&&!o.value?(d(),Se(Gb,{key:4,onClose:A[3]||(A[3]=L=>i.value=!1),onNavigate:y,onOpenPanel:h})):S("",!0),n.value&&ie.value?(d(),p("button",{key:5,class:"btn primary",type:"button",style:{position:"absolute",right:"14px",bottom:"16px","z-index":"20","box-shadow":"var(--shadow)"},onClick:Y}," 有 "+u(ie.value)+" 段剧情 ",1)):S("",!0),o.value==="baking"?(d(),Se(X_,{key:6,onExit:A[4]||(A[4]=L=>o.value="")})):S("",!0),o.value==="research"?(d(),Se(R2,{key:7,onExit:A[5]||(A[5]=L=>o.value="")})):S("",!0),o.value==="delivery"?(d(),Se(yk,{key:8,paused:!!M.value,onExit:A[6]||(A[6]=L=>o.value="")},null,8,["paused"])):S("",!0),n.value&&g(s).tutorialPractice?(d(),Se(z2,{key:9,step:g(s).tutorialPractice,onDone:ne},null,8,["step"])):S("",!0),o.value==="market"?(d(),Se(Gk,{key:10,onExit:A[7]||(A[7]=L=>o.value="")})):S("",!0),o.value==="cafe"?(d(),Se(m_,{key:11,onExit:A[8]||(A[8]=L=>o.value="")})):S("",!0),n.value&&M.value?(d(),Se(Op,{key:12,ev:M.value,onDone:re},null,8,["ev"])):S("",!0),n.value&&_.value?(d(),p("div",u$,[l("div",c$,[A[14]||(A[14]=wc('<div class="sheet-head" data-v-b76b6287><div class="t serif" data-v-b76b6287>要不要先看看这家店？</div><div class="small muted" data-v-b76b6287>林暖 · 林记烘焙前厅</div></div><div class="sheet-body" data-v-b76b6287><div class="card card-pad" data-v-b76b6287><p class="small" style="line-height:1.9;margin:0;" data-v-b76b6287> 林暖把串着钥匙的钥匙扣放进你手心，问要不要带你从前厅、后厨一直走到街上。 看一遍会认得每个角落的用处；跳过也能随时自己摸索。 </p></div></div>',2)),l("div",d$,[l("button",{class:"btn",type:"button",onClick:A[9]||(A[9]=L=>P(!1))},"暂不查看"),l("button",{class:"btn primary",type:"button",onClick:A[10]||(A[10]=L=>P(!0))},"带我走一圈")])])])):S("",!0),n.value&&E.value?(d(),p("div",{key:14,class:"mask",onClick:at(ue,["self"])},[l("div",f$,[l("div",p$,[l("div",v$,u(T.value?"月末结算":"打烊了"),1),l("div",h$,u(g(Or)(g(s).month))+" · 第 "+u(E.value.day)+" 个经营日",1)]),l("div",m$,[l("div",g$,[l("div",y$,[A[15]||(A[15]=l("span",{class:"muted"},"今天卖出",-1)),l("span",null,u(E.value.sold)+" 个",1)]),l("div",b$,[A[16]||(A[16]=l("span",{class:"muted"},"今日收入",-1)),l("span",null,"¥"+u(E.value.rev),1)]),l("div",k$,[A[17]||(A[17]=l("span",{class:"muted"},"剩下",-1)),l("span",null,u(E.value.left)+" 个",1)]),l("div",_$,[A[18]||(A[18]=l("span",{class:"muted"},"剩货回收",-1)),l("span",null,"¥"+u(E.value.gain),1)])]),T.value?(d(),p("div",$$,[l("div",x$,u(T.value.month)+" 月经营报告",1),l("div",M$,[A[19]||(A[19]=l("span",{class:"muted"},"营业额",-1)),l("span",null,"¥"+u(T.value.rev),1)]),l("div",C$,[A[20]||(A[20]=l("span",{class:"muted"},"支出",-1)),l("span",null,"¥"+u(T.value.cost),1)]),l("div",w$,[A[21]||(A[21]=l("span",{class:"muted"},"净收入",-1)),l("span",{style:ot({color:T.value.net>=0?"#6c8a55":"var(--berry)"})},u(T.value.net>=0?"+":"")+u(T.value.net),5)]),l("div",E$,[A[22]||(A[22]=l("span",{class:"muted"},"最受欢迎",-1)),l("span",null,u(T.value.best)+"（"+u(T.value.bestN)+" 个）",1)]),l("div",S$,[A[23]||(A[23]=l("span",{class:"muted"},"口碑",-1)),l("span",null,[ye(u(T.value.rep)+" ",1),T.value.repDelta?(d(),p("em",T$,u(T.value.repDelta>0?"+":"")+u(T.value.repDelta),1)):S("",!0)])]),T.value.fresh&&T.value.fresh.length?(d(),p("div",I$,[A[24]||(A[24]=l("div",{class:"mrep-t"},"这个月新上了",-1)),l("div",A$,u(T.value.fresh.join("、")),1)])):S("",!0),T.value.grown&&T.value.grown.length?(d(),p("div",P$,[A[25]||(A[25]=l("div",{class:"mrep-t"},"伙伴长进了",-1)),l("div",R$,u(T.value.grown.join(" · ")),1)])):S("",!0),T.value.trust&&T.value.trust.length?(d(),p("div",O$,[A[26]||(A[26]=l("div",{class:"mrep-t"},"信赖",-1)),l("div",N$,[(d(!0),p(V,null,ee(T.value.trust,(L,R)=>(d(),p("span",{key:L.name},u(R?" · ":"")+u(L.name)+" "+u(L.v),1))),128))])])):S("",!0),T.value.warn?(d(),p("p",D$,u(T.value.warn),1)):S("",!0)])):S("",!0)]),l("div",L$,[l("button",{class:"btn primary block",type:"button",onClick:ue},u(k.value?"看结局":"继续"),1)])])])):S("",!0),n.value&&k.value?(d(),p("div",V$,[l("div",F$,[l("div",j$,[l("div",B$,u(k.value.name),1),l("h2",q$,u(k.value.title),1),k.value.text?(d(),p("p",U$,u(k.value.text),1)):S("",!0),l("div",H$,[l("div",K$,[A[27]||(A[27]=l("span",{class:"muted"},"门店 / 伙伴",-1)),l("span",null,u(g(s).storeCount)+" 家 · "+u(g(s).staff.length)+" 人",1)]),l("div",G$,[A[28]||(A[28]=l("span",{class:"muted"},"产品 / 相册",-1)),l("span",null,u(g(s).unlocked.length)+" 款 · "+u(g(s).photos.length)+" 张",1)]),l("div",W$,[A[29]||(A[29]=l("span",{class:"muted"},"口碑 / 知名度",-1)),l("span",null,u(Math.round(g(s).reputation))+" / "+u(Math.round(g(s).popularity)),1)])]),Q.value.length?(d(),p("div",z$,[A[30]||(A[30]=l("div",{class:"h2"},"他们的后来",-1)),(d(!0),p(V,null,ee(Q.value,(L,R)=>(d(),p("div",{key:R,class:"pl"},[l("div",Y$,[ye(u(L.name),1),l("span",J$," · "+u(L.title),1)]),l("div",Q$,u(L.text),1)]))),128))])):S("",!0)]),l("div",Z$,[l("button",{class:"btn block",type:"button",onClick:me},"结束本局"),H.value?(d(),p("button",{key:0,class:"btn block",type:"button",onClick:z}," 继续剧情 ")):S("",!0),l("button",{class:"btn primary block",type:"button",onClick:ge},"开启二周目")])])])):S("",!0),n.value&&r.value?(d(),Se(ja,{key:16,"in-game":"",onClose:A[11]||(A[11]=L=>r.value=!1),onTitle:J,onEnter:q})):S("",!0)]))}},ex=He(X$,[["__scopeId","data-v-b76b6287"]]);kd(ex).mount("#app");

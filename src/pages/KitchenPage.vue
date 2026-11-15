@@ -1,16 +1,11 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { INGREDIENTS, productById } from '../data';
-import { state, availableProducts, capacity, planPoints, priceOf, setPlan, beginProductionTest, finishProductionTest, makeCakes, pantryUnits, ingredientTotals, missingIngredients, save } from '../store';
+import { state, availableProducts, capacity, planPoints, priceOf, setPlan, makeCakes, pantryUnits, ingredientTotals, missingIngredients, save } from '../store';
 import CakeArt from '../components/CakeArt.vue';
 
-const props = defineProps({ paused: { type: Boolean, default: false } });
 const emit = defineEmits(['open-panel']);
 const notice = ref('');
-const pulse = ref(0);
-const step = ref(0);
-const fruitPicks = ref([]);
-let animation = 0;
 const points = computed(() => planPoints());
 const needs = computed(() => ingredientTotals());
 const missing = computed(() => missingIngredients());
@@ -22,10 +17,6 @@ const rows = computed(() => availableProducts.value.map((product) => ({
 const customRequests = computed(() => state.orders.filter((order) => order.taken));
 const mini = computed(() => state.productionMini);
 const qualityName = computed(() => state.productionResult?.quality === 'perfect' ? '完美 · 售价 +10%' : state.productionResult?.quality === 'fine' ? '精致 · 售价 +5%' : '普通品质');
-const pattern = computed(() => {
-  const patterns = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];
-  return patterns[mini.value?.pattern || 0];
-});
 const materials = computed(() => Object.entries(needs.value).map(([id, qty]) => ({ id, name: INGREDIENTS.find((item) => item.id === id)?.name || id, qty })));
 const challengeText = computed(() => {
   if (!state.challenge) return '';
@@ -52,53 +43,9 @@ function smartStock() {
   save();
 }
 
-function start() {
-  if (points.value > capacity.value) return say('今天的产能不够，先减少计划数量。');
-  if (Object.keys(missing.value).length) return say('有原料缺货，请先去食材铺采购。');
-  if (!state.plan || !Object.keys(state.plan).length) return say('先给今天排一些蛋糕。');
-  if (beginProductionTest()) {
-    step.value = 0;
-    pulse.value = 0;
-    fruitPicks.value = [];
-    say('今天的主打工序抽到了「' + gameName(mini.value?.type) + '」。');
-  }
-}
-
-function gameName(type) { return ({ mix: '搅拌', oven: '出炉火候', piping: '裱花', fruit: '摆果' })[type] || '制作'; }
 function say(value) { notice.value = value; }
 
-function tick() { if (!props.paused && !document.hidden && mini.value && ['mix', 'oven'].includes(mini.value.type)) pulse.value = (pulse.value + 2.4) % 100; }
-function stopTiming() {
-  const target = mini.value?.window || 66;
-  const distance = Math.abs(pulse.value - target);
-  result(Math.max(0, 100 - Math.round(distance * 3)));
-}
-function clickPattern(index) {
-  if (index !== pattern.value[step.value]) return result(55);
-  step.value += 1;
-  if (step.value >= pattern.value.length) result(100);
-}
-function pickFruit(index) {
-  const picks = [...fruitPicks.value, index];
-  fruitPicks.value = picks;
-  if (picks.length === 3) result(picks.every((value, position) => value === pattern.value[position]) ? 100 : 60);
-}
-function result(score) {
-  const result = finishProductionTest(score, false);
-  say(result.msg || result.message || qualityName.value);
-}
-function skip() {
-  const result = finishProductionTest(0, true);
-  say(result.msg || result.message || '采用普通品质出炉。');
-}
 function clearPlan() { state.plan = {}; save(); }
-
-watch(mini, (value) => {
-  if (value && !animation) animation = window.setInterval(tick, 80);
-  if (!value && animation) { clearInterval(animation); animation = 0; }
-}, { immediate: true });
-onMounted(() => { if (mini.value && !animation) animation = window.setInterval(tick, 80); });
-onBeforeUnmount(() => { if (animation) clearInterval(animation); });
 </script>
 
 <template>
@@ -140,5 +87,5 @@ onBeforeUnmount(() => { if (animation) clearInterval(animation); });
 </template>
 
 <style scoped>
-.compact-card{margin-top:9px}.challenge-note{display:grid;gap:2px;margin-top:8px;padding:8px;border-radius:9px;background:#fff8ec}.challenge-note strong{color:var(--caramel)}.product-list{margin-top:9px;background:var(--paper);border-radius:12px;padding:0 10px;box-shadow:var(--shadow)}.product-row{display:flex;align-items:center;gap:8px;min-height:68px;border-bottom:1px solid var(--line-soft)}.product-row:last-child{border-bottom:0}.product-art{width:47px;height:47px;overflow:hidden;border-radius:9px;flex:0 0 47px}.product-art :deep(*){width:100%;height:100%}.product-copy{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.product-copy strong{font-size:12px}.product-copy span{font-size:10px;color:var(--ink-2)}.quantity{display:flex;align-items:center;gap:4px}.quantity button{width:36px;height:42px;border:1px solid var(--line);border-radius:9px;background:#fffaf2;color:var(--caramel);font-size:18px}.quantity span{min-width:18px;text-align:center}.missing{color:var(--berry)}.minigame{margin-top:11px;border:1px solid #d7bd9b}.minigame p{margin:8px 0}.gauge{position:relative;height:20px;margin:15px 4px 13px;border-radius:999px;background:linear-gradient(90deg,#d8a7a0 0 42%,#a9b99b 42% 58%,#d8a7a0 58%);overflow:hidden}.gauge .target{position:absolute;top:0;height:100%;width:16%;background:#9db38577}.gauge i{position:absolute;top:-3px;width:4px;height:27px;background:#553522;box-shadow:0 0 0 2px #fff}.pattern{padding:10px;border-radius:8px;background:var(--apricot);font-size:13px;text-align:center;color:var(--caramel)}.target-buttons{display:flex;gap:6px;margin-top:8px}.target-buttons button{flex:1;min-height:42px;padding:5px;font-size:11px}.tips{display:block;margin-top:10px;line-height:1.6}
+.compact-card{margin-top:9px}.challenge-note{display:grid;gap:2px;margin-top:8px;padding:8px;border-radius:9px;background:#fff8ec}.challenge-note strong{color:var(--caramel)}.product-list{margin-top:9px;background:var(--paper);border-radius:12px;padding:0 10px;box-shadow:var(--shadow)}.product-row{display:flex;align-items:center;gap:8px;min-height:68px;border-bottom:1px solid var(--line-soft)}.product-row:last-child{border-bottom:0}.product-art{width:47px;height:47px;overflow:hidden;border-radius:9px;flex:0 0 47px}.product-art :deep(*){width:100%;height:100%}.product-copy{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}.product-copy strong{font-size:12px}.product-copy span{font-size:10px;color:var(--ink-2)}.quantity{display:flex;align-items:center;gap:4px}.quantity button{width:36px;height:42px;border:1px solid var(--line);border-radius:9px;background:#fffaf2;color:var(--caramel);font-size:18px}.quantity span{min-width:18px;text-align:center}.missing{color:var(--berry)}.tips{display:block;margin-top:10px;line-height:1.6}
 </style>

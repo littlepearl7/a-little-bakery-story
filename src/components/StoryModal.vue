@@ -321,7 +321,7 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 300;
+  z-index: 550;
   display: flex;
   justify-content: center;
   background: #1a1410;

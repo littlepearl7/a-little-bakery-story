@@ -24,7 +24,7 @@ function upgradeShop() {
     <div class="card card-pad section-card">
       <div class="h2">装饰</div>
       <div v-for="item in decorations" :key="item.id" class="row-item">
-        <div><strong>{{ item.name }}</strong><div class="small muted">舒适度 +1 · 店铺等级 {{ item.shopLevel }} · ¥{{ item.cost }}</div></div>
+        <div><strong>{{ item.name }}</strong><div class="small muted">改善店内环境 · 店铺等级 {{ item.shopLevel }} · ¥{{ item.cost }}</div></div>
         <button class="btn" type="button" :disabled="state.dayPhase !== 'prep' || item.owned || !item.available || state.cash < item.cost || state.phase !== 'playing'" @click="buyDecoration(item.id)">{{ item.owned ? '已购' : item.available ? '购买' : '等级不足' }}</button>
       </div>
     </div>

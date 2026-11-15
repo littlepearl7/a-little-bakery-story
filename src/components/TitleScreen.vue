@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import {
-  autoSaveText, exportSaveText, hasSave, importSaveText, inspectSaveText, load, loadManualSave, state,
+  autoSaveText, exportSaveText, hasSave, importSaveText, inspectSaveText, load, loadManualSave, MANUAL_SAVE_SLOTS, state,
   manualSaveText, reset, saveManual, startGame,
 } from '../store';
 import {
@@ -15,6 +15,7 @@ const emit = defineEmits(['enter', 'close', 'title', 'collection']);
 const screen = ref(props.inGame ? 'settings' : 'cover');
 const confirmNew = ref(false);
 const pendingLocal = ref(null);
+const pendingManualWrite = ref(null);
 const pendingCloud = ref(null);
 const cloudCode = ref('');
 const cloudRevision = ref(null);
@@ -24,7 +25,14 @@ const fileInput = ref(null);
 const saveRefresh = ref(0);
 
 const hasAutosave = computed(() => (saveRefresh.value, hasSave()));
-const hasManualSave = computed(() => (saveRefresh.value, hasSave(true)));
+const manualSlots = computed(() => {
+  saveRefresh.value;
+  return Array.from({ length: MANUAL_SAVE_SLOTS }, (_, index) => {
+    const slot = index + 1;
+    const inspected = inspectSaveText(manualSaveText(slot));
+    return { slot, preview: inspected.ok ? inspected.preview : null };
+  });
+});
 const cloudEnabled = cloudSaveAvailable;
 
 onMounted(() => {
@@ -65,10 +73,11 @@ function newGame() {
   startPlay();
 }
 
-function readManual() {
-  const inspected = inspectSaveText(manualSaveText());
-  if (!inspected.ok) return say('没有可读取的本地手动存档。');
-  pendingLocal.value = { text: manualSaveText(), preview: inspected.preview };
+function readManual(slot) {
+  const text = manualSaveText(slot);
+  const inspected = inspectSaveText(text);
+  if (!inspected.ok) return say('这个本地存档位没有可读取的存档。');
+  pendingLocal.value = { text, preview: inspected.preview };
 }
 
 function readAuto() {
@@ -117,10 +126,19 @@ function downloadSave() {
   say('存档文件已导出。');
 }
 
-function backupLocal() {
-  const saved = saveManual();
+function requestManualSave(slot) {
+  if (manualSlots.value.find((item) => item.slot === slot)?.preview) {
+    pendingManualWrite.value = slot;
+    return;
+  }
+  backupLocal(slot);
+}
+
+function backupLocal(slot) {
+  const saved = saveManual(slot);
+  pendingManualWrite.value = null;
   if (saved) saveRefresh.value++;
-  say(saved ? '本地手动存档已更新。' : '浏览器无法写入本地存档。');
+  say(saved ? `本地存档位 ${slot} 已保存。` : '浏览器无法写入本地存档。');
 }
 
 async function checkCloud() {
@@ -272,16 +290,39 @@ function leaveSettings() {
         <div class="title-panel-body">
           <div v-if="screen === 'load'" class="save-group">
             <h2>本地存档</h2>
-            <p class="save-note">自动存档随经营进度保存，手动存档可在设置里创建。</p>
+            <p class="save-note">自动存档随经营进度保存；三个手动槽位可分别保留不同进度。</p>
             <button class="save-action" type="button" :disabled="!hasAutosave" @click="readAuto">预览最近自动存档</button>
-            <button class="save-action" type="button" :disabled="!hasManualSave" @click="readManual">预览本地手动存档</button>
+            <div class="manual-slots">
+              <div v-for="slot in manualSlots" :key="slot.slot" class="manual-slot">
+                <div class="manual-slot-info">
+                  <strong>手动槽位 {{ slot.slot }} · {{ slot.preview ? '已保存' : '空槽位' }}</strong>
+                  <small v-if="slot.preview">M{{ slot.preview.month }} · 第 {{ slot.preview.day }} 个经营日 · ¥{{ slot.preview.cash.toLocaleString() }}</small>
+                  <small v-if="slot.preview?.savedAt">保存于 {{ new Date(slot.preview.savedAt).toLocaleString() }}</small>
+                </div>
+                <button class="save-action" type="button" :disabled="!slot.preview" @click="readManual(slot.slot)">预览并读取</button>
+              </div>
+            </div>
             <button class="save-action" type="button" @click="fileInput?.click()">从 JSON 文件导入</button>
           </div>
 
           <div v-else class="save-group">
             <h2>本地存档</h2>
-            <p class="save-note">自动存档会持续更新，手动存档保存在当前浏览器。</p>
-            <button class="save-action primary" type="button" @click="backupLocal">保存本地手动存档</button>
+            <p class="save-note">自动存档会持续更新；手动槽位保存在当前浏览器，可以保留不同经营进度。</p>
+            <div class="manual-slots">
+              <div v-for="slot in manualSlots" :key="slot.slot" class="manual-slot">
+                <div class="manual-slot-info">
+                  <strong>手动槽位 {{ slot.slot }} · {{ slot.preview ? '已保存' : '空槽位' }}</strong>
+                  <small v-if="slot.preview">M{{ slot.preview.month }} · 第 {{ slot.preview.day }} 个经营日 · ¥{{ slot.preview.cash.toLocaleString() }}</small>
+                  <small v-if="slot.preview?.savedAt">保存于 {{ new Date(slot.preview.savedAt).toLocaleString() }}</small>
+                </div>
+                <button v-if="pendingManualWrite !== slot.slot" class="save-action primary" type="button" @click="requestManualSave(slot.slot)">{{ slot.preview ? '覆盖这个槽位' : '保存到此槽位' }}</button>
+                <div v-else class="manual-slot-confirm">
+                  <span>确认覆盖槽位 {{ slot.slot }}？</span>
+                  <button class="save-action primary" type="button" @click="backupLocal(slot.slot)">确认保存</button>
+                  <button class="save-action" type="button" @click="pendingManualWrite = null">取消</button>
+                </div>
+              </div>
+            </div>
             <button class="save-action" type="button" @click="downloadSave">导出存档文件</button>
             <button class="save-action" type="button" @click="fileInput?.click()">导入存档文件</button>
 
@@ -355,8 +396,22 @@ function leaveSettings() {
       </header>
       <div class="title-panel-body">
         <h2>本地存档</h2>
-        <p class="save-note">自动存档会持续更新，手动存档保存在当前浏览器。</p>
-        <button class="save-action primary" type="button" @click="backupLocal">保存本地手动存档</button>
+        <p class="save-note">自动存档会持续更新；手动槽位保存在当前浏览器，可以保留不同经营进度。</p>
+        <div class="manual-slots">
+          <div v-for="slot in manualSlots" :key="slot.slot" class="manual-slot">
+            <div class="manual-slot-info">
+              <strong>手动槽位 {{ slot.slot }} · {{ slot.preview ? '已保存' : '空槽位' }}</strong>
+              <small v-if="slot.preview">M{{ slot.preview.month }} · 第 {{ slot.preview.day }} 个经营日 · ¥{{ slot.preview.cash.toLocaleString() }}</small>
+              <small v-if="slot.preview?.savedAt">保存于 {{ new Date(slot.preview.savedAt).toLocaleString() }}</small>
+            </div>
+            <button v-if="pendingManualWrite !== slot.slot" class="save-action primary" type="button" @click="requestManualSave(slot.slot)">{{ slot.preview ? '覆盖这个槽位' : '保存到此槽位' }}</button>
+            <div v-else class="manual-slot-confirm">
+              <span>确认覆盖槽位 {{ slot.slot }}？</span>
+              <button class="save-action primary" type="button" @click="backupLocal(slot.slot)">确认保存</button>
+              <button class="save-action" type="button" @click="pendingManualWrite = null">取消</button>
+            </div>
+          </div>
+        </div>
         <button class="save-action" type="button" @click="downloadSave">导出存档文件</button>
         <button class="save-action" type="button" @click="fileInput?.click()">导入存档文件</button>
         <h2>云存档</h2>
@@ -415,5 +470,6 @@ function leaveSettings() {
 .save-action{width:100%;min-height:44px;padding:9px 12px;border:1px solid #e3c9ad;border-radius:11px;background:#fffdf8;color:#6b4a34;font:inherit;font-size:13px;text-align:center;cursor:pointer}.save-action.primary{border-color:#7d9273;background:#7d9273;color:#fff}.save-action:disabled{opacity:.46;cursor:default}
 .save-label{margin-top:7px;font-size:12px;font-weight:700}.save-input{width:100%;min-height:46px;padding:10px 12px;border:1px solid #ddc5ab;border-radius:10px;background:white;color:#553a28;font:inherit;font-size:16px;letter-spacing:.12em;text-transform:uppercase}
 .save-file{display:none}.save-preview{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid #d9c4ab;border-radius:12px;background:#fffaf1;color:#6b4a34;font-size:13px}.save-preview small{color:#806a58}.recovery-code{display:grid;gap:7px;padding:12px;border:1px dashed #ae8d68;border-radius:12px;background:#fff9ec;text-align:center}.recovery-code span{font:700 16px/1.5 ui-monospace,monospace;letter-spacing:.12em;overflow-wrap:anywhere}.recovery-code button{min-height:44px;border:0;border-radius:9px;background:#eed9bf;color:#553a28;font:inherit}
+.manual-slots{display:grid;gap:8px;margin:4px 0 10px}.manual-slot{display:grid;gap:8px;padding:10px;border:1px solid #ead7c2;border-radius:12px;background:#fffaf2}.manual-slot-info{display:grid;gap:3px;color:#6b4a34;font-size:12px}.manual-slot-info small{color:#806a58}.manual-slot-confirm{display:grid;gap:6px;color:#806a58;font-size:12px}
 .title-panel-foot{padding:8px 16px max(10px,env(safe-area-inset-bottom));border-top:1px solid #ead7c2}.save-center-mask{z-index:500;padding:14px;background:#21181088}.save-center{width:min(100%,460px);max-height:90dvh}.title-toast{position:fixed;z-index:10;left:8%;right:8%;bottom:2%;margin:0;padding:10px;border-radius:10px;background:#fffaf0;color:#6b4a34;text-align:center;font-size:12px}.confirm-mask{z-index:8}.confirm-card{width:min(100%,360px);padding:20px;border-radius:16px;background:#fbf5ec;color:#6b4a34;box-shadow:0 12px 44px #1b100e88}.confirm-card h2{margin:0 0 8px;font-size:18px}.confirm-card p{margin:0 0 14px;color:#806a58;font-size:13px;line-height:1.65}.confirm-card .save-action+.save-action{margin-top:8px}
 </style>

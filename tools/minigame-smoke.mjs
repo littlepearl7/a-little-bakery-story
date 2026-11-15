@@ -32,6 +32,8 @@ try{
   assert.equal(t.status,'ready');
   assert(s.deliverTicket(t.id).ok);
   assert.equal(t.status,'delivered');
+  assert.equal(t.revenue,198);
+  assert.equal(s.deliverTicket(t.id).ok,false);
   assert.equal(s.state.shelf.strawberry,1);
   // 市集：配货不会凭空补库存，卖出同步到主店。
   reset();s.state.dayPhase='service-ready';s.state.shelf.strawberry=4;

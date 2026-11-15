@@ -23,6 +23,7 @@ import MarketGame from './pages/minigames/MarketGame.vue';
 import CafeGame from './pages/minigames/CafeGame.vue';
 import BakingGame from './pages/minigames/BakingGame.vue';
 import ResearchGame from './pages/minigames/ResearchGame.vue';
+import TutorialPractice from './pages/TutorialPractice.vue';
 import './pages/minigames/game-ui.css';
 const scene = ref('shop');
 const started = ref(false);
@@ -86,7 +87,20 @@ function enterGame(target = {}) {
   activePanel.value = target.panel || '';
   phoneOpen.value = false;
   activeManageSection.value = target.section || 'overview';
-  if (queue.events.length) activeEvent.value = queue.events[0];
+  const tutorialPending = state.tutorialPromptPending || (!state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01'));
+  if (tutorialPending) {
+    state.tutorialPromptPending = true;
+    askTutorial.value = true;
+    save();
+  }
+  if (!state.tutorialPractice && !tutorialPending && queue.events.length) activeEvent.value = queue.events[0];
+  if (!state.tutorialPractice && !tutorialPending) {
+    if (state.productionMini || state.productionResult) minigame.value = 'baking';
+    else if (state.labPending) minigame.value = 'research';
+    else if (state.dayPhase === 'service' && state.service) minigame.value = 'delivery';
+    else if (state.marketRun && !state.marketRun.completed) minigame.value = 'market';
+    else if (state.cafeRun && !state.cafeRun.completed) minigame.value = 'cafe';
+  }
 }
 
 function returnToTitle() {
@@ -102,6 +116,7 @@ function returnToTitle() {
 }
 
 function openNext() {
+  if (state.tutorialPractice) return;
   if (!queue.events.length) return;
   const next = queue.events[0];
   if (next.kind === 'tutorial') {
@@ -113,9 +128,28 @@ function openNext() {
 }
 
 function doneEvent() {
+  const completed = activeEvent.value;
   queue.events.shift();
   activeEvent.value = null;
   save();
+  if (completed?.id === 'EVT_PROLOGUE_01' && !state.tutorialSeen) {
+    state.tutorialPromptPending = true;
+    askTutorial.value = true;
+    save();
+    return;
+  }
+  const practiceAfter = {
+    EVT_TUTORIAL_FRONT: 'counter',
+    EVT_TUTORIAL_KITCHEN: 'production',
+    EVT_TUTORIAL_STREET: 'purchase',
+    EVT_TUTORIAL_PHONE: 'phone',
+  }[completed?.id];
+  if (practiceAfter) {
+    state.tutorialPractice = practiceAfter;
+    state.tutorialPracticeProgress = 0;
+    save();
+    return;
+  }
   // 本月还有剧情就接着演；跨月/旧月的留给「有 N 段剧情」角标，不打断经营
   const next = queue.events[0];
   if (next && (next.month === state.month || next.kind === 'tutorial')) setTimeout(openNext, 200);
@@ -124,6 +158,15 @@ function doneEvent() {
   if (!next && !state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01')) {
     askTutorial.value = true;
   }
+}
+
+function finishTutorialPractice(step) {
+  if (state.tutorialPractice !== step) return;
+  state.tutorialPractice = null;
+  state.tutorialPracticeProgress = 0;
+  state.tutorialProgress += 1;
+  save();
+  setTimeout(openNext, 180);
 }
 
 function chooseTutorial(show) {
@@ -267,10 +310,10 @@ onMounted(() => {
             <button type="button" class="scene-panel-close" @click="closePanel">✕</button>
           </header>
           <div class="scene-panel-content">
-            <ShopPage v-if="activePanel === 'shop'" :paused="!!activeEvent || !!minigame" @closed="onClosed" @open-panel="openPanel" />
+            <ShopPage v-if="activePanel === 'shop'" @closed="onClosed" @open-panel="openPanel" />
             <RenovationPage v-else-if="activePanel === 'renovation'" />
             <SupplierPage v-else-if="activePanel === 'supplier'" />
-            <KitchenPage v-else-if="activePanel === 'kitchen'" :paused="!!activeEvent" @open-panel="openPanel" />
+            <KitchenPage v-else-if="activePanel === 'kitchen'" @open-panel="openPanel" />
             <PartnersPage v-else-if="activePanel === 'partners'" />
             <ManagePage v-else-if="activePanel === 'manage'" :initial-section="activeManageSection" @open-panel="openPanel" />
             <CodexPage v-else-if="activePanel === 'codex'" :initial-segment="activeManageSection === 'collection' ? 'collection' : 'product'" />
@@ -295,7 +338,8 @@ onMounted(() => {
 
     <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
     <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />
-    <DeliveryGame v-if="minigame === 'delivery'" @exit="minigame = ''" />
+    <DeliveryGame v-if="minigame === 'delivery'" :paused="!!activeEvent" @exit="minigame = ''" />
+    <TutorialPractice v-if="started && state.tutorialPractice" :step="state.tutorialPractice" @done="finishTutorialPractice" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 

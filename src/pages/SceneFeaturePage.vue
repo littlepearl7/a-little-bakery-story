@@ -75,7 +75,7 @@ function saveDesign() {
     </template>
 
     <template v-else-if="section === 'studio'">
-      <p class="feature-help">叶星河提供设计建议。完成一套蛋糕与包装视觉方案，消耗 1 点行动力和 1 份装饰料，品牌 +1。</p>
+      <p class="feature-help">完成一套蛋糕与包装视觉方案，需要行动力和装饰料，可为林记积累品牌经验。</p>
       <label class="feature-select">蛋糕造型<select v-model="design.shape"><option>圆形</option><option>方形</option><option>双层</option><option>花环形</option></select></label>
       <label class="feature-select">主体配色<select v-model="design.color"><option>奶油白</option><option>樱花粉</option><option>抹茶绿</option><option>巧克力棕</option></select></label>
       <label class="feature-select">表面装饰<select v-model="design.decoration"><option>草莓与花朵</option><option>巧克力碎</option><option>坚果与焦糖</option><option>季节鲜果</option></select></label>
@@ -107,7 +107,7 @@ function saveDesign() {
 
     <template v-else-if="section === 'cafe'">
       <div class="feature-npc"><strong>许沐禾</strong><small>栖木咖啡主理人 · 咖啡店好感 {{ state.cafeRelation }}</small><p>“咖啡与甜点的搭配，像是两个人互相照亮。你的蛋糕很适合这里。”</p></div>
-      <button class="feature-primary" @click="run(chatCafeOwner)">聊天 · 1 行动力（好感 +3）</button>
+      <button class="feature-primary" @click="run(chatCafeOwner)">聊天 · 1 行动力</button>
       <button class="feature-secondary" @click="emit('open-panel', 'game:cafe')">一起设计联名套餐</button>
     </template>
 

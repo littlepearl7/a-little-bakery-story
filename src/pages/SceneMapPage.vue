@@ -71,7 +71,7 @@ const hotspots = computed(() => {
     ],
     cafe: [
       { id: 'collab', x: 52, y: 56, text: '联名活动 · 咖啡与蛋糕', kind: 'panel', value: 'game:cafe' },
-      { id: 'coffee', x: 22, y: 74, text: '喝一杯（体力 +12）', kind: 'action', value: 'coffee' },
+      { id: 'coffee', x: 22, y: 74, text: '喝一杯热饮', kind: 'action', value: 'coffee' },
       { id: 'owner', x: 75, y: 75, text: '与许沐禾聊天', kind: 'panel', value: 'feature', section: 'cafe' },
       { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
     ],
@@ -125,7 +125,7 @@ function go(id) {
 
 const chosenInfo = computed(() => {
   if (!selected.value || selected.value.kind !== 'action') return null;
-  if (selected.value.value === 'momchat') return { ap: 1, cost: 0, disabled: false, note: '家庭默契 +4' };
+  if (selected.value.value === 'momchat') return { ap: 1, cost: 0, disabled: false, note: '和妈妈聊聊经营经验' };
   return actionInfo(selected.value.value);
 });
 

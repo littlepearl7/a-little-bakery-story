@@ -12,6 +12,8 @@ import { CG_COLLECTION } from './vn';
 
 const SAVE_KEY = 'alb-save-v6';
 const MANUAL_SAVE_KEY = 'alb-manual-save-v1';
+const MANUAL_SAVE_PREFIX = 'alb-manual-slot-v1-';
+export const MANUAL_SAVE_SLOTS = 3;
 export const DAYS_PER_MONTH = 5;
 
 const MOM_CAPACITY = 60; // 林暖每天的免费产能
@@ -60,7 +62,10 @@ export function newState() {
     recipeNames: {},
     marketPoints: 0,
     tutorialSeen: false,
+    tutorialPromptPending: false,
     tutorialProgress: 0,
+    tutorialPractice: null,
+    tutorialPracticeProgress: 0,
     marketRun: null,
     cafeRun: null,
     cafeCollab: 0,
@@ -499,27 +504,38 @@ function applySaveData(data) {
   }
 }
 
-export function hasSave(manual = false) {
+function manualSlotKey(slot) {
+  const index = Number(slot);
+  return Number.isInteger(index) && index >= 1 && index <= MANUAL_SAVE_SLOTS
+    ? MANUAL_SAVE_PREFIX + index
+    : '';
+}
+
+export function hasSave(manual = false, slot = 1) {
   try {
-    const raw = localStorage.getItem(manual ? MANUAL_SAVE_KEY : SAVE_KEY);
+    const raw = manual ? manualSaveText(slot) : localStorage.getItem(SAVE_KEY);
     return !!raw && inspectSaveText(raw).ok;
   } catch (e) {
     return false;
   }
 }
 
-export function saveManual() {
+export function saveManual(slot = 1) {
+  const key = manualSlotKey(slot);
+  if (!key) return false;
   try {
-    localStorage.setItem(MANUAL_SAVE_KEY, JSON.stringify(saveSnapshot()));
+    localStorage.setItem(key, JSON.stringify(saveSnapshot()));
     return true;
   } catch (e) {
     return false;
   }
 }
 
-export function manualSaveText() {
+export function manualSaveText(slot = 1) {
+  const key = manualSlotKey(slot);
+  if (!key) return '';
   try {
-    return localStorage.getItem(MANUAL_SAVE_KEY) || '';
+    return localStorage.getItem(key) || (Number(slot) === 1 ? localStorage.getItem(MANUAL_SAVE_KEY) : '') || '';
   } catch (e) {
     return '';
   }
@@ -537,9 +553,9 @@ export function exportSaveText() {
   return JSON.stringify(saveSnapshot(), null, 2);
 }
 
-export function loadManualSave(persistToAuto = true) {
+export function loadManualSave(persistToAuto = true, slot = 1) {
   try {
-    const raw = localStorage.getItem(MANUAL_SAVE_KEY);
+    const raw = manualSaveText(slot);
     if (!raw || !inspectSaveText(raw).ok) return false;
     const data = JSON.parse(raw);
     if (!applySaveData(data)) return false;
@@ -922,7 +938,7 @@ export function actionInfo(id) {
       const left = cdLeft('feedback');
       return {
         name: '顾客反馈', ap: 1, cost: 0,
-        note: left > 0 ? '还要等 ' + left + ' 天' : '口碑 +1，忠诚 +2',
+        note: left > 0 ? '还要等 ' + left + ' 天' : '听听顾客对店里的建议',
         disabled: left > 0,
       };
     }
@@ -930,7 +946,7 @@ export function actionInfo(id) {
       const t = state.staff.length ? staffList()[0].nick : null;
       return {
         name: '伙伴交流', ap: 1, cost: 0,
-        note: t ? '和 ' + t + ' 聊聊，信赖 +6' : '和妈妈聊聊，家庭默契 +4',
+        note: t ? '和 ' + t + ' 聊聊近况' : '和妈妈聊聊经营经验',
       };
     }
     case 'sqchat': {
@@ -942,10 +958,10 @@ export function actionInfo(id) {
       };
     }
     case 'market':
-      return { name: '市场宣传', ap: 2, cost: 800, note: '知名度 +3，品牌 +2', disabled: state.cash < 800 };
+      return { name: '市场宣传', ap: 2, cost: 800, note: '发布新品内容，让更多人认识林记', disabled: state.cash < 800 };
     case 'train':
       return state.staff.length
-        ? { name: '员工培训', ap: 2, cost: 400, note: '选一位伙伴，专业 +1', disabled: state.cash < 400 }
+        ? { name: '员工培训', ap: 2, cost: 400, note: '为一位伙伴安排专业训练', disabled: state.cash < 400 }
         : { name: '员工培训', ap: 2, cost: 0, note: '还没有伙伴可以培训', disabled: true };
     case 'decorate': {
       const next = SHOP_LEVELS.find((s) => s.lv === state.shopLevel + 1);
@@ -972,16 +988,16 @@ export function actionInfo(id) {
       const city = CITIES.find((c) => c.id === state.surveyed[0]);
       return {
         name: '在' + city.name + '开店', ap: 3, cost: city.cost,
-        note: '门店 +1', disabled: state.cash < city.cost,
+        note: '在当地开设一间新店', disabled: state.cash < city.cost,
       };
     }
     case 'coffee':
       return {
         name: '喝一杯手冲', ap: 0, cost: 18,
-        note: '体力 +12', disabled: state.cash < 18,
+        note: '喝杯热饮，歇一会儿', disabled: state.cash < 18,
       };
     case 'walk':
-      return { name: '沿河散步', ap: 0, cost: 0, note: '口碑 +0.5，忠诚 +2' };
+      return { name: '沿河散步', ap: 0, cost: 0, note: '吹吹河风，调整状态' };
     default:
       return { name: id, ap: 1, cost: 0, note: '' };
   }
@@ -1690,6 +1706,7 @@ export function deliverTicket(ticketId) {
   if (ticket.customer === '陈奶奶' || ticket.customer === '张叔') recordCustomerPurchases({ [ticket.product]: ticket.qty });
   state.loyalty = clamp(state.loyalty + 0.15);
   state.popularity = clamp(state.popularity + 0.02);
+  ticket.revenue = revenue;
   ticket.status = 'delivered';
   log('交付「' + productById(ticket.product).name + '」×' + ticket.qty + '，收入 ¥' + revenue + ' 已到账', 'good');
   if (ticket.type === '定制') service.customDone = (service.customDone || 0) + 1;
@@ -2036,8 +2053,10 @@ export function startTutorial(show) {
   const pick = show
     ? list.filter((e) => e.id !== 'EVT_TUTORIAL_SKIP')
     : list.filter((e) => e.id === 'EVT_TUTORIAL_SKIP');
-  pick.forEach(pushEvent);
+  const queued = pick.filter((event) => !queue.events.some((item) => item.id === event.id));
+  queue.events.unshift(...queued);
   state.tutorialSeen = true;
+  state.tutorialPromptPending = false;
   state.tutorialProgress = show ? 1 : 0;
   save();
   return pick.length;
