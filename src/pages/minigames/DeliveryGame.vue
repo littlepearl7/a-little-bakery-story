@@ -18,8 +18,9 @@ const misses = ref(0);
 const message = ref('');
 const phone = ref(false);
 const query = ref('');
-const found = ref(null);
-const checked = ref(false);
+const orderFilter = ref('');
+const inspectedOrderId = ref('');
+const phoneNotice = ref('');
 const packing = ref(false);
 const packSerial = ref(0);
 const packTime = ref(0);
@@ -59,6 +60,9 @@ const activeTickets = computed(() => {
     .filter((ticket) => !['delivered', 'unavailable'].includes(ticket.status));
 });
 const isPickup = computed(() => current.value?.kind === 'appointment');
+const shownOrders = computed(() => orderFilter.value
+  ? tickets.value.filter((ticket) => ticket.orderNo?.toUpperCase() === orderFilter.value)
+  : tickets.value);
 const shelf = computed(() => availableProducts.value.map((product) => ({
   ...product,
   qty: props.tutorial ? (product.id === 'plain' ? 1 : 0) : state.shelf[product.id] || 0,
@@ -99,9 +103,9 @@ function start() {
       unhappy: false, type: '预约', due: '', blessing: '',
     };
     selected.value = '';
-    checked.value = false;
+    inspectedOrderId.value = '';
     phase.value = 'play';
-    message.value = '这是独立练习单：先在手机核对订单编号，再从展示柜选蛋糕并播放打包动画。';
+    message.value = '打开「手机订单」，查询顾客报的编号，或直接从列表选中对应的预约单。';
     return;
   }
   if (state.dayPhase === 'service-ready' && !state.service) {
@@ -125,18 +129,44 @@ function start() {
 function selectTicket(ticket) {
   if (packing.value || !selectServiceTicket(ticket.id)) return;
   selected.value = '';
-  checked.value = false;
-  found.value = null;
+  inspectedOrderId.value = '';
   selectedDecoration.value = '';
   selectedBlessing.value = '';
   if (['packing', 'ready'].includes(ticket.status)) resumePacking();
 }
 
+function showAllOrders() {
+  query.value = '';
+  orderFilter.value = '';
+  phoneNotice.value = '';
+}
+
+function openOrderPhone() {
+  showAllOrders();
+  phone.value = true;
+}
+
+function inspectOrder(order) {
+  inspectedOrderId.value = order.id;
+  if (!isPickup.value) {
+    phoneNotice.value = '已查看订单详情。';
+  } else if (order.id === current.value.id) {
+    phoneNotice.value = '订单编号已核对，记下蛋糕和份数，再返回柜台。';
+  } else {
+    phoneNotice.value = `这笔订单属于其他顾客。请找编号 ${current.value.orderNo}。`;
+  }
+  message.value = phoneNotice.value;
+}
+
 function lookup() {
-  const key = query.value.trim().toUpperCase();
-  found.value = tickets.value.find((ticket) => ticket.orderNo?.toUpperCase() === key) || null;
-  message.value = found.value ? '订单已找到，请核对蛋糕、数量和特别要求。' : '没有找到这个编号，请核对后再试。';
-  checked.value = found.value?.id === current.value?.id;
+  orderFilter.value = query.value.trim().toUpperCase();
+  if (!orderFilter.value) {
+    showAllOrders();
+  } else if (shownOrders.value.length) {
+    inspectOrder(shownOrders.value[0]);
+  } else {
+    phoneNotice.value = '没有找到这个编号。请核对后再试，或点「显示全部」查看列表。';
+  }
 }
 
 function pick(id) {
@@ -148,8 +178,8 @@ function pick(id) {
 function runMainAction() {
   const ticket = current.value;
   if (!ticket || packing.value) return;
-  if (ticket.kind === 'appointment' && !checked.value) {
-    message.value = '预约取货必须先在手机里输入订单编号并核对详情。';
+  if (ticket.kind === 'appointment' && inspectedOrderId.value !== ticket.id) {
+    message.value = '请先在手机中查询订单号，或点选列表里与顾客编号一致的订单。';
     return;
   }
   if (ticket.status === 'waiting') {
@@ -230,9 +260,7 @@ function finishPack() {
   }
   message.value = result.message;
   selected.value = '';
-  checked.value = false;
-  found.value = null;
-  query.value = '';
+  inspectedOrderId.value = '';
   selectedDecoration.value = '';
   selectedBlessing.value = '';
   if (!current.value) {
@@ -256,9 +284,7 @@ function deliver() {
   if (!result.ok) return message.value = result.message;
   message.value = result.message;
   selected.value = '';
-  checked.value = false;
-  found.value = null;
-  query.value = '';
+  inspectedOrderId.value = '';
   if (!current.value) {
     state.deliveryDay = state.dayIndex;
     save();
@@ -275,9 +301,7 @@ function unavailable() {
     misses.value += 1;
     message.value = '缺货已记录，当前订单不会扣除库存。';
     selected.value = '';
-    checked.value = false;
-    found.value = null;
-    query.value = '';
+    inspectedOrderId.value = '';
     if (!current.value) {
       state.deliveryDay = state.dayIndex;
       save();
@@ -330,7 +354,7 @@ onUnmounted(() => {
     <div v-if="phase === 'intro'" class="game-scroll">
       <div class="game-card">
         <h3 class="game-title">{{ tutorial ? '订单交付小游戏体验' : '接待今日顾客' }}</h3>
-        <p class="game-lead">{{ tutorial ? '先用手机核对预约编号，再按外观从展示柜选择蛋糕；确认后播放完整打包动画，练习不扣成品也不结算收入。' : '普通客人会描述蛋糕外观，预约客人会报真实订单编号。取货、找货和打包都会推进耐心计时；离开游戏或切后台时会暂停。' }}</p>
+        <p class="game-lead">{{ tutorial ? '在手机里按编号查询或直接点订单，核对后从展示柜选蛋糕并打包。' : '普通客人会描述蛋糕外观，预约客人会报真实订单编号。取货、找货和打包都会推进耐心计时；离开游戏或切后台时会暂停。' }}</p>
         <div v-if="!tutorial" class="game-stats">
           <span>货架现货 {{ Object.values(state.shelf).reduce((sum, qty) => sum + qty, 0) }} 份</span>
           <span>预约订单 {{ state.orders.filter((order) => order.taken).length }} 笔</span>
@@ -403,7 +427,7 @@ onUnmounted(() => {
 
         <p v-if="message" class="game-message" role="status">{{ message }}</p>
         <div class="game-grid">
-          <button class="game-btn" type="button" :disabled="packing" @click="phone = true">📱 手机订单</button>
+          <button class="game-btn" type="button" :disabled="packing" @click="openOrderPhone">📱 手机订单</button>
           <button v-if="!tutorial" class="game-btn" type="button" :disabled="packing" @click="unavailable">登记缺货</button>
           <button class="game-btn primary" type="button" :disabled="packing || current.status === 'searching'" @click="runMainAction">
             {{ mainActionLabel }}
@@ -415,29 +439,30 @@ onUnmounted(() => {
     <div v-if="phone" class="phone-backdrop" @click.self="phone = false">
       <section class="phone-screen game-card">
         <div class="game-row">
-          <h3 class="game-title">📱 手机 · 订单详情</h3>
+          <h3 class="game-title">📱 手机 · 当日订单</h3>
           <button class="game-btn" type="button" @click="phone = false">返回柜台</button>
         </div>
         <div class="game-row">
-          <input v-model="query" class="order-input" type="search" placeholder="输入预约订单编号" @keyup.enter="lookup" />
+          <input v-model="query" class="order-input" type="search" aria-label="预约订单编号" placeholder="输入预约订单编号" @keyup.enter="lookup" />
           <button class="game-btn primary" type="button" @click="lookup">查询</button>
+          <button v-if="orderFilter" class="game-btn" type="button" @click="showAllOrders">显示全部</button>
         </div>
-        <div v-if="found" class="order-detail">
-          <b>{{ found.orderNo }} · {{ found.customer }}</b>
-          <p>蛋糕：{{ displayProductName(found.product) }} × {{ found.qty }}</p>
-          <p>外观：{{ LOOK[found.product] || '按该产品图鉴所示制作' }}</p>
-          <p>规格：{{ found.qty }} 份 · {{ found.type }}</p>
-          <p>装饰：{{ found.due || '按标准配方' }}</p>
-          <p>祝福：{{ found.blessing || '无' }}</p>
-          <p>取货：第 {{ state.month }} 月第 {{ state.day }} 日</p>
-          <p>状态：{{ statusLabels[found.status] || found.status }}</p>
-        </div>
-        <div class="game-section">当日预约单</div>
-        <div v-for="ticket in tickets.filter((item) => item.kind === 'appointment')" :key="ticket.id" class="order-list">
-          <span>{{ ticket.orderNo }} · {{ ticket.customer }}</span>
-          <span>{{ statusLabels[ticket.status] || ticket.status }}</span>
-        </div>
-        <p class="game-lead">核对当前顾客的预约单后，回到柜台选取蛋糕。</p>
+        <p class="game-lead" role="status">{{ phoneNotice || '输入编号查询，或直接点选列表里的订单。' }}</p>
+        <button
+          v-for="ticket in shownOrders"
+          :key="ticket.id"
+          class="game-btn order-detail"
+          :class="{ selected: inspectedOrderId === ticket.id }"
+          :aria-pressed="inspectedOrderId === ticket.id"
+          type="button"
+          @click="inspectOrder(ticket)"
+        >
+          <strong>{{ ticket.orderNo || '到店单 · 无编号' }} · {{ ticket.customer }}</strong>
+          <span>{{ displayProductName(ticket.product) }} × {{ ticket.qty }} · {{ ticket.type }} · {{ statusLabels[ticket.status] || ticket.status }}</span>
+          <span v-if="LOOK[ticket.product]">外观：{{ LOOK[ticket.product] }}</span>
+          <span>装饰：{{ ticket.due || '按标准配方' }} · 祝福：{{ ticket.blessing || '无' }}</span>
+          <span>取货：第 {{ state.month }} 月第 {{ state.day }} 日<span v-if="ticket.pay"> · 报酬 ¥{{ ticket.pay }}</span></span>
+        </button>
       </section>
     </div>
 
@@ -470,6 +495,16 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.customer-queue{position:absolute;left:10px;right:10px;top:7%;z-index:6;display:flex;gap:5px;overflow-x:auto;max-width:100%;padding:2px}.queue-ticket{flex:0 0 96px;min-width:96px;min-height:48px;padding:5px 7px;border:1px solid #fffaf2a6;border-radius:9px;background:#fffaf2e8;color:#6b4a34;text-align:left}.queue-ticket.active{outline:2px solid #a9b99b}.queue-ticket.unhappy{border-color:#d95b67}.queue-ticket>span,.queue-ticket small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.queue-ticket small{font-size:9px;color:#8c6a50}.queue-ticket i{display:block;height:4px;margin-top:4px;border-radius:99px;background:#eadbca;overflow:hidden}.queue-ticket i b{display:block;height:100%;background:#a9b99b}.customer{position:absolute;left:12px;top:16%;width:57%;max-width:260px;animation:enter .35s ease both}.customer-name{font-size:11px;border-radius:99px;background:#6b4a34d9;color:#fffaf2;padding:5px 10px}.customer p{background:#fffaf2f5;border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px #35241638;font-size:12px;line-height:1.65;color:#6b4a34}.customer small{display:block;text-align:right;color:#fffaf2;text-shadow:0 1px 4px #382719;font-size:9px}.patience{height:6px;margin:5px 0;border-radius:99px;background:#eadbca;overflow:hidden}.patience i{display:block;height:100%;background:#a9b99b;transition:width .15s linear}.case{position:absolute;left:61%;right:2%;top:17%;height:44%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;overflow-y:auto;align-content:start}.cake-cell{min-width:0;min-height:78px;padding:4px 2px;border:1px solid #fffaf2b0;border-radius:9px;background:#fffaf2df;display:grid;justify-items:center;align-content:center;color:#6b4a34;cursor:pointer}.cake-cell.active{outline:2px solid #a9b99b}.cake-cell.empty{opacity:.5}.cake-cell:disabled{cursor:default}.cake-cell img{width:44px;height:42px;object-fit:contain}.cake-cell span{font-size:9px;text-align:center;line-height:1.3}.cake-cell small{font-size:8px;color:#8c6a50}.delivery-bar{position:absolute;left:8px;right:8px;bottom:8px;max-height:42%;overflow:auto;background:#fffaf2f5}.delivery-bar .game-row{font-size:11px}.delivery-bar .game-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}.delivery-bar .game-btn{min-width:0;min-height:42px;padding:5px;font-size:10px}.custom-options{margin-top:5px}.custom-options .game-section{font-size:10px}.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:5px}.choice-grid .game-btn{min-height:38px;padding:3px;font-size:9px}.choice-grid .game-btn.selected{background:#a9b99b;color:#fff}.delivery-bar .game-message{margin:4px 0;font-size:10px}.phone-backdrop,.packing-mask{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:14px;background:#352416a6}.phone-screen{width:100%;max-width:400px;max-height:87%;overflow-y:auto}.phone-screen .game-row{gap:5px}.order-input{flex:1;min-width:0;height:44px;padding:5px 9px;border:1px solid #d5b99e;border-radius:9px;font-size:13px}.order-detail{margin-top:10px;padding:10px;border-radius:10px;background:#fffaf2;color:#6b4a34;font-size:12px}.order-detail p{margin:4px 0;line-height:1.6}.order-list{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #eadbca;font-size:10px;color:#6b4a34}.pack-card{width:min(88vw,350px);text-align:center}.pack-card img{display:block;width:100%;max-height:270px;object-fit:contain}.game-center{text-align:center}.game-message{white-space:normal;line-height:1.5}@keyframes enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.customer-queue{position:absolute;left:10px;right:10px;top:7%;z-index:6;display:flex;gap:5px;overflow-x:auto;max-width:100%;padding:2px}.queue-ticket{flex:0 0 96px;min-width:96px;min-height:48px;padding:5px 7px;border:1px solid #fffaf2a6;border-radius:9px;background:#fffaf2e8;color:#6b4a34;text-align:left}.queue-ticket.active{outline:2px solid #a9b99b}.queue-ticket.unhappy{border-color:#d95b67}.queue-ticket>span,.queue-ticket small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.queue-ticket small{font-size:9px;color:#8c6a50}.queue-ticket i{display:block;height:4px;margin-top:4px;border-radius:99px;background:#eadbca;overflow:hidden}.queue-ticket i b{display:block;height:100%;background:#a9b99b}.customer{position:absolute;left:12px;top:16%;width:57%;max-width:260px;animation:enter .35s ease both}.customer-name{font-size:11px;border-radius:99px;background:#6b4a34d9;color:#fffaf2;padding:5px 10px}.customer p{background:#fffaf2f5;border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px #35241638;font-size:12px;line-height:1.65;color:#6b4a34}.customer small{display:block;text-align:right;color:#fffaf2;text-shadow:0 1px 4px #382719;font-size:9px}.patience{height:6px;margin:5px 0;border-radius:99px;background:#eadbca;overflow:hidden}.patience i{display:block;height:100%;background:#a9b99b;transition:width .15s linear}.case{position:absolute;left:61%;right:2%;top:17%;height:44%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;overflow-y:auto;align-content:start}.cake-cell{min-width:0;min-height:78px;padding:4px 2px;border:1px solid #fffaf2b0;border-radius:9px;background:#fffaf2df;display:grid;justify-items:center;align-content:center;color:#6b4a34;cursor:pointer}.cake-cell.active{outline:2px solid #a9b99b}.cake-cell.empty{opacity:.5}.cake-cell:disabled{cursor:default}.cake-cell img{width:44px;height:42px;object-fit:contain}.cake-cell span{font-size:9px;text-align:center;line-height:1.3}.cake-cell small{font-size:8px;color:#8c6a50}.delivery-bar{position:absolute;left:8px;right:8px;bottom:8px;max-height:42%;overflow:auto;background:#fffaf2f5}.delivery-bar .game-row{font-size:11px}.delivery-bar .game-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}.delivery-bar .game-btn{min-width:0;min-height:42px;padding:5px;font-size:10px}.custom-options{margin-top:5px}.custom-options .game-section{font-size:10px}.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:5px}.choice-grid .game-btn{min-height:38px;padding:3px;font-size:9px}.choice-grid .game-btn.selected{background:#a9b99b;color:#fff}.delivery-bar .game-message{margin:4px 0;font-size:10px}.phone-backdrop,.packing-mask{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:14px;background:#352416a6}.phone-screen{width:100%;max-width:400px;max-height:87%;overflow-y:auto}.phone-screen .game-row{gap:5px}.order-input{flex:1;min-width:0;height:44px;padding:5px 9px;border:1px solid #d5b99e;border-radius:9px;font-size:13px}
+.phone-screen .order-detail {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.pack-card{width:min(88vw,350px);text-align:center}.pack-card img{display:block;width:100%;max-height:270px;object-fit:contain}.game-center{text-align:center}.game-message{white-space:normal;line-height:1.5}@keyframes enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 </style>
-
