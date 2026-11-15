@@ -26,6 +26,11 @@ try {
 
   store.reset();
   store.state.played = ['EVT_PROLOGUE_01'];
+  store.startGame(true);
+  assert.equal(store.queue.events[0]?.kind, 'prologue', '新游戏强制把序幕放回队首');
+
+  store.reset();
+  store.state.played = ['EVT_PROLOGUE_01'];
   store.state.tutorialPromptPending = true;
   store.save();
   store.state.tutorialPromptPending = false;
