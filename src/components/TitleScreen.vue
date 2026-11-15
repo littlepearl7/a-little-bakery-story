@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import {
   autoSaveText, exportSaveText, hasSave, importSaveText, inspectSaveText, load, loadManualSave, MANUAL_SAVE_SLOTS, state,
-  manualSaveText, reset, saveManual, startGame,
+  manualSaveText, reset, saveManual,
 } from '../store';
 import {
   cloudSaveAvailable, createRecoveryCode, previewCloudSave, putCloudSave, readCloudSave,
@@ -48,10 +48,9 @@ function leaveTo(handler) {
   setTimeout(handler, 420);
 }
 
-function startPlay() {
+function startPlay(target = {}) {
   leaveTo(() => {
-    startGame();
-    emit('enter', {});
+    emit('enter', target);
   });
 }
 
@@ -70,7 +69,7 @@ function newGame() {
   reset();
   state.storyChoices = {};
   confirmNew.value = false;
-  startPlay();
+  startPlay({ fresh: true });
 }
 
 function readManual(slot) {
@@ -260,27 +259,33 @@ function leaveSettings() {
 
 <template>
   <div v-if="!inGame" class="title-screen" :class="{ leaving }">
-    <Transition name="cover-crossfade">
-      <div v-if="screen === 'cover'" key="cover" class="title-frame" role="button" tabindex="0" aria-label="点击任意位置开始游戏" @click="screen = 'menu'" @keydown.enter="screen = 'menu'" @keydown.space.prevent="screen = 'menu'">
-        <img :src="art('cover.webp')" alt="林记烘焙游戏封面" />
-        <div class="title-prompt">点击任意位置开始游戏</div>
+    <Transition name="cover-dissolve">
+      <div
+        v-if="screen === 'cover' || screen === 'menu'"
+        :key="screen"
+        class="title-frame"
+        :class="{ 'title-menu': screen === 'menu' }"
+        :role="screen === 'cover' ? 'button' : undefined"
+        :tabindex="screen === 'cover' ? 0 : undefined"
+        :aria-label="screen === 'cover' ? '点击任意位置开始游戏' : undefined"
+        @click="screen === 'cover' && (screen = 'menu')"
+        @keydown.enter="screen === 'cover' && (screen = 'menu')"
+        @keydown.space.prevent="screen === 'cover' && (screen = 'menu')"
+      >
+        <img :src="art(screen === 'cover' ? 'cover.webp' : 'cover-options.webp')" :alt="screen === 'cover' ? '林记烘焙游戏封面' : '林记烘焙主菜单'" />
+        <div v-if="screen === 'cover'" class="title-prompt">点击任意位置开始游戏</div>
+        <template v-else>
+          <button class="title-hit title-hit-continue" type="button" :disabled="!hasAutosave" aria-label="继续游戏" @click="continueGame"></button>
+          <button class="title-hit title-hit-new" type="button" aria-label="新的开始" @click="newGame"></button>
+          <button class="title-hit title-hit-load" type="button" aria-label="读取存档" @click="screen = 'load'; feedback = ''"></button>
+          <button class="title-hit title-hit-settings" type="button" aria-label="设置" @click="screen = 'settings'; feedback = ''"></button>
+          <button class="title-hit title-hit-collection" type="button" aria-label="查看收集" @click="showCollection"></button>
+          <div class="title-screen-reader" aria-live="polite">{{ hasAutosave ? '有本地自动存档' : '暂无本地自动存档' }}</div>
+        </template>
       </div>
     </Transition>
 
-    <Transition name="cover-crossfade">
-      <div v-if="screen === 'menu'" key="menu" class="title-frame title-menu">
-        <img :src="art('cover-options.webp')" alt="林记烘焙主菜单" />
-        <button class="title-hit title-hit-continue" type="button" :disabled="!hasAutosave" aria-label="继续游戏" @click="continueGame"></button>
-        <button class="title-hit title-hit-new" type="button" aria-label="新的开始" @click="newGame"></button>
-        <button class="title-hit title-hit-load" type="button" aria-label="读取存档" @click="screen = 'load'; feedback = ''"></button>
-        <button class="title-hit title-hit-settings" type="button" aria-label="设置" @click="screen = 'settings'; feedback = ''"></button>
-        <button class="title-hit title-hit-collection" type="button" aria-label="查看收集" @click="showCollection"></button>
-        <div class="title-screen-reader" aria-live="polite">{{ hasAutosave ? '有本地自动存档' : '暂无本地自动存档' }}</div>
-      </div>
-    </Transition>
-
-    <div v-if="screen === 'collection'" class="title-collection"> class="title-collection">
-      <header><h1>查看收集</h1><button class="title-back" type="button" @click="screen = 'menu'">返回主菜单</button></header>
+    <div v-if="screen === 'collection'" class="title-collection">      <header><h1>查看收集</h1><button class="title-back" type="button" @click="screen = 'menu'">返回主菜单</button></header>
       <div class="title-collection-body"><CodexPage initial-segment="collection" /></div>
     </div>
 
@@ -455,9 +460,8 @@ function leaveSettings() {
 <style scoped>
 .title-screen,.save-center-mask{position:fixed;inset:0;z-index:600;background:#211810;display:grid;place-items:center;color:#593a24;font-family:inherit;transition:opacity .42s ease}
 .title-screen.leaving{opacity:0;pointer-events:none}
-.cover-crossfade-enter-active,.cover-crossfade-leave-active{transition:opacity .48s ease}
-.cover-crossfade-enter-from,.cover-crossfade-leave-to{opacity:0}
-.cover-crossfade-leave-active{position:absolute;inset:0;z-index:1}
+.cover-dissolve-enter-active,.cover-dissolve-leave-active{position:absolute;inset:0;margin:auto;transition:opacity .7s ease;will-change:opacity}
+.cover-dissolve-enter-from,.cover-dissolve-leave-to{opacity:0}
 .title-frame{position:relative;width:100vw;height:100vh;max-width:56.28vh;max-height:177.68vw;overflow:hidden;background:#f7ead7;outline:none}
 @supports (height:100dvh){.title-frame{height:100dvh;max-width:56.28dvh}}
 .title-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
@@ -479,5 +483,5 @@ function leaveSettings() {
 .save-file{display:none}.save-preview{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid #d9c4ab;border-radius:12px;background:#fffaf1;color:#6b4a34;font-size:13px}.save-preview small{color:#806a58}.recovery-code{display:grid;gap:7px;padding:12px;border:1px dashed #ae8d68;border-radius:12px;background:#fff9ec;text-align:center}.recovery-code span{font:700 16px/1.5 ui-monospace,monospace;letter-spacing:.12em;overflow-wrap:anywhere}.recovery-code button{min-height:44px;border:0;border-radius:9px;background:#eed9bf;color:#553a28;font:inherit}
 .manual-slots{display:grid;gap:8px;margin:4px 0 10px}.manual-slot{display:grid;gap:8px;padding:10px;border:1px solid #ead7c2;border-radius:12px;background:#fffaf2}.manual-slot-info{display:grid;gap:3px;color:#6b4a34;font-size:12px}.manual-slot-info small{color:#806a58}.manual-slot-confirm{display:grid;gap:6px;color:#806a58;font-size:12px}
 .title-panel-foot{padding:8px 16px max(10px,env(safe-area-inset-bottom));border-top:1px solid #ead7c2}.save-center-mask{z-index:500;padding:14px;background:#21181088}.save-center{width:min(100%,460px);max-height:90dvh}.title-toast{position:fixed;z-index:10;left:8%;right:8%;bottom:2%;margin:0;padding:10px;border-radius:10px;background:#fffaf0;color:#6b4a34;text-align:center;font-size:12px}.confirm-mask{z-index:8}.confirm-card{width:min(100%,360px);padding:20px;border-radius:16px;background:#fbf5ec;color:#6b4a34;box-shadow:0 12px 44px #1b100e88}.confirm-card h2{margin:0 0 8px;font-size:18px}.confirm-card p{margin:0 0 14px;color:#806a58;font-size:13px;line-height:1.65}.confirm-card .save-action+.save-action{margin-top:8px}
-@media(prefers-reduced-motion:reduce){.cover-crossfade-enter-active,.cover-crossfade-leave-active{transition-duration:.01ms}}
+@media(prefers-reduced-motion:reduce){.cover-dissolve-enter-active,.cover-dissolve-leave-active{transition-duration:.01ms}}
 </style>
