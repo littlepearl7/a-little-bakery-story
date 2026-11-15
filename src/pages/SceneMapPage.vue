@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { art, artStatus } from '../data';
 import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene, momStoryInfo } from '../store';
 
-const props = defineProps({ scene: { type: String, default: 'shop' } });
+const props = defineProps({ scene: { type: String, default: 'shop' }, guideTarget: { type: String, default: '' } });
 const emit = defineEmits(['change-scene', 'open-panel', 'rest-day']);
 
 const LOCATIONS = {
@@ -33,7 +33,7 @@ const hotspots = computed(() => {
   const layouts = {
     shop: [
       { id: 'counter', x: shopLayout.counter[0], y: shopLayout.counter[1], text: '柜台 · 预约与营业', kind: 'panel', value: 'shop', section: 'counter' },
-      ...(momStoryInfo().event ? [{ id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' }] : []),
+      ...(momStoryInfo().event || props.guideTarget === 'mom' ? [{ id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' }] : []),
       { id: 'book', x: shopLayout.book[0], y: shopLayout.book[1], text: '装修册 · 店铺升级', kind: 'panel', value: 'renovation' },
       { id: 'kitchen', x: shopLayout.kitchen[0], y: shopLayout.kitchen[1], text: '去后厨 →', kind: 'scene', value: 'kitchen' },
       { id: 'door', x: shopLayout.door[0], y: shopLayout.door[1], text: '出门 →', kind: 'scene', value: 'street' },
@@ -166,7 +166,7 @@ function confirm() {
         <button class="world-compass" type="button" aria-label="打开地点地图" @click="travelOpen = !travelOpen">地图</button>
       </header>
 
-      <button v-for="item in hotspots" :key="item.id" class="world-hotspot" :class="{ 'world-hotspot-locked': (item.unlock && !sceneAvailability(item.unlock).open) || (item.kind === 'scene' && !sceneAvailability(item.value).open) }" type="button" :style="{ left: item.x + '%', top: item.y + '%', transform: item.x > 80 ? 'translate(-100%,-50%)' : item.x < 15 ? 'translate(0,-50%)' : 'translate(-50%,-50%)' }" @click="activate(item)">
+      <button v-for="item in hotspots" :key="item.id" class="world-hotspot" :class="{ 'world-hotspot-locked': (item.unlock && !sceneAvailability(item.unlock).open) || (item.kind === 'scene' && !sceneAvailability(item.value).open), 'world-hotspot-guide-target': guideTarget === item.id }" :data-guide-key="guideTarget === item.id ? item.id : undefined" type="button" :style="{ left: item.x + '%', top: item.y + '%', transform: item.x > 80 ? 'translate(-100%,-50%)' : item.x < 15 ? 'translate(0,-50%)' : 'translate(-50%,-50%)' }" @click="activate(item)">
         {{ (item.unlock && !sceneAvailability(item.unlock).open) || (item.kind === 'scene' && !sceneAvailability(item.value).open) ? '🔒 ' : '' }}{{ item.text }}
       </button>
 
@@ -221,5 +221,7 @@ function confirm() {
 .world-travel{position:absolute;z-index:20;left:10px;right:10px;top:17%;bottom:9%;padding:12px;background:#fffaf0f7;border:1px solid #f2ddc6;border-radius:16px;box-shadow:0 12px 40px #3423178c;display:flex;flex-direction:column}.world-travel-head{flex:0 0 auto;display:flex;justify-content:space-between;align-items:center;color:#6b4a34;font-size:14px;font-weight:700;padding-bottom:10px}.world-travel-head button{background:transparent;border:0;color:#6b4a34;font-size:18px;min-width:44px;min-height:44px;cursor:pointer}.world-travel-grid{min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:start}.world-travel-place{position:relative;padding:0;height:95px;border:1px solid #dfc6a8;border-radius:10px;overflow:hidden;background:#eed9c1;cursor:pointer;text-align:left}.world-travel-place img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 35%}.world-travel-place>span:last-child{position:absolute;left:0;right:0;bottom:0;padding:8px 6px 4px;background:linear-gradient(0deg,#2c1d16dc,#2c1d1600);font-size:11px;color:#fffaf2;font-weight:700;white-space:nowrap}.world-travel-place.current{outline:2px solid #a9b99b}.world-travel-place.locked{display:grid;place-items:center;background:#292522;color:#fffaf2;font-size:11px}.locked-avatar{color:white;font-size:32px}
 .world-action-mask{position:absolute;inset:0;z-index:30;background:#24191055;display:flex;align-items:flex-end}.world-action-sheet{width:100%;max-height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:17px 16px calc(14px + env(safe-area-inset-bottom));background:#fffaf2;border-radius:18px 18px 0 0;box-shadow:0 -8px 30px #34231744;display:flex;flex-direction:column;gap:7px;color:#6b4a34}.world-action-sheet>strong{font-size:15px}.world-action-sheet>span{font-size:12px;color:#866b54}.world-action-sheet small{font-size:11px;color:#b26853}.world-action-buttons{display:flex;gap:10px;margin-top:7px}.world-action-buttons button{min-height:46px;border-radius:11px;border:1px solid #c9a98c;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;flex:1}.world-action-cancel{background:#fffdf8;color:#6b4a34}.world-action-confirm{background:#6b4a34;color:#fffaf2}.world-action-confirm:disabled{opacity:.45;cursor:default}
 .world-travel-place.locked img{filter:grayscale(.75) brightness(.55)}
+.world-hotspot-guide-target{z-index:12!important;outline:3px solid #fff2ad;outline-offset:3px;border-radius:8px;box-shadow:0 0 0 7px rgba(192,112,48,.78),0 0 24px rgba(255,223,139,.95);animation:guideSpotlight 1.35s ease-in-out infinite alternate}
+@keyframes guideSpotlight{to{box-shadow:0 0 0 10px rgba(192,112,48,.42),0 0 30px rgba(255,223,139,.9)}}
 @media(max-width:370px){.world-title{font-size:21px}.world-hotspot{font-size:11px;padding-inline:6px}.world-status{gap:2px}.world-status span{font-size:8px;padding:4px}}
 </style>
