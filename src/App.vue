@@ -70,7 +70,6 @@ const askTutorial = ref(false);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
-const titleScreen = ref(null);
 // 开发跳月只允许明确带 ?dev=1；手机竖屏不再误显示调试按钮。
 const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
 
@@ -84,19 +83,14 @@ const pending = computed(() => queue.events.length);
 
 function enterGame(target = {}) {
   const freshStart = target.fresh === true;
-  const opening = STORY.find('EVT_PROLOGUE_01');
-  const prologueComplete = state.played.includes('EVT_PROLOGUE_01');
-  if (!opening && !prologueComplete) {
-    window.alert('开场序幕没有成功载入。请返回标题页重试；存档进度未被覆盖。');
-    titleScreen.value?.cancelTransition();
-    return;
-  }
-  const prologuePending = !!opening && !prologueComplete;
+  const opening = STORY.prologue || STORY.events.find((event) => event.kind === 'prologue');
+  const prologueComplete = state.played.includes(opening.id);
+  if (!state.tutorialPractice) startGame(freshStart || !prologueComplete);
+  const prologuePending = !prologueComplete;
   if (prologuePending) {
     state.tutorialPractice = null;
     state.tutorialPracticeProgress = 0;
   }
-  if (!state.tutorialPractice) startGame(freshStart || prologuePending);
   started.value = true;
   saveCenterOpen.value = false;
   scene.value = 'shop';
@@ -161,7 +155,7 @@ function doneEvent() {
   queue.events.shift();
   activeEvent.value = null;
   save();
-  if (completed?.id === 'EVT_PROLOGUE_01' && !state.tutorialSeen) {
+  if (completed?.id === STORY.prologue.id && !state.tutorialSeen) {
     state.tutorialPromptPending = true;
     askTutorial.value = true;
     save();
@@ -299,7 +293,7 @@ onMounted(() => {
 
 <template>
   <div class="app">
-    <TitleScreen v-if="!started" ref="titleScreen" @enter="enterGame" />
+  <TitleScreen v-if="!started" @enter="enterGame" />
 
     <div v-if="started" class="topbar game-in">
       <div class="m serif">
@@ -528,7 +522,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <TitleScreen v-if="started && saveCenterOpen" ref="titleScreen" in-game @close="saveCenterOpen = false" @title="returnToTitle" @enter="enterGame" />
+    <TitleScreen v-if="started && saveCenterOpen" in-game @close="saveCenterOpen = false" @title="returnToTitle" @enter="enterGame" />
   </div>
 </template>
 
@@ -617,3 +611,4 @@ onMounted(() => {
 .topbar-actions{display:flex;align-items:center;gap:9px}.topbar-save{min-width:48px;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--caramel);font:inherit;font-size:12px}
 .phone-fab{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 17px);z-index:26;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:55px;height:55px;border:2px solid #fff7eb;border-radius:17px;background:#6b4a34;color:#fff9ee;box-shadow:0 4px 13px #34241666;font:600 12px inherit;cursor:pointer;touch-action:manipulation}.phone-fab span{font-size:22px;line-height:1.1}.phone-fab small{font-size:10px;font-weight:700}.phone-fab:active{transform:scale(.96)}
 </style>
+

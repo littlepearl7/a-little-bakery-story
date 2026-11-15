@@ -201,6 +201,9 @@ const SPRITE_DEF = {
   许知遥: { in: 'zy-sprite-in.webp', out: 'zy-sprite-out.webp', face: 'zy-face.webp' },
   唐鸢: { in: 'ty-sprite-in.webp', out: 'ty-sprite-out.webp', face: 'ty-face.webp' },
   叶星河: { in: 'xh-sprite-in.webp', out: 'xh-sprite-out.webp', face: 'xh-face.webp' },
+  张奶奶: { in: 'regular-granny-zhang.webp', out: 'regular-granny-zhang.webp', face: '' },
+  陈叔: { in: 'regular-uncle-chen.webp', out: 'regular-uncle-chen.webp', face: '' },
+  小满: { in: 'regular-xiaoman.webp', out: 'regular-xiaoman.webp', face: '' },
 };
 
 export const SPRITE = SPRITE_DEF;

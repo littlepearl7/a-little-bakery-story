@@ -1937,6 +1937,7 @@ export function closeDay(mode) {
   state.service = null;
 
   advanceDay();
+  if (state.phase === 'playing') queueStory();
   save();
   return report;
 }
@@ -2159,6 +2160,23 @@ export function queueStory() {
   STORY.events
     .filter((ev) => ev.kind === 'style' && !state.played.includes(ev.id) && evalTest(ev.test, state))
     .forEach(pushEvent);
+
+  const dateReached = (event) => event.month < state.month || (event.month === state.month && event.day <= state.day);
+  const regularPrerequisitesMet = (event) => {
+    const done = (id) => state.played.includes(id);
+    if (event.id === 'EVT_CROSS_M18') return done('EVT_GRANNY_M17') && done('EVT_UNCLE_M16');
+    if (event.id === 'EVT_CROSS_M28') return done('EVT_GRANNY_M25') && done('EVT_UNCLE_M24') && done('EVT_XIAOMAN_M25');
+    if (event.id === 'EVT_CROSS_M36') {
+      return STORY.customers.filter((item) => !item.group && item.month < 36).every((item) => done(item.id));
+    }
+    return true;
+  };
+  ['张奶奶', '陈叔', '小满'].forEach((person) => {
+    const next = STORY.customers.find((event) => event.regularPerson === person && !state.played.includes(event.id));
+    if (next && dateReached(next) && regularPrerequisitesMet(next)) pushEvent(next);
+  });
+  const nextGroup = STORY.customers.find((event) => event.group && !state.played.includes(event.id));
+  if (nextGroup && dateReached(nextGroup) && regularPrerequisitesMet(nextGroup)) pushEvent(nextGroup);
 }
 
 /**
@@ -2291,7 +2309,7 @@ export function chatCafeOwner() {
 }
 
 export function startGame(forcePrologue = false) {
-  const pro = STORY.events.find((ev) => ev.kind === 'prologue');
+  const pro = STORY.prologue || STORY.events.find((ev) => ev.kind === 'prologue');
   if (pro && (forcePrologue || !state.played.includes(pro.id))) {
     const queued = queue.events.findIndex((event) => event.id === pro.id);
     if (queued >= 0) queue.events.splice(queued, 1);
@@ -2313,6 +2331,7 @@ export function finishEvent(ev) {
   }
   const got = applyRewards(ev.rewards || []);
   if (got.length) log('剧情：' + ev.title, 'story');
+  if (ev.storyline === 'regular') queueStory();
   save();
 }
 
@@ -2356,3 +2375,4 @@ export function partnerEndingOf(pid) {
 }
 
 export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo, DEVICES, deviceById };
+

@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { PARTNERS, INGREDIENTS, RECIPE_BOM } from '../data';
+import { PARTNERS, INGREDIENTS, RECIPE_BOM, art } from '../data';
 import { state, save, takeOrder, displayProductName, seasonalEvent, sceneAvailability } from '../store';
+import { STORY } from '../story';
 
 const emit = defineEmits(['close', 'navigate', 'open-panel']);
 const sections = [
@@ -11,6 +12,17 @@ const sections = [
 const tab = ref('people');
 const search = ref('');
 const notice = ref('');
+const regularPeople = [
+  { name: '张奶奶', detail: '67岁 · 退休小学教师', preference: '桂花栗子蛋糕、少糖原味奶油蛋糕与柠檬磅蛋糕。', note: '她把耐心留给讲台，又在林记的下午茶里重新遇见老友。', avatar: art('regular-granny-zhang.webp') },
+  { name: '陈叔', detail: '63岁 · 退休木工', preference: '传统海绵蛋糕、减糖巧克力蛋糕与栗子蛋糕。', note: '他用一双布满老茧的手，替老街守住招牌，也重新拾起木工手艺。', avatar: art('regular-uncle-chen.webp') },
+  { name: '小满', detail: '9岁到12岁 · 栖云镇小学生', preference: '草莓奶油蛋糕、芒果慕斯与造型可爱的小切块。', note: '她在林记的奶油香气里长大，用画笔记下三年的甜味。', avatar: art('regular-xiaoman.webp') },
+];
+function customerStoryCount(person) {
+  return STORY.customers.filter((event) => event.regularPerson === person).length;
+}
+function customerStoryRead(person) {
+  return STORY.customers.filter((event) => event.regularPerson === person && state.played.includes(event.id)).length;
+}
 const currentOrders = computed(() => [...(state.orders || []), ...(state.service?.tickets || [])]);
 const shownOrders = computed(() => currentOrders.value.filter((order) => {
   const key = search.value.trim().toLowerCase();
@@ -70,6 +82,11 @@ function formatStatus(order) {
           <article class="phone-card"><strong>苏晴 · 重要的朋友</strong><p>本月互动 {{ state.sqchatMonth === state.month ? '已完成' : '尚未完成' }}。公园和河边藏着更多共同回忆。</p><button @click="go('park')">去公园</button></article>
           <article v-for="person in PARTNERS" :key="person.id" class="phone-card"><strong>{{ state.staff.includes(person.id) ? person.name : '尚未认识的伙伴' }}</strong><p>{{ state.staff.includes(person.id) ? person.role + ' · 信赖 ' + Math.round(state.partnerTrust[person.id] || 0) : '继续经营和探索，解锁这位伙伴的故事。' }}</p></article>
           <article v-if="state.played.includes('EVT_ZHIQIU_CH01')" class="phone-card"><strong>沈知秋 · 秋屿咖啡主理人</strong><p>熟悉度 {{ state.cafeRelation }}。喜欢研究咖啡与甜点搭配。</p><button @click="go('cafe')">去秋屿咖啡</button></article>
+          <h3>林记的常客</h3>
+          <article v-for="person in regularPeople" :key="person.name" class="phone-card regular-person">
+            <img :src="person.avatar" :alt="person.name + '立绘'" />
+            <div><strong>{{ person.name }} · {{ person.detail }}</strong><p>常买：{{ person.preference }}</p><p>{{ person.note }}</p><small>已读常客故事 {{ customerStoryRead(person.name) }} / {{ customerStoryCount(person.name) }}</small></div>
+          </article>
         </template>
 
         <template v-else-if="tab === 'online'">
@@ -123,5 +140,7 @@ function formatStatus(order) {
 
 <style scoped>
 .phone-mask{position:absolute;inset:0;z-index:46;background:#2b211c9c;display:flex;align-items:flex-end;justify-content:center}.phone-body{display:flex;flex-direction:column;width:min(100%,440px);height:min(95%,860px);min-height:0;background:#fbf5ec;border-radius:22px 22px 0 0;box-shadow:0 -10px 45px #2b201a55;overflow:hidden}.phone-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:19px 17px 12px;background:#e8d1b5}.phone-top span{font-size:10px;letter-spacing:1.2px;color:#84664d}.phone-top h2{margin:2px 0 0;font-family:serif;font-size:20px;font-weight:600}.phone-top>button{width:44px;height:44px;border-radius:50%;border:1px solid #cfbaa2;background:#fff8ec;color:#6b4a34;font-size:18px}.phone-tabs{display:flex;gap:5px;overflow-x:auto;flex:0 0 auto;padding:9px 10px;border-bottom:1px solid #eadbca;background:#fffaf3;scrollbar-width:none}.phone-tabs button{position:relative;flex:0 0 auto;min-height:43px;padding:7px 12px;background:#f7e6d0;border:1px solid transparent;border-radius:14px;color:#6b4a34;font-size:12px;font-weight:600;white-space:nowrap}.phone-tabs button.active{background:#6b4a34;color:white}.phone-tabs i{position:absolute;right:0;top:-5px;min-width:16px;height:16px;border-radius:50%;background:#d95b67;color:#fff;font-size:10px;font-style:normal}.phone-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 15px}.phone-content h3{font-size:15px;margin:5px 0 10px}.phone-sub{font-size:12px;line-height:1.7;color:#8c6a50;margin:0 0 12px}.phone-card{background:#fffdf9;border:1px solid #e9d8c4;border-radius:13px;margin-bottom:9px;padding:12px;box-shadow:0 2px 6px #6b4a3410}.phone-card strong{font-size:13px}.phone-card p{font-size:12px;line-height:1.85;color:#8c6a50;margin:6px 0}.phone-card>button{border:1px solid #c9b298;background:#f7e6d0;border-radius:9px;min-height:40px;padding:6px 13px;color:#6b4a34;font-weight:600;font-size:12px}.phone-card>button:disabled{opacity:.4}.phone-card-title{display:flex;justify-content:space-between;gap:10px}.phone-card-title span{font-size:11px;color:#8a9a7e}.phone-search{display:block;width:100%;height:44px;border:1px solid #dec8b2;border-radius:10px;background:#fffdf8;padding:8px 12px;margin:0 0 12px;color:#6b4a34}.phone-primary{display:block;width:100%;min-height:44px;margin-top:12px;border:0;border-radius:10px;background:#6b4a34;color:#fffaf2;font-size:12px;font-weight:700}.phone-empty{padding:14px;color:#8c6a50;font-size:12px;border:1px dashed #d6c2ab;border-radius:10px}.phone-material,.phone-ledger{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid #eadbca;font-size:12px}.phone-material b,.phone-ledger b{font-weight:600}.phone-material .missing,.phone-ledger .missing{color:#c6665c}.phone-stats{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 14px}.phone-stats span{background:#e8efdf;border-radius:8px;padding:8px 10px;color:#526747;font-size:11px}.phone-entry{font-size:12px;line-height:1.7;padding:8px 0;border-bottom:1px solid #eadbca}.phone-notice{font-size:12px;background:#e5efdf;color:#536d4c;border-radius:10px;padding:9px 10px;line-height:1.6}.phone-alert{border-color:#e6c1ad}.phone-foot{flex:0 0 auto;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid #eadbca;background:#fffaf3;display:flex;justify-content:space-between;align-items:center;gap:8px}.phone-foot span{font-size:10px;color:#9b8573}.phone-foot button{min-height:44px;min-width:100px;border:0;border-radius:10px;background:#a9b99b;color:#32452c;font-weight:700}
+.regular-person{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:start}.regular-person img{width:64px;height:78px;object-fit:cover;object-position:center 12%;border-radius:9px;background:#f2e4d3}.regular-person small{font-size:11px;color:#718260}
 </style>
+
 

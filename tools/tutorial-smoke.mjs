@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
+import { readFile } from 'node:fs/promises';
 
 const values = new Map();
 globalThis.localStorage = {
@@ -18,6 +19,12 @@ try {
   const store = await vite.ssrLoadModule('/src/store.js');
   const story = await vite.ssrLoadModule('/src/story.js');
 
+  const opening = story.STORY.prologue;
+  assert.equal(opening?.id, 'EVT_PROLOGUE_01', '开场序幕必须能从事件类型找到');
+  assert(opening.beats.length > 0, '开场序幕必须含有可播放正文');
+  const appSource = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
+  assert(!appSource.includes('开场序幕没有成功载入'), '序幕异常不能再用标题页弹窗阻断进入游戏');
+
   store.reset();
   store.startGame();
   assert.equal(store.queue.events[0]?.kind, 'prologue', '新的开始先进入序幕');
@@ -27,7 +34,7 @@ try {
   store.reset();
   store.state.played = ['EVT_PROLOGUE_01'];
   store.startGame(true);
-  assert.equal(store.queue.events[0]?.kind, 'prologue', '新游戏强制把序幕放回队首');
+  assert.equal(store.queue.events[0]?.kind, 'prologue', '新的开始强制把序幕放回队首');
 
   store.reset();
   store.state.played = ['EVT_PROLOGUE_01'];
@@ -62,3 +69,4 @@ try {
 } finally {
   await vite.close();
 }
+

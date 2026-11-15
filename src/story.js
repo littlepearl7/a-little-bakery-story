@@ -18,6 +18,7 @@
 import raw from '../story/文案v6.md?raw';
 import momRaw from '../story/林暖剧情.md?raw';
 import zhiQiuRaw from '../story/秋屿来信.md?raw';
+import regularRaw from '../story/常客剧情.md?raw';
 
 /* ---------------- 名词表 ---------------- */
 
@@ -41,6 +42,9 @@ const NAMES = {
   许佳宁: '许佳宁',
   沈妍: '沈妍',
   沈知秋: '沈知秋',
+  张奶奶: '张奶奶',
+  陈叔: '陈叔',
+  小满: '小满',
   顾客: '顾客',
 };
 
@@ -52,7 +56,7 @@ const NUM = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
 
 /** 行首是已知角色名 + 可选表情 + 少量动作描写 + 冒号 → 台词 */
 const SPEAK_RE =
-  /^(林念|苏晴|林暖|沈知秋|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
+  /^(林念|苏晴|林暖|沈知秋|周雨桐|许知遥|唐鸢|叶星河|张奶奶|陈叔|小满|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
 
 /* ---------------- 条件 ---------------- */
 
@@ -350,6 +354,18 @@ function parseBlock(lines, opts = {}) {
         continue;
       }
       if (/^(触发条件|状态变更|初始状态|检查条件|注意|系统提示)/.test(inner)) continue;
+
+      const regularCg = inner.match(/^触发(张奶奶|陈叔|小满|群像)(?:专属)?CG\s*[｜|：:]\s*([^：:｜|]+)/);
+      if (regularCg) {
+        const key = {
+          '张奶奶|没有取消的聚会': 'regular-granny-m17',
+          '陈叔|市集的准备': 'regular-uncle-m24',
+          '小满|失败的作品': 'regular-xiaoman-m10',
+          '群像|我们都在这里': 'regular-group-m36',
+        }[regularCg[1] + '|' + regularCg[2].trim()];
+        if (key) push({ t: 'cg', key });
+        continue;
+      }
 
       // 场景 / 回忆片段 → 场景分隔
       if (/^(场景|插入回忆|接续回忆|回忆片段|回到现在|闪回|时间|地点)/.test(inner)) {
@@ -961,15 +977,76 @@ function parseSideEvents(md, storyline, orderStart) {
   return events;
 }
 
+function parseCustomerEvents(md, orderStart) {
+  const events = [];
+  const tree = buildTree(md);
+  const people = {
+    GRANNY: '张奶奶',
+    UNCLE: '陈叔',
+    XIAOMAN: '小满',
+    CROSS: '常客们',
+  };
+  const walk = (node) => {
+    if (node.level >= 3 && /^(?:\d+\.\s*)?M\d+/.test(node.text) && !/详见/.test(node.text)) {
+      const text = node.lines.join('\n');
+      const idMatch = text.match(/事件ID[：:]\s*`?(EVT_(?:GRANNY|UNCLE|XIAOMAN|CROSS)_[A-Z0-9_]+)/);
+      if (idMatch && idMatch[1] !== 'EVT_UNCLE_M28') {
+        const id = idMatch[1];
+        const parsed = parseBlock(node.lines, { title: node.text });
+        const source = node.text + '\n' + text;
+        const month = source.match(/M(\d+)/);
+        const trigger = source.match(/(?:插入节点|具体插入节点)[^\n】]*第(\d+)个经营日/);
+        const heading = node.text.replace(/^\d+\.\s*/, '').split(/[｜|]/).pop().trim();
+        const titled = heading.match(/《([^》]+)》/);
+        const title = titled ? titled[1] : heading.replace(/^M\d+\s*/, '').replace(/^共同剧情[：:]?\s*/, '').replace(/[（(].*/, '').trim();
+        const group = id.indexOf('EVT_CROSS_') === 0;
+        const owner = id.match(/^EVT_(GRANNY|UNCLE|XIAOMAN|CROSS)_/);
+        events.push({
+          id,
+          ids: [id],
+          title: title || cleanTitle(node.text),
+          chapter: '常客 · ' + people[owner ? owner[1] : 'CROSS'],
+          month: month ? Number(month[1]) : null,
+          day: trigger ? Number(trigger[1]) : 1,
+          kind: 'regular',
+          storyline: 'regular',
+          regularPerson: people[owner ? owner[1] : 'CROSS'],
+          group,
+          beats: parsed.beats,
+          order: orderStart + events.length,
+        });
+      }
+    }
+    node.children.forEach(walk);
+  };
+  tree.children.forEach(walk);
+  return events;
+}
+
 const parsedStory = parseStory(raw);
 const momEvents = parseSideEvents(momRaw, 'mom', parsedStory.events.length);
 const zhiQiuEvents = parseSideEvents(zhiQiuRaw, 'zhiQiu', parsedStory.events.length + momEvents.length);
+const customerEvents = parseCustomerEvents(regularRaw, parsedStory.events.length + momEvents.length + zhiQiuEvents.length);
 const bySchedule = (a, b) => a.month - b.month || a.day - b.day || a.order - b.order;
 momEvents.sort(bySchedule);
 zhiQiuEvents.sort(bySchedule);
-parsedStory.events.push(...momEvents, ...zhiQiuEvents);
+customerEvents.sort(bySchedule);
+parsedStory.events.push(...momEvents, ...zhiQiuEvents, ...customerEvents);
 parsedStory.mom = momEvents;
 parsedStory.zhiQiu = zhiQiuEvents;
+parsedStory.customers = customerEvents;
+parsedStory.prologue = parsedStory.events.find((event) => event.kind === 'prologue' && event.beats.length) || {
+  id: 'EVT_PROLOGUE_01',
+  ids: ['EVT_PROLOGUE_01'],
+  title: '序幕 · 回家',
+  month: 0,
+  kind: 'prologue',
+  beats: [
+    { t: 'cg', key: 'graduation-rejection' },
+    { t: 'scene', text: '大学宿舍' },
+    { t: 'nar', text: '六月的阳光透过宿舍窗帘照在书桌上。林念刷新邮箱后，又收到了一封婉拒信。她收拾好行李，决定先回栖云镇看看。' },
+  ],
+};
 parsedStory.find = (id) => parsedStory.events.find((e) => e.id === id || (e.ids || []).includes(id)) || null;
 
 export const STORY = parsedStory;
