@@ -81,6 +81,8 @@ const canContinueStory = computed(() =>
 const pending = computed(() => queue.events.length);
 
 function enterGame(target = {}) {
+  // 标题继续/读档也可能载入尚未开始过的旧存档，确保序幕始终排在经营剧情之前。
+  if (!state.tutorialPractice && !state.played.includes('EVT_PROLOGUE_01')) startGame();
   started.value = true;
   saveCenterOpen.value = false;
   scene.value = 'shop';
