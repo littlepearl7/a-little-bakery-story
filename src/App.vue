@@ -91,7 +91,7 @@ function enterGame(target = {}) {
   activePanel.value = target.panel || '';
   phoneOpen.value = false;
   activeManageSection.value = target.section || 'overview';
-  const opening = freshStart ? STORY.find('EVT_PROLOGUE_01') : null;
+  const opening = freshStart ? STORY.events.find((event) => event.id === 'EVT_PROLOGUE_01') : null;
   const tutorialPending = !freshStart && (state.tutorialPromptPending || (!state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01')));
   if (tutorialPending) {
     state.tutorialPromptPending = true;
