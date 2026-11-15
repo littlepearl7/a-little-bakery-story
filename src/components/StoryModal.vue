@@ -30,6 +30,10 @@ const finished = computed(() => idx.value >= list.value.length - 1);
 const atChoice = computed(() => !!cur.value && cur.value.t === 'choice');
 const isSay = computed(() => !!cur.value && cur.value.t === 'say');
 const isNar = computed(() => !!cur.value && cur.value.t === 'nar');
+const isMapGuide = computed(() =>
+  ['EVT_TUTORIAL_START', 'EVT_TUTORIAL_FRONT', 'EVT_TUTORIAL_KITCHEN', 'EVT_TUTORIAL_STREET', 'EVT_TUTORIAL_PHONE'].includes(props.ev.id)
+);
+const guideSpeaker = computed(() => (isSay.value ? cur.value.who : '林暖'));
 const text = computed(() => (cur.value && cur.value.text) || '');
 const shown = computed(() => text.value.slice(0, typed.value));
 const typing = computed(() => typed.value < text.value.length);
@@ -213,6 +217,7 @@ function skipAhead() {
 }
 
 function close() {
+  clearTimeout(closeTimer);
   clearInterval(timer);
   clearInterval(autoTimer);
   finishEvent(props.ev);
@@ -252,16 +257,16 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="vn">
+  <div class="vn" :class="{ 'vn-guide': isMapGuide }">
     <div class="vn-stage" :class="{ flash: flashback }">
       <!-- 背景 -->
-      <div class="vn-bg" :style="{ background: bg.css }">
+      <div v-if="!isMapGuide" class="vn-bg" :style="{ background: bg.css }">
         <img v-if="bgSrc" :src="bgSrc" alt="" class="vn-bg-img" />
         <div class="vn-veil"></div>
       </div>
 
       <!-- CG -->
-      <transition name="cgfade">
+      <transition v-if="!isMapGuide" name="cgfade">
         <div v-if="cg && cg.src" class="vn-cg">
           <img :src="cg.src" alt="" />
           <div class="vn-cg-cap">{{ cg.name }}</div>
@@ -269,7 +274,7 @@ onUnmounted(() => {
       </transition>
 
       <!-- 立绘 -->
-      <div v-if="!cgKey" class="vn-cast">
+      <div v-if="!isMapGuide && !cgKey" class="vn-cast">
         <div
           v-for="(c, i) in cast"
           :key="c"
@@ -283,7 +288,7 @@ onUnmounted(() => {
 
       <!-- 顶栏 -->
       <div class="vn-top">
-        <div class="vn-titles">
+        <div v-if="!isMapGuide" class="vn-titles">
           <div class="vn-chapter">{{ ev.title }}</div>
           <div class="vn-scene" v-if="actLabel">{{ actLabel }}</div>
           <div class="vn-scene" v-else-if="scene">{{ scene.text }}</div>
@@ -310,8 +315,13 @@ onUnmounted(() => {
       </div>
 
       <!-- 对话框 -->
-      <div v-else class="vn-box" :class="{ nar: isNar }" @click="advance">
-        <div class="vn-name" v-if="isSay">
+      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" @click="advance">
+        <div v-if="isMapGuide" class="guide-speaker">
+          <img v-if="faceOfName(guideSpeaker)" :src="faceOfName(guideSpeaker)" alt="" />
+          <span>{{ guideSpeaker }}</span>
+          <small>带你认地图</small>
+        </div>
+        <div class="vn-name" v-if="isSay && !isMapGuide">
           <img v-if="faceOfName(cur.who)" :src="faceOfName(cur.who)" alt="" />
           <span>{{ cur.who }}</span>
           <em v-if="cur.emo && cur.emo !== '视角'">{{ cur.emo }}</em>
@@ -336,6 +346,64 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   background: #1a1410;
+}
+.vn.vn-guide {
+  background: rgba(26, 20, 16, 0.2);
+}
+.vn-guide .vn-stage {
+  background: transparent;
+}
+.vn-guide .vn-top {
+  top: env(safe-area-inset-top, 0px);
+  justify-content: flex-end;
+  padding: 12px;
+  background: none;
+}
+.vn-guide-box {
+  top: 50%;
+  right: 10px;
+  bottom: auto;
+  left: auto;
+  width: min(62%, 290px);
+  min-height: 0;
+  max-height: 72%;
+  overflow-y: auto;
+  padding: 13px 14px 12px;
+  transform: translateY(-50%);
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.97);
+  box-shadow: 0 8px 28px rgba(45, 31, 22, 0.28);
+  backdrop-filter: blur(5px);
+}
+.guide-speaker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--caramel);
+  font-size: 13px;
+  font-weight: 700;
+}
+.guide-speaker img {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(107, 74, 52, 0.14);
+  border-radius: 50%;
+  object-fit: cover;
+}
+.guide-speaker small {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 400;
+}
+.vn-guide-box .vn-text {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.vn-guide-box .vn-foot {
+  min-height: 18px;
 }
 .vn-stage {
   position: relative;
@@ -684,3 +752,4 @@ onUnmounted(() => {
   text-align: center;
 }
 </style>
+
