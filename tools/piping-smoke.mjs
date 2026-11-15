@@ -51,6 +51,7 @@ assert.deepEqual(restored.piping, savedRun);
 
 const bakingSource = await readFile(new URL('../src/pages/minigames/BakingGame.vue', import.meta.url), 'utf8');
 const deliverySource = await readFile(new URL('../src/pages/minigames/DeliveryGame.vue', import.meta.url), 'utf8');
+const holdBlock = bakingSource.match(/function startHold[\s\S]*?\n}/)?.[0] || '';
 assert.match(bakingSource, /class="quality-zone"/);
 assert.match(bakingSource, /left:72%;top:-1px;width:14%/);
 for (const flower of ['classic', 'berry', 'cocoa', 'taro', 'matcha', 'mango', 'tiramisu', 'fig', 'seasonal', 'custom', 'festival', 'signature']) {
@@ -60,6 +61,8 @@ assert.match(bakingSource, /\['ingredients', 'mix', 'oven', 'decoration', 'pipin
 assert.match(bakingSource, /results: \[\.\.\.piping\.value\.results\]/);
 assert.match(bakingSource, /@pointerup="finishMix"/);
 assert.match(bakingSource, /@pointerup="finishOven"/);
+assert.match(holdBlock, /if \(target\.value >= 100\) stopHold\(\)/);
+assert.doesNotMatch(holdBlock, /finishMix|finishOven/);
 assert.doesNotMatch(bakingSource, /确认搅拌结果|蛋糕胚出炉 →|转速 \{\{ piping\?\.speed/);
 assert.match(bakingSource, /if \(entries\.length === 6\) finish\(\)/);
 const packingScreen = deliverySource.match(/<div v-if="packing" class="packing-mask">([\s\S]*?)<div v-if="phase === 'result'/)?.[1] || '';

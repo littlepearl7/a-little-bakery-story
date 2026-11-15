@@ -144,10 +144,7 @@ function startHold(kind, event) {
   timer = setInterval(() => {
     const target = kind === 'mix' ? mix : bake;
     target.value = Math.min(100, target.value + 1.8);
-    if (target.value >= 100) {
-      stopHold();
-      kind === 'mix' ? finishMix() : finishOven();
-    }
+    if (target.value >= 100) stopHold();
   }, 46);
 }
 function finishMix() {
