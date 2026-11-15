@@ -13,6 +13,7 @@ const typed = ref(0);
 const auto = ref(false);
 let timer = 0;
 let autoTimer = 0;
+let closeTimer = 0;
 
 /* ---------------- 初始化 ---------------- */
 
@@ -150,6 +151,7 @@ function slotStyle(i) {
 
 function startType() {
   clearInterval(timer);
+  clearTimeout(closeTimer);
   typed.value = 0;
   if (atChoice.value || !text.value) {
     typed.value = text.value.length;
@@ -183,7 +185,10 @@ function advance() {
     clearInterval(timer);
     return;
   }
-  if (finished.value) return;
+  if (finished.value) {
+    close();
+    return;
+  }
   idx.value = nextIndex(idx.value);
 }
 
@@ -214,6 +219,11 @@ function close() {
   emit('done');
 }
 
+watch([finished, typing, atChoice], ([isFinished, isTyping, isChoice]) => {
+  clearTimeout(closeTimer);
+  if (isFinished && !isTyping && !isChoice) closeTimer = setTimeout(close, 1300);
+}, { immediate: true });
+
 function toggleAuto() {
   auto.value = !auto.value;
   clearInterval(autoTimer);
@@ -237,6 +247,7 @@ function toggleAuto() {
 onUnmounted(() => {
   clearInterval(timer);
   clearInterval(autoTimer);
+  clearTimeout(closeTimer);
 });
 </script>
 
@@ -307,8 +318,7 @@ onUnmounted(() => {
         </div>
         <div class="vn-text">{{ shown }}<span v-if="typing" class="caret"></span></div>
         <div class="vn-foot">
-          <span v-if="finished && !typing" class="vn-end" @click.stop="close">结束 ←</span>
-          <span v-else class="vn-dot">▾</span>
+          <span v-if="typing || !finished" class="vn-dot">▾</span>
         </div>
       </div>
     </div>
@@ -615,14 +625,6 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-.vn-end {
-  font-size: 12px;
-  color: var(--caramel);
-  background: var(--apricot);
-  padding: 3px 12px;
-  border-radius: 999px;
-}
-
 /* 选项 */
 .vn-choice {
   position: absolute;
