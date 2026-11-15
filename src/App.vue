@@ -84,7 +84,7 @@ const pending = computed(() => queue.events.length);
 function enterGame(target = {}) {
   // 新游戏由 App 直接开启序幕，避免标题组件和地图初始化之间丢掉首段事件。
   const freshStart = target.fresh === true;
-  if (!state.tutorialPractice && (freshStart || !state.played.includes('EVT_PROLOGUE_01'))) startGame(freshStart);
+  if (!state.tutorialPractice) startGame(freshStart);
   started.value = true;
   saveCenterOpen.value = false;
   scene.value = 'shop';
