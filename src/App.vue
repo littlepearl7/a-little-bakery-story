@@ -167,9 +167,9 @@ function doneEvent() {
     save();
     return;
   }
-  // 本月还有剧情就接着演；跨月/旧月的留给「有 N 段剧情」角标，不打断经营
+  // 教程需要连续演出；普通剧情结束后回地图，由玩家决定何时继续待播剧情。
   const next = queue.events[0];
-  if (next && (next.month === state.month || next.kind === 'tutorial')) setTimeout(openNext, 200);
+  if (next?.kind === 'tutorial') setTimeout(openNext, 200);
 
 }
 
