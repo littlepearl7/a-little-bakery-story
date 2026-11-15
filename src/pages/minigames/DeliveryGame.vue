@@ -26,6 +26,7 @@ const packSerial = ref(0);
 const packTime = ref(0);
 const packLoaded = ref(false);
 const packError = ref(false);
+const packSettled = ref(false);
 const PACK_DURATION = 3600;
 const DECORATIONS = ['粉色小花', '清爽配色', '简洁裱花'];
 const BLESSINGS = ['生日快乐', '愿你每天都有好心情', '把今天的甜分享给你'];
@@ -193,7 +194,7 @@ function runMainAction() {
     if (!props.tutorial && (state.shelf[ticket.product] || 0) < ticket.qty) return message.value = '该款库存不足，请登记缺货结束这笔未成交订单。';
     if (props.tutorial) {
       ticket.status = 'found';
-      message.value = '蛋糕与预约单吻合。下一步开始打包，动画完整播放后才算交付。';
+      message.value = '蛋糕与预约单吻合，开始打包。';
       return;
     }
     const result = findCake(ticket.id, selected.value, ticket.qty);
@@ -228,7 +229,8 @@ function resumePacking() {
   packTime.value = 0;
   packLoaded.value = false;
   packError.value = false;
-  message.value = '需要完整播放一遍打包动画，完成后才能递交。';
+  packSettled.value = false;
+  message.value = '';
 }
 
 function onPackLoaded() {
@@ -237,13 +239,14 @@ function onPackLoaded() {
 
 function onPackError() {
   packError.value = true;
-  message.value = '打包素材加载失败，请重试。未完成动画不会交付蛋糕。';
+  message.value = '';
 }
 
 function finishPack() {
   const ticket = current.value;
-  if (!ticket || ticket.status !== 'ready') return;
+  if (!ticket || ticket.status !== 'ready' || packSettled.value) return;
   if (props.tutorial) {
+    packSettled.value = true;
     packing.value = false;
     packLoaded.value = false;
     ticket.status = 'delivered';
@@ -251,13 +254,16 @@ function finishPack() {
     phase.value = 'result';
     return;
   }
-  packing.value = false;
-  packLoaded.value = false;
   const result = deliverTicket(ticket.id);
   if (!result.ok) {
+    packing.value = false;
+    packLoaded.value = false;
     message.value = result.message;
     return;
   }
+  packSettled.value = true;
+  packing.value = false;
+  packLoaded.value = false;
   message.value = result.message;
   selected.value = '';
   inspectedOrderId.value = '';
@@ -469,12 +475,11 @@ onUnmounted(() => {
     <div v-if="packing" class="packing-mask">
       <div class="game-card pack-card">
         <h3 class="game-title">蛋糕正在打包……</h3>
-        <img :key="packSerial" :src="art('minigame-packing.gif') + '?once=' + packSerial" alt="草莓蛋糕完整打包动画" @load="onPackLoaded" @error="onPackError" />
-        <div class="game-progress"><i :style="{ width: Math.round(packTime / PACK_DURATION * 100) + '%' }" /></div>
-        <p class="game-lead game-center">
-          {{ packError ? '动画加载失败，暂不交付。' : packLoaded ? (Math.max(0, PACK_DURATION - packTime) / 1000).toFixed(1) + ' 秒 · 完整播放一遍后递交' : '正在加载打包动画……' }}
-        </p>
-        <button v-if="packError" class="game-btn" style="width:100%" type="button" @click="resumePacking">重新加载动画</button>
+        <img v-if="!packError" :key="packSerial" :src="art('minigame-packing.gif') + '?once=' + packSerial" alt="蛋糕打包动画" @load="onPackLoaded" @error="onPackError" />
+        <template v-else>
+          <p class="pack-error" role="status">打包动画加载失败</p>
+          <button class="game-btn" style="width:100%" type="button" @click="resumePacking">重试</button>
+        </template>
       </div>
     </div>
 
@@ -484,7 +489,7 @@ onUnmounted(() => {
         <div class="game-stats">
           <span>{{ tutorial ? '已体验订单核对、选货与打包' : '完成交付 ' + completed + ' 份' }}</span>
           <span>{{ tutorial ? '不影响正式经营' : '本局收入 ¥' + earned }}</span>
-          <span>{{ tutorial ? '完整播放打包动画后完成' : '选错／缺货 ' + misses + ' 次' }}</span>
+          <span>{{ tutorial ? '练习订单已交付' : '选错／缺货 ' + misses + ' 次' }}</span>
           <span>{{ tutorial ? '练习订单 LJ-DEMO' : '订单完成 ' + steps + ' / ' + tickets.length }}</span>
         </div>
         <p class="game-lead">{{ tutorial ? '普通顾客按外观描述选货；预约顾客先查订单号。正式交付时才会扣除成品并到账。' : '交付和缺货处理均已记入经营数据。已完成订单不会因刷新重复结算。' }}</p>
