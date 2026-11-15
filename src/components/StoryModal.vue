@@ -72,6 +72,7 @@ const guideTarget = computed(() => {
   return matches[0]?.id || '';
 });
 const guideBoxStyle = ref({});
+let guidePlacement = '';
 const shown = computed(() => text.value.slice(0, typed.value));
 const typing = computed(() => typed.value < text.value.length);
 
@@ -82,21 +83,61 @@ function updateGuideLayout() {
   nextTick(() => {
     if (targetId !== guideTarget.value) return;
     const target = document.querySelector(`[data-guide-key="${targetId}"]`);
-    if (!target) return;
+    const stage = document.querySelector('.vn-stage');
+    const box = document.querySelector('.vn-guide-box');
+    if (!target || !stage || !box) return;
 
-    const rect = target.getBoundingClientRect();
-    const targetX = rect.left + rect.width / 2;
-    const horizontal = targetX < window.innerWidth * 0.38
-      ? { left: 'auto', right: '10px' }
-      : targetX > window.innerWidth * 0.62
-        ? { left: '10px', right: 'auto' }
-        : { left: 'auto', right: '10px' };
+    const targetRect = target.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
+    const safeTarget = {
+      left: targetRect.left - 64,
+      right: targetRect.right + 64,
+      top: targetRect.top - 72,
+      bottom: targetRect.bottom + 72,
+    };
+    const left = 12;
+    const right = Math.max(left, stageRect.width - boxRect.width - 12);
+    const top = 52;
+    const bottom = Math.max(top, stageRect.height - boxRect.height - 150);
+    const candidates = [
+      { key: 'top-left', x: left, y: top },
+      { key: 'top-right', x: right, y: top },
+      { key: 'bottom-left', x: left, y: bottom },
+      { key: 'bottom-right', x: right, y: bottom },
+    ].map((candidate) => ({
+      ...candidate,
+      rect: {
+        left: stageRect.left + candidate.x,
+        right: stageRect.left + candidate.x + boxRect.width,
+        top: stageRect.top + candidate.y,
+        bottom: stageRect.top + candidate.y + boxRect.height,
+      },
+    }));
+    const overlapsTarget = (candidate) =>
+      candidate.rect.left < safeTarget.right && candidate.rect.right > safeTarget.left
+      && candidate.rect.top < safeTarget.bottom && candidate.rect.bottom > safeTarget.top;
+    const current = candidates.find((candidate) => candidate.key === guidePlacement);
+    const available = candidates.filter((candidate) => !overlapsTarget(candidate));
+    const targetX = (safeTarget.left + safeTarget.right) / 2;
+    const targetY = (safeTarget.top + safeTarget.bottom) / 2;
+    const placement = current && !overlapsTarget(current)
+      ? current
+      : (available.length ? available : candidates).sort((a, b) => {
+        const distance = (candidate) => {
+          const x = (candidate.rect.left + candidate.rect.right) / 2 - targetX;
+          const y = (candidate.rect.top + candidate.rect.bottom) / 2 - targetY;
+          return x * x + y * y;
+        };
+        return distance(b) - distance(a);
+      })[0];
+    guidePlacement = placement.key;
     guideBoxStyle.value = {
-      ...horizontal,
-      top: '50%',
+      left: `${placement.x}px`,
+      right: 'auto',
+      top: `${placement.y}px`,
       bottom: 'auto',
-      maxHeight: '72%',
-      transform: 'translateY(-50%)',
+      transform: 'none',
     };
   });
 }
@@ -190,6 +231,7 @@ watch(
   () => props.ev,
   () => {
     guideBoxStyle.value = {};
+    guidePlacement = '';
     // 条件段落（伙伴信赖、家庭默契）在这里按当前存档展开
     list.value = resolveBeats(props.ev.beats || [], state);
     const saved = state.storyChoices[props.ev.id] || {};
@@ -465,17 +507,17 @@ onUnmounted(() => {
   background: none;
 }
 .vn-guide .vn-guide-box {
-  top: 50%;
-  right: 10px;
+  top: 52px;
+  right: 12px;
   bottom: auto;
-  left: auto;
+  left: 12px;
   width: min(62%, 290px);
-  height: auto;
-  min-height: 0;
+  height: min(28%, 244px);
+  min-height: 156px;
   max-height: 72%;
   overflow-y: auto;
   padding: 13px 14px 12px;
-  transform: translateY(-50%);
+  transform: none;
   border-radius: 16px;
   background: rgba(255, 252, 247, 0.97);
   box-shadow: 0 8px 28px rgba(45, 31, 22, 0.28);
