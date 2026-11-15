@@ -951,10 +951,11 @@ export function actionInfo(id) {
     }
     case 'sqchat': {
       const used = state.sqchatMonth === state.month;
+      const available = !!STORY.friend[state.month];
       return {
         name: '与苏晴互动', ap: 1, cost: 0,
-        note: used ? '这个月已经聊过了' : '本月专属相处剧情',
-        disabled: used,
+        note: used ? '这个月已经聊过了' : available ? '本月专属相处剧情' : '本月没有新的互动剧情',
+        disabled: used || !available,
       };
     }
     case 'market':
@@ -1049,10 +1050,12 @@ export function doAction(id, opt) {
       break;
     case 'sqchat': {
       const ev = STORY.friend[state.month];
-      if (!ev) break;
+      if (!ev) return false;
       state.sqchatMonth = state.month;
       state.autoStory = true;
-      pushEvent(ev);
+      const queued = queue.events.findIndex((event) => event.id === ev.id);
+      if (queued >= 0) queue.events.splice(queued, 1);
+      queue.events.unshift(ev);
       log('和苏晴度过了一段只属于两人的时间');
       break;
     }
@@ -2177,7 +2180,11 @@ export function chatCafeOwner() {
 
 export function startGame() {
   const pro = STORY.events.find((ev) => ev.kind === 'prologue');
-  if (pro && !state.played.includes(pro.id) && !queue.events.some((event) => event.id === pro.id)) pushEvent(pro);
+  if (pro && !state.played.includes(pro.id)) {
+    const queued = queue.events.findIndex((event) => event.id === pro.id);
+    if (queued >= 0) queue.events.splice(queued, 1);
+    queue.events.unshift(pro);
+  }
   queueStory();
 }
 
