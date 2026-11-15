@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { art, artStatus } from '../data';
-import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene } from '../store';
+import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene, momStoryInfo } from '../store';
 
 const props = defineProps({ scene: { type: String, default: 'shop' } });
 const emit = defineEmits(['change-scene', 'open-panel', 'rest-day']);
@@ -11,7 +11,7 @@ const LOCATIONS = {
   kitchen: { name: '烘焙后厨', sub: '今天也要做出好吃的蛋糕', img: 'bg-kitchen.webp', icon: '🥣' },
   street: { name: '栖云镇老街', sub: '沿着青石板路，去熟悉的地方', img: 'bg-street.webp', icon: '🌿' },
   home: { name: '林念的家', sub: '家里的灯总为你留着', img: 'bg-home.webp', icon: '🪴' },
-  cafe: { name: '街角咖啡馆', sub: '一杯咖啡与一点新灵感', img: 'bg-cafe.webp', icon: '☕' },
+  cafe: { name: '秋屿咖啡', sub: '一杯咖啡与一点新灵感', img: 'bg-cafe.webp', icon: '☕' },
   park: { name: '栖云镇公园', sub: '在花影里散步，遇见熟悉的人', img: 'bg-park.webp', icon: '🍃' },
   river: { name: '栖云河岸', sub: '桥边晚风与藏在水声里的故事', img: 'bg-park.webp', icon: '🌊' },
   market: { name: '小镇市集', sub: '季节活动的摊位已经摆好', img: 'bg-market.webp', icon: '🎪' },
@@ -33,7 +33,7 @@ const hotspots = computed(() => {
   const layouts = {
     shop: [
       { id: 'counter', x: shopLayout.counter[0], y: shopLayout.counter[1], text: '柜台 · 预约与营业', kind: 'panel', value: 'shop', section: 'counter' },
-      ...(state.dayIndex === 1 || state.dayIndex % 3 === 1 || state.month % 4 === 0 ? [{ id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' }] : []),
+      ...(momStoryInfo().event ? [{ id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' }] : []),
       { id: 'book', x: shopLayout.book[0], y: shopLayout.book[1], text: '装修册 · 店铺升级', kind: 'panel', value: 'renovation' },
       { id: 'kitchen', x: shopLayout.kitchen[0], y: shopLayout.kitchen[1], text: '去后厨 →', kind: 'scene', value: 'kitchen' },
       { id: 'door', x: shopLayout.door[0], y: shopLayout.door[1], text: '出门 →', kind: 'scene', value: 'street' },
@@ -53,7 +53,7 @@ const hotspots = computed(() => {
       { id: 'bakery', x: 12, y: 52, text: '← 林记', kind: 'scene', value: 'shop' },
       { id: 'park', x: 29, y: 79, text: '公园 →', kind: 'scene', value: 'park' },
       { id: 'home', x: 74, y: 91, text: '回家 →', kind: 'scene', value: 'home' },
-      { id: 'cafe', x: 73, y: 34, text: '咖啡店', kind: 'scene', value: 'cafe' },
+      { id: 'cafe', x: 73, y: 34, text: '秋屿咖啡', kind: 'scene', value: 'cafe' },
       { id: 'studio', x: 20, y: 34, text: '设计工作室', kind: 'scene', value: 'studio' },
       { id: 'market', x: 22, y: 91, text: '小镇市集', kind: 'scene', value: 'market' },
       { id: 'store', x: 78, y: 77, text: '品牌新店', kind: 'scene', value: 'store' },
@@ -72,7 +72,7 @@ const hotspots = computed(() => {
     cafe: [
       { id: 'collab', x: 52, y: 56, text: '联名活动 · 咖啡与蛋糕', kind: 'panel', value: 'game:cafe' },
       { id: 'coffee', x: 22, y: 74, text: '喝一杯热饮', kind: 'action', value: 'coffee' },
-      { id: 'owner', x: 75, y: 75, text: '与许沐禾聊天', kind: 'panel', value: 'feature', section: 'cafe' },
+      { id: 'owner', x: 75, y: 75, text: state.played.includes('EVT_ZHIQIU_CH01') ? '和沈知秋聊聊' : '拜访秋屿咖啡', kind: 'action', value: 'zhiqiuchat' },
       { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
     ],
     park: [
@@ -125,7 +125,6 @@ function go(id) {
 
 const chosenInfo = computed(() => {
   if (!selected.value || selected.value.kind !== 'action') return null;
-  if (selected.value.value === 'momchat') return { ap: 1, cost: 0, disabled: false, note: '和妈妈聊聊经营经验' };
   return actionInfo(selected.value.value);
 });
 
@@ -146,9 +145,7 @@ function confirm() {
   if (state.dayPhase !== 'prep') return toast('今天已经开门，打烊后再行动。');
   const info = chosenInfo.value;
   if (!info || info.disabled || state.ap < info.ap || state.cash < info.cost) return toast(info?.note || '现在暂时无法行动。');
-  const ok = item.value === 'momchat'
-    ? doAction('talk', { partner: 'mom' })
-    : doAction(item.value, {});
+  const ok = doAction(item.value, {});
   if (ok) { toast(item.text + ' · 已完成'); selected.value = null; }
   else toast('暂时无法执行，请检查行动力或触发条件。');
 }

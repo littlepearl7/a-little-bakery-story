@@ -83,6 +83,12 @@ const collection = computed(() => ({
     collected: state.career.decorations.includes(item.id),
     current: state.decorations.includes(item.id),
   })),
+  keepsakes: ['店铺钥匙', '旧配方本', '老店照片', '手写笔记'].map((name) => ({
+    id: name,
+    name,
+    collected: (state.career.keepsakes || []).includes(name),
+    current: (state.momKeepsakes || []).includes(name),
+  })),
   endings: [
     ...STAGES.filter((stage) => !stage.final).map((stage) => ({
       id: stage.short.key,
@@ -250,6 +256,7 @@ function collectionStatus(item) {
         { key: 'photos', title: '相册' },
         { key: 'cgs', title: 'CG' },
         { key: 'decorations', title: '装饰' },
+        { key: 'keepsakes', title: '妈妈的旧物' },
         { key: 'endings', title: '结局' },
       ]" :key="section.key" class="card card-pad">
         <div class="h2">{{ section.title }}</div>

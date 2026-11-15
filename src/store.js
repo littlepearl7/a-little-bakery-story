@@ -51,7 +51,9 @@ export function newState() {
     staff: [],
     partnerTrust: {},
     partnerSkill: {},
-    momBond: 10,
+    momBond: 20,
+    formalBusinessDays: 0,
+    momKeepsakes: [],
     style: { tradition: 0, innovation: 0, efficiency: 0, community: 0 },
     orders: [],
     dayPhase: 'prep',
@@ -78,6 +80,9 @@ export function newState() {
     designWorks: [],
     cafeRelation: 0,
     cafeLastTalk: 0,
+    cafeDailyTalks: 0,
+    customOrderMonths: [],
+    customAtM5: false,
     notices: [],
     unlockNotified: [],
     dailyLedger: [],
@@ -98,6 +103,7 @@ export function newState() {
       cgs: [],
       decorations: [],
       endings: [],
+      keepsakes: [],
       labReports: {},
       activityRecords: { market: [], cafe: [] },
       newGamePlusRuns: 0,
@@ -474,6 +480,7 @@ function applySaveData(data) {
     );
     state.career = { ...newState().career, ...(data.career || {}) };
     state.career.labReports = { ...newState().career.labReports, ...((data.career || {}).labReports || {}) };
+    state.career.keepsakes = state.career.keepsakes || [];
     state.activityRecords = { ...newState().activityRecords, ...(data.activityRecords || {}) };
     state.activityRecords.market = state.activityRecords.market || [];
     state.activityRecords.cafe = state.activityRecords.cafe || [];
@@ -484,6 +491,12 @@ function applySaveData(data) {
       cafe: [...new Set([...(data.career?.activityRecords?.cafe || []), ...state.activityRecords.cafe.map((row) => row.id)])],
     };
     state.career.cgs = state.career.cgs || [];
+    state.momKeepsakes = state.momKeepsakes || [];
+    state.formalBusinessDays = Number(state.formalBusinessDays || 0);
+    state.cafeDailyTalks = Number(state.cafeDailyTalks || 0);
+    state.customOrderMonths = state.customOrderMonths || [];
+    if (data.customAtM5 === undefined && data.customOrders > 0 && data.month >= 11) state.customAtM5 = true;
+    if (state.service && state.dayPhase === 'service' && state.service.formalBusiness === undefined) state.service.formalBusiness = true;
     state.storyChoices = state.storyChoices || {};
     state.savedAt = Number(data.savedAt) || 0;
     const storyEvents = new Map(STORY.events.map((event) => [event.id, event]));
@@ -496,8 +509,9 @@ function applySaveData(data) {
     state.challengeDayIndex = Number(state.challengeDayIndex || 0);
     const needsChallenge = state.dayPhase === 'prep' && (!state.challenge || state.challengeDayIndex !== state.dayIndex);
     if (needsChallenge) startChallengeForDay();
+    const careerBefore = JSON.stringify(state.career);
     recordCareer();
-    if (migrated || needsChallenge) save();
+    if (migrated || needsChallenge || careerBefore !== JSON.stringify(state.career)) save();
     return true;
   } catch (e) {
     return false;
@@ -603,6 +617,7 @@ function recordCareer() {
   const career = state.career || newState().career;
   career.products = [...new Set([...(career.products || []), ...(state.unlocked || [])])];
   career.photos = [...new Set([...(career.photos || []), ...(state.photos || [])])];
+  career.keepsakes = [...new Set([...(career.keepsakes || []), ...(state.momKeepsakes || [])])];
   const collectedCgs = career.cgs || [];
   CG_COLLECTION.forEach((cg) => {
     if ((state.played || []).includes(cg.event) && !collectedCgs.includes(cg.id)) collectedCgs.push(cg.id);
@@ -926,8 +941,82 @@ function cdLeft(id) {
   return Math.max(0, until - state.dayIndex);
 }
 
+function hasHigherPriorityStory() {
+  return queue.events.some((event) => !event.storyline);
+}
+
+export function momStoryInfo() {
+  const event = STORY.mom.find((item) => !state.played.includes(item.id));
+  if (!event) return { event: null, note: '林暖的月度故事已经全部听完。' };
+  if (event.month > state.month || (event.month === state.month && state.day < event.day)) {
+    return { event: null, note: '还没到和妈妈聊这段往事的时候。' };
+  }
+  if (event.id === 'EVT_MOM_M01' && state.formalBusinessDays < 1) {
+    return { event: null, note: '先完成第一天正式营业，再和妈妈聊聊。' };
+  }
+  if (event.bondRequired && state.momBond < event.bondRequired) {
+    return { event: null, note: '家庭默契还不够，继续经营后再来听这段故事。' };
+  }
+  if (event.id === 'EVT_MOM_M36' && !STORY.mom.slice(0, 35).every((item) => state.played.includes(item.id))) {
+    return { event: null, note: '先听完前 35 个月的母女故事。' };
+  }
+  if (hasHigherPriorityStory()) return { event: null, note: '先看完排在前面的主线或苏晴剧情。' };
+  return { event, note: '播放「' + event.title + '」' };
+}
+
+function zhiQiuPrerequisite(event) {
+  const done = (id) => state.played.includes(id);
+  const id = event.id;
+  if (id === 'EVT_ZHIQIU_CH01') return state.shopLevel >= 2 && (state.customAtM5 || (state.month >= 11 && state.customOrders > 0));
+  if (id === 'EVT_ZHIQIU_CH02') return done('EVT_ZHIQIU_CH01') && state.cafeDailyTalks >= 2;
+  if (id === 'EVT_ZHIQIU_CH03') return done('EVT_ZHIQIU_CH02') && state.cafeCollab >= 5;
+  if (id === 'EVT_ZHIQIU_CH04') return done('EVT_ZHIQIU_CH03') && state.cafeCollab >= 5;
+  if (id === 'EVT_ZHIQIU_CH05') return done('EVT_ZHIQIU_CH04') && state.cafeRelation >= 20;
+  if (id === 'EVT_ZHIQIU_CH06_A') return done('EVT_ZHIQIU_CH05') && (state.activityRecords.market.length + state.activityRecords.cafe.length > 0);
+  if (id === 'EVT_ZHIQIU_CH06_SPR') return done('EVT_ZHIQIU_CH06_A');
+  if (id === 'EVT_ZHIQIU_CH06_SUM') return done('EVT_ZHIQIU_CH06_SPR');
+  if (id === 'EVT_ZHIQIU_CH06_AUT') return done('EVT_ZHIQIU_CH06_SUM');
+  if (id === 'EVT_ZHIQIU_CH06_WIN') return done('EVT_ZHIQIU_CH06_AUT');
+  if (id === 'EVT_ZHIQIU_SP_NIGHT') return done('EVT_ZHIQIU_CH06_WIN');
+  if (id === 'EVT_ZHIQIU_DAILY_01' || id === 'EVT_ZHIQIU_DAILY_02') return done('EVT_ZHIQIU_CH01');
+  if (id === 'EVT_ZHIQIU_DAILY_03') return done('EVT_ZHIQIU_CH02') && state.cafeRelation >= 40;
+  if (id === 'EVT_ZHIQIU_DAILY_04') return done('EVT_ZHIQIU_CH02');
+  if (id === 'EVT_ZHIQIU_DAILY_05') return done('EVT_ZHIQIU_CH05');
+  if (id === 'EVT_ZHIQIU_DAILY_08') return done('EVT_ZHIQIU_CH03');
+  if (id === 'EVT_ZHIQIU_DAILY_06') return done('EVT_ZHIQIU_CH06_WIN');
+  if (id === 'EVT_ZHIQIU_DAILY_07') return done('EVT_ZHIQIU_CH03');
+  return true;
+}
+
+export function zhiQiuStoryInfo() {
+  if (state.month >= 26 && state.month <= 29) return { event: null, note: '桂花栗子蛋糕的主线期间，秋屿剧情暂缓。' };
+  const next = STORY.zhiQiu.find((item) => !state.played.includes(item.id));
+  if (!next) return { event: null, note: '今天可以和沈知秋聊聊咖啡与小镇生活。' };
+  if (next.month > state.month || (next.month === state.month && state.day < next.day)) {
+    return { event: null, note: '今天可以和沈知秋聊聊咖啡与小镇生活。' };
+  }
+  if (!zhiQiuPrerequisite(next)) return { event: null, note: '这段故事的前置条件还没有完成。' };
+  if (hasHigherPriorityStory()) return { event: null, note: '先看完排在前面的主线、母女或苏晴剧情。' };
+  return { event: next, note: '播放「' + next.title + '」' };
+}
+
 export function actionInfo(id) {
   switch (id) {
+    case 'momchat': {
+      const info = momStoryInfo();
+      return { name: '和妈妈聊聊', ap: 1, cost: 0, note: info.note, disabled: !info.event };
+    }
+    case 'zhiqiuchat': {
+      const info = zhiQiuStoryInfo();
+      const notIntroduced = !state.played.includes('EVT_ZHIQIU_CH01') && state.month < 11;
+      const repeated = state.cafeLastTalk === state.dayIndex;
+      const priorityWaiting = info.note.indexOf('先看完排在前面的') === 0;
+      return {
+        name: '拜访秋屿咖啡', ap: 1, cost: 0,
+        note: notIntroduced ? '秋屿咖啡的故事从第 11 个月开始。' : repeated ? '今天已经来过秋屿咖啡。' : info.note,
+        disabled: notIntroduced || repeated || priorityWaiting || !sceneAvailability('cafe').open,
+      };
+    }
     case 'restock': {
       return {
         name: '原料采购', ap: 1, cost: 0,
@@ -946,7 +1035,8 @@ export function actionInfo(id) {
       const t = state.staff.length ? staffList()[0].nick : null;
       return {
         name: '伙伴交流', ap: 1, cost: 0,
-        note: t ? '和 ' + t + ' 聊聊近况' : '和妈妈聊聊经营经验',
+        note: t ? '和 ' + t + ' 聊聊近况' : '前往前厅触发林暖的月度故事',
+        disabled: !t,
       };
     }
     case 'sqchat': {
@@ -1026,7 +1116,7 @@ export function doAction(id, opt) {
     case 'coffee':
       state.cash -= 18;
       state.stamina = Math.min(state.maxStamina, state.stamina + 12);
-      log('在栖木咖啡喝了杯手冲，体力回来了些');
+      log('在秋屿咖啡喝了杯手冲，体力回来了些');
       break;
     case 'walk':
       state.reputation = clamp(state.reputation + 0.5);
@@ -1034,20 +1124,38 @@ export function doAction(id, opt) {
       log('沿河走了一圈，脑子清醒多了');
       break;
     case 'talk':
-      if (opt && opt.partner === 'mom') {
-        state.momBond = clamp(state.momBond + 4);
-        log('和妈妈聊了一会儿，家庭默契 +4');
-      } else if (state.staff.length) {
+      if (state.staff.length) {
         const pid = opt && opt.partner ? opt.partner : state.staff[0];
         if (!state.staff.includes(pid)) return false;
         state.partnerTrust[pid] = clamp((state.partnerTrust[pid] || 0) + 6);
         const p = partnerById(pid);
         log('和 ' + (p ? p.nick : '伙伴') + ' 聊了很久，信赖 +6');
       } else {
-        state.momBond = clamp(state.momBond + 4);
-        log('和妈妈聊了一会儿，家庭默契 +4');
+        return false;
       }
       break;
+    case 'momchat': {
+      const info = momStoryInfo();
+      if (!info.event) return false;
+      queue.events.unshift(info.event);
+      state.autoStory = true;
+      log('和妈妈聊起了「' + info.event.title + '」', 'story');
+      break;
+    }
+    case 'zhiqiuchat': {
+      const info = zhiQiuStoryInfo();
+      state.cafeLastTalk = state.dayIndex;
+      state.cafeRelation = clamp(state.cafeRelation + 3);
+      if (state.played.includes('EVT_ZHIQIU_CH01')) state.cafeDailyTalks += 1;
+      if (info.event) {
+        queue.events.unshift(info.event);
+        state.autoStory = true;
+        log('在秋屿咖啡和沈知秋聊起了「' + info.event.title + '」', 'story');
+      } else {
+        log('在秋屿咖啡和沈知秋聊了聊近况');
+      }
+      break;
+    }
     case 'sqchat': {
       const ev = STORY.friend[state.month];
       if (!ev) return false;
@@ -1514,7 +1622,7 @@ function consumeBatchProduct(productId, quantity) {
 
 export function openShop() {
   if (state.phase !== 'playing' || state.dayPhase !== 'service-ready' || state.service) return null;
-  const service = { tickets: [], current: 0, unhappy: 0, startedAt: Date.now(), automationUnlocked: canAutomateService() };
+  const service = { tickets: [], current: 0, unhappy: 0, startedAt: Date.now(), formalBusiness: true, automationUnlocked: canAutomateService() };
   const reservations = state.orders.filter((order) => order.taken);
   reservations.forEach((order) => {
     const patience = 30 + 5 * (order.qty - 1);
@@ -1703,7 +1811,11 @@ export function deliverTicket(ticketId) {
   state.daySold += ticket.qty;
   state.monthSold[ticket.product] = (state.monthSold[ticket.product] || 0) + ticket.qty;
   state.doneOrders += 1;
-  if (ticket.type === '定制') state.customOrders += 1;
+  if (ticket.type === '定制') {
+    state.customOrders += 1;
+    state.customOrderMonths.push(state.month);
+    if (state.month === 5) state.customAtM5 = true;
+  }
   if (ticket.type === '线上') state.onlineOrders += 1;
   if (ticket.type === '节日') state.festivalOrders += 1;
   if (ticket.customer === '陈奶奶' || ticket.customer === '张叔') recordCustomerPurchases({ [ticket.product]: ticket.qty });
@@ -1785,6 +1897,10 @@ export const LEFTOVER_MODES = {
 
 export function closeDay(mode) {
   if (state.phase !== 'playing' || state.dayPhase !== 'closing') return null;
+  if (state.service && state.service.formalBusiness && !state.service.formalCounted) {
+    state.formalBusinessDays += 1;
+    state.service.formalCounted = true;
+  }
   const m = LEFTOVER_MODES[mode] || LEFTOVER_MODES.discount;
   let left = 0;
   let value = 0;
@@ -2069,9 +2185,9 @@ export function startTutorial(show) {
 
 export const TOWN_EVENTS = [
   { season: 0, title: '春日花卉节', place: '公园 · 小镇市集', materials: ['strawberry', 'decor'], detail: '草莓与花卉装饰是春季订单的主角。' },
-  { season: 1, title: '夏日水果节', place: '咖啡店 · 小镇市集', materials: ['mango', 'strawberry'], detail: '准备新鲜水果，留意咖啡店的夏日联名邀请。' },
+  { season: 1, title: '夏日水果节', place: '秋屿咖啡 · 小镇市集', materials: ['mango', 'strawberry'], detail: '准备新鲜水果，留意秋屿咖啡的夏日联名邀请。' },
   { season: 2, title: '秋日丰收季', place: '小镇市集', materials: ['chestnut', 'decor'], detail: '秋栗与坚果风味适合节日摊位。' },
-  { season: 3, title: '暖冬甜品节', place: '蛋糕店 · 咖啡店', materials: ['cocoa', 'decor'], detail: '巧克力与礼盒订单会更受欢迎。' },
+  { season: 3, title: '暖冬甜品节', place: '林记烘焙 · 秋屿咖啡', materials: ['cocoa', 'decor'], detail: '巧克力与礼盒订单会更受欢迎。' },
 ];
 
 export function seasonalEvent(month = state.month) {
@@ -2087,7 +2203,7 @@ export function sceneAvailability(id) {
     case 'lab': return { open: state.month >= 3 && state.unlocked.length >= 3, reason: '掌握三款基础配方，并经营到第 3 个月。' };
     case 'staff': return { open: state.staff.length >= 1, reason: '招聘第一位伙伴后开放排班板。' };
     case 'studio': return { open: state.customOrders >= 1, reason: '完成第一份定制订单后，叶星河会邀请你来设计。' };
-    case 'cafe': return { open: state.shopLevel >= 2 && state.month >= 6, reason: '店铺达到 Lv2 且进入第 6 个月，咖啡店主会提出合作。' };
+    case 'cafe': return { open: state.shopLevel >= 2 && state.month >= 6, reason: '店铺达到 Lv2 且进入第 6 个月，秋屿咖啡开放。' };
     case 'market': return { open: state.shopLevel >= 3 && state.month >= 6, reason: '店铺达到 Lv3，并完成前期经营（第 6 个月起）。' };
     case 'store': return { open: state.shopLevel >= 4 && state.customOrders >= 2 && state.brand >= 25 && state.month >= 19, reason: '店铺 Lv4、完成 2 份定制、品牌 ≥25，并推进到第 19 个月。' };
     default: return { open: true, reason: '' };
@@ -2106,7 +2222,7 @@ export function visitTownScene(id) {
   if (!gate.open) return false;
   state.sceneVisits[id] = (state.sceneVisits[id] || 0) + 1;
   if (id === 'park' && state.sceneVisits[id] === 1) addTownNotice('河边的小路', '公园通往河边。你可以去看看风景，也许会遇到特别的人。', 'river');
-  if (id === 'cafe' && state.sceneVisits[id] === 1) addTownNotice('咖啡店的邀请', '主理人许沐禾想和林记烘焙推出第一份联名菜单。', 'cafe');
+  if (id === 'cafe' && state.sceneVisits[id] === 1) addTownNotice('秋屿咖啡', '从第 11 个月起，可以在这里遇见咖啡店主沈知秋。', 'cafe');
   if (id === 'studio' && state.sceneVisits[id] === 1) addTownNotice('叶星河的设计工作室', '定制订单带来了新的设计灵感，试着制作一份包装设计。', 'studio');
   save();
   return true;
@@ -2168,14 +2284,10 @@ export function submitDesign({ shape, color, decoration, packaging }) {
 }
 
 export function chatCafeOwner() {
-  if (!sceneAvailability('cafe').open || state.dayPhase !== 'prep' || state.ap < 1) return { ok: false, message: '当前无法交流。' };
-  if (state.cafeLastTalk === state.dayIndex) return { ok: false, message: '今天已经和许沐禾聊过了。' };
-  state.ap -= 1;
-  state.cafeRelation += 3;
-  state.cafeLastTalk = state.dayIndex;
-  addTownNotice('街角咖啡馆', '许沐禾分享了咖啡与蛋糕搭配的心得，联名合作又近了一步。', 'cafe');
-  save();
-  return { ok: true, message: '和许沐禾聊了新品与小镇生活。咖啡店好感 +3。' };
+  const info = actionInfo('zhiqiuchat');
+  if (info.disabled || state.dayPhase !== 'prep' || state.ap < info.ap) return { ok: false, message: info.note || '当前无法交流。' };
+  if (!doAction('zhiqiuchat', {})) return { ok: false, message: '当前无法交流。' };
+  return { ok: true, message: info.note };
 }
 
 export function startGame(forcePrologue = false) {
@@ -2193,6 +2305,12 @@ export function finishEvent(ev) {
   ids.forEach((id) => {
     if (!state.played.includes(id)) state.played.push(id);
   });
+  if (ev.storyline === 'mom') {
+    state.momBond = clamp(state.momBond + (ev.bondGain || 0));
+    if (ev.keepsake && !state.momKeepsakes.includes(ev.keepsake)) state.momKeepsakes.push(ev.keepsake);
+  } else if (ev.storyline === 'zhiQiu') {
+    state.cafeRelation = clamp(state.cafeRelation + (ev.id.indexOf('_DAILY_') >= 0 ? 2 : 7));
+  }
   const got = applyRewards(ev.rewards || []);
   if (got.length) log('剧情：' + ev.title, 'story');
   save();

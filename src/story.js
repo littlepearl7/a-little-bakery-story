@@ -16,6 +16,8 @@
  */
 
 import raw from '../story/文案v6.md?raw';
+import momRaw from '../story/林暖剧情.md?raw';
+import zhiQiuRaw from '../story/秋屿来信.md?raw';
 
 /* ---------------- 名词表 ---------------- */
 
@@ -38,6 +40,7 @@ const NAMES = {
   沈知夏: '沈知夏',
   许佳宁: '许佳宁',
   沈妍: '沈妍',
+  沈知秋: '沈知秋',
   顾客: '顾客',
 };
 
@@ -49,7 +52,7 @@ const NUM = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6 };
 
 /** 行首是已知角色名 + 可选表情 + 少量动作描写 + 冒号 → 台词 */
 const SPEAK_RE =
-  /^(林念|苏晴|林暖|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
+  /^(林念|苏晴|林暖|沈知秋|周雨桐|许知遥|唐鸢|叶星河|陈奶奶|张叔|李婶|赵叔|沈知夏|许佳宁|沈妍|小雨|知遥|阿鸢|星河|顾客)(?:（([^）]{1,12})）)?([^：:]{0,24})[：:]\s*(.+)$/;
 
 /* ---------------- 条件 ---------------- */
 
@@ -164,6 +167,11 @@ function parseCondText(text) {
   const mom = text.match(/家庭默契\s*[≥>=]+\s*(\d+)/);
   if (mom) {
     test.momBond = Number(mom[1]);
+    hit = true;
+  }
+  const family = text.match(/familyHarmony\s*[≥>=]+\s*(\d+)/);
+  if (family) {
+    test.momBond = Number(family[1]);
     hit = true;
   }
   const st = text.match(/(tradition|innovation|efficiency|community)Score\s*[≥>=]+\s*(\d+)/);
@@ -328,7 +336,8 @@ function parseBlock(lines, opts = {}) {
           if (idx < 0) return;
           const k = p.slice(0, idx).trim();
           const v = p.slice(idx + 1).trim();
-          if (k === '事件ID') meta.ids.push(v);
+          if (k === '事件ID') meta.ids.push(v.replace(/`/g, ''));
+          else if (k === '场景') push({ t: 'scene', text: v });
           else if (k === '触发月份' || k === '触发时间') {
             const m = v.match(/M(\d+)/);
             if (m) meta.month = Number(m[1]);
@@ -346,6 +355,14 @@ function parseBlock(lines, opts = {}) {
       if (/^(场景|插入回忆|接续回忆|回忆片段|回到现在|闪回|时间|地点)/.test(inner)) {
         push({ t: 'scene', text: inner.replace(/^场景\s*[：:]\s*/, '') });
         if (rest) push({ t: 'nar', text: rest });
+        continue;
+      }
+
+      // 新增人物支线 CG：素材未到位时由演出层自动隐藏画面，继续播放对白。
+      const sideCg = inner.match(/^触发(母女)?CG\s*(\d+)\s*[｜|：:]\s*([^：:｜|]+)/);
+      if (sideCg) {
+        const prefix = sideCg[1] ? 'mom' : 'zhiqiu';
+        push({ t: 'cg', key: prefix + '-' + String(sideCg[2]).padStart(2, '0') });
         continue;
       }
 
@@ -509,7 +526,7 @@ function buildTree(md) {
   const root = { level: 1, text: '', lines: [], children: [] };
   const stack = [root];
   for (const raw of md.split(/\r?\n/)) {
-    const h = raw.match(/^(#{1,4})\s+(.*)$/);
+    const h = raw.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       const level = h[1].length;
       while (stack.length > 1 && stack[stack.length - 1].level >= level) stack.pop();
@@ -887,7 +904,75 @@ function partnerKeyFromTitle(text) {
   return '';
 }
 
-export const STORY = parseStory(raw);
+function parseSideEvents(md, storyline, orderStart) {
+  const events = [];
+  const tree = buildTree(md);
+  const walk = (node) => {
+    const text = node.lines.join('\n');
+    const idMatch = text.match(/【[^】]*事件ID[：:]\s*`?(EVT_(?:MOM|ZHIQIU)_[A-Z0-9_]+)/);
+    if (idMatch) {
+      const id = idMatch[1];
+      const parsed = parseBlock(node.lines, { title: node.text });
+      const source = node.text + '\n' + text;
+      const monthMatch = source.match(/M(\d+)/);
+      const headingTitle = node.text.split(/[｜|]/).pop().trim();
+      const bond = source.match(/familyHarmony\s*\+\s*(\d+)/);
+      const keepsake = source.match(/(?:解锁|补全)旧物收藏《([^》]+)》/);
+      const trigger = source.match(/(?:插入节点|具体插入节点)[^\n】]*第(\d+)个经营日/);
+      const cgNum = source.match(/(?:母女)?CG\s*(\d+)/);
+      const bondGate = source.match(/familyHarmony\s*[≥>=]+\s*(\d+)/);
+      const keepsakeName = keepsake ? keepsake[1].replace(/[（(].*?[）)]/g, '') : '';
+      events.push({
+        id,
+        ids: [id],
+        title: headingTitle || cleanTitle(node.text),
+        chapter: storyline === 'mom' ? '林暖 · 和妈妈聊聊' : '沈知秋 · 秋屿来信',
+        month: monthMatch ? Number(monthMatch[1]) : null,
+        day: trigger ? Number(trigger[1]) : 1,
+        kind: storyline,
+        storyline,
+        bondGain: bond ? Number(bond[1]) : 0,
+        bondRequired: bondGate ? Number(bondGate[1]) : 0,
+        keepsake: keepsakeName,
+        cgId: cgNum ? (storyline === 'zhiQiu' ? 'zhiqiu' : 'mom') + '-' + String(cgNum[1]).padStart(2, '0') : '',
+        beats: parsed.beats,
+        order: orderStart + events.length,
+      });
+    }
+    node.children.forEach(walk);
+  };
+  tree.children.forEach(walk);
+  if (storyline === 'zhiQiu') {
+    const findFinale = (node) => {
+      if (/第三幕：心愿达成/.test(node.text)) return node;
+      for (const child of node.children) {
+        const found = findFinale(child);
+        if (found) return found;
+      }
+      return null;
+    };
+    const finale = findFinale(tree);
+    const winter = events.find((event) => event.id === 'EVT_ZHIQIU_CH06_WIN');
+    if (finale && winter) {
+      const closing = parseBlock(finale.lines, { title: finale.text });
+      winter.beats.push({ t: 'scene', text: '秋屿咖啡 · 四季菜单发布' }, ...closing.beats);
+    }
+  }
+  return events;
+}
+
+const parsedStory = parseStory(raw);
+const momEvents = parseSideEvents(momRaw, 'mom', parsedStory.events.length);
+const zhiQiuEvents = parseSideEvents(zhiQiuRaw, 'zhiQiu', parsedStory.events.length + momEvents.length);
+const bySchedule = (a, b) => a.month - b.month || a.day - b.day || a.order - b.order;
+momEvents.sort(bySchedule);
+zhiQiuEvents.sort(bySchedule);
+parsedStory.events.push(...momEvents, ...zhiQiuEvents);
+parsedStory.mom = momEvents;
+parsedStory.zhiQiu = zhiQiuEvents;
+parsedStory.find = (id) => parsedStory.events.find((e) => e.id === id || (e.ids || []).includes(id)) || null;
+
+export const STORY = parsedStory;
 
 if (typeof console !== 'undefined') {
   const kinds = {};
@@ -910,3 +995,4 @@ if (typeof console !== 'undefined') {
   );
   if (STORY.warnings.length) STORY.warnings.forEach((w) => console.warn('[剧情] ' + w));
 }
+

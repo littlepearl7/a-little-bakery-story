@@ -50,7 +50,7 @@ function discount(){if(run.value?.menu){run.value.menu.price=Math.max(1,run.valu
 </script>
 
 <template>
-  <MiniShell bg="minigame-cafe" title="咖啡店联名" :sub="phase==='play'?'已接待 '+(run?.customerIndex||0)+' / 3 位客人':theme" @exit="emit('exit')">
+  <MiniShell bg="minigame-cafe" title="秋屿咖啡联名" :sub="phase==='play'?'已接待 '+(run?.customerIndex||0)+' / 3 位客人':theme" @exit="emit('exit')">
     <div v-if="phase==='play'&&demand" class="game-banner"><b>{{demand.customer}}</b>：想要一份<b>{{WORDS[demand.profile]}}</b>的蛋糕和咖啡搭配。<br><small>今日联名收益 ¥{{run?.revenue||0}} · 客人偏好明确，请仔细搭配</small></div>
     <div class="game-scroll">
       <div v-if="phase==='intro'" class="game-card"><h3 class="game-title">{{theme}}</h3><p class="game-lead">和咖啡店联合设计套餐，先选蛋糕、咖啡与价格，营业时根据三位顾客的喜好重新搭配。每笔成交都会扣除店内蛋糕，并计算咖啡制作成本。</p><div class="game-stats"><span>合作经验 {{state.cafeCollab}}</span><span>可用蛋糕 {{cakes.reduce((a,b)=>a+b.stock,0)}} 份</span></div><p v-if="message" class="game-message">{{message}}</p><button class="game-btn primary" style="width:100%;margin-top:8px" type="button" @click="setup">{{run&&!run.completed?'继续联名活动':'设计联名套餐'}}</button></div>

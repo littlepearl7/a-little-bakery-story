@@ -40,6 +40,7 @@ onMounted(() => {
 });
 
 const leaving = ref(false);
+defineExpose({ cancelTransition: () => { leaving.value = false; } });
 
 /** 封面淡出后再进游戏，避免硬切 */
 function leaveTo(handler) {

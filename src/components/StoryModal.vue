@@ -81,7 +81,8 @@ const cgKey = computed(() => {
   if (at < 0) return '';
   // 换场景就等于收掉 CG
   if (at < sceneIdx.value) return '';
-  return list.value[at].key;
+  const key = list.value[at].key;
+  return cgOf(key).src ? key : '';
 });
 const cg = computed(() => (cgKey.value ? cgOf(cgKey.value) : null));
 

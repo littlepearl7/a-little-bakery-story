@@ -70,6 +70,7 @@ const askTutorial = ref(false);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
+const titleScreen = ref(null);
 // 开发跳月只允许明确带 ?dev=1；手机竖屏不再误显示调试按钮。
 const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
 
@@ -82,32 +83,44 @@ const canContinueStory = computed(() =>
 const pending = computed(() => queue.events.length);
 
 function enterGame(target = {}) {
-  // 新游戏由 App 直接开启序幕，避免标题组件和地图初始化之间丢掉首段事件。
   const freshStart = target.fresh === true;
-  if (!state.tutorialPractice) startGame(freshStart);
+  const opening = STORY.find('EVT_PROLOGUE_01');
+  const prologueComplete = state.played.includes('EVT_PROLOGUE_01');
+  if (!opening && !prologueComplete) {
+    window.alert('开场序幕没有成功载入。请返回标题页重试；存档进度未被覆盖。');
+    titleScreen.value?.cancelTransition();
+    return;
+  }
+  const prologuePending = !!opening && !prologueComplete;
+  if (prologuePending) {
+    state.tutorialPractice = null;
+    state.tutorialPracticeProgress = 0;
+  }
+  if (!state.tutorialPractice) startGame(freshStart || prologuePending);
   started.value = true;
   saveCenterOpen.value = false;
   scene.value = 'shop';
   activePanel.value = target.panel || '';
   phoneOpen.value = false;
   activeManageSection.value = target.section || 'overview';
-  const opening = freshStart ? STORY.events.find((event) => event.id === 'EVT_PROLOGUE_01') : null;
-  const tutorialPending = !freshStart && (state.tutorialPromptPending || (!state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01')));
+  const tutorialPending = !prologuePending && !state.tutorialSeen && (state.tutorialPromptPending || (state.month === 1 && prologueComplete));
+  if (prologuePending) {
+    state.tutorialSeen = false;
+    state.tutorialPromptPending = false;
+    askTutorial.value = false;
+    for (let i = queue.events.length - 1; i >= 0; i--) {
+      if (queue.events[i].kind === 'tutorial' || queue.events[i].id === opening.id) queue.events.splice(i, 1);
+    }
+    queue.events.unshift(opening);
+    activeEvent.value = opening;
+    save();
+  }
   if (tutorialPending) {
     state.tutorialPromptPending = true;
     askTutorial.value = true;
     save();
   }
-  if (freshStart && opening) {
-    state.tutorialSeen = false;
-    state.tutorialPromptPending = false;
-    askTutorial.value = false;
-    const queued = queue.events.findIndex((event) => event.id === opening.id);
-    if (queued >= 0) queue.events.splice(queued, 1);
-    queue.events.unshift(opening);
-    activeEvent.value = opening;
-    save();
-  } else if (!state.tutorialPractice && !tutorialPending && queue.events.length) {
+  if (!prologuePending && !state.tutorialPractice && !tutorialPending && queue.events.length) {
     activeEvent.value = queue.events[0];
   }
   if (!state.tutorialPractice && !tutorialPending) {
@@ -252,7 +265,7 @@ const locationNotices = [
   ['river', '河岸开放', '公园尽头的小路通向河边，那里有新的故事。', 'river'],
   ['lab', '实验台开放', '基础配方逐渐熟练，现在可以在后厨研发新口味。', 'kitchen'],
   ['studio', '设计工作室开放', '完成定制订单后，叶星河邀请林念尝试蛋糕与包装设计。', 'studio'],
-  ['cafe', '咖啡店开放', '栖木咖啡的许沐禾发来了合作邀请。', 'cafe'],
+  ['cafe', '秋屿咖啡开放', '秋屿咖啡将于第 11 个月开放沈知秋剧情。', 'cafe'],
   ['staff', '员工排班板开放', '第一位伙伴加入后，可以安排岗位和培训。', 'kitchen'],
   ['market', '小镇市集开放', '林记烘焙收到了参加季节市集的邀请。', 'market'],
   ['store', '品牌新店开放', '林念已经有能力规划更远处的品牌门店。', 'store'],
@@ -286,7 +299,7 @@ onMounted(() => {
 
 <template>
   <div class="app">
-    <TitleScreen v-if="!started" @enter="enterGame" />
+    <TitleScreen v-if="!started" ref="titleScreen" @enter="enterGame" />
 
     <div v-if="started" class="topbar game-in">
       <div class="m serif">
@@ -515,7 +528,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <TitleScreen v-if="started && saveCenterOpen" in-game @close="saveCenterOpen = false" @title="returnToTitle" @enter="enterGame" />
+    <TitleScreen v-if="started && saveCenterOpen" ref="titleScreen" in-game @close="saveCenterOpen = false" @title="returnToTitle" @enter="enterGame" />
   </div>
 </template>
 

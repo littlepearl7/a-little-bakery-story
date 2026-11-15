@@ -16,7 +16,7 @@ const eventMaterials = computed(() => event.value.materials.map((id) => ({ ...IN
 const functions = {
   pantry: '食材区 · 原料库存', devices: '设备区 · 烘焙升级', wardrobe: '衣柜 · 日常穿搭', bedroom: '卧室 · 夜晚休息',
   studio: '设计工作台', designs: '设计作品收藏', river: '河岸风景与事件',
-  park: '花影与风景相册', cafe: '与许沐禾聊天', calendar: '本季小镇日历', branch: '品牌新店经营',
+  park: '花影与风景相册', cafe: '秋屿咖啡', calendar: '本季小镇日历', branch: '品牌新店经营',
 };
 
 function run(action) {
@@ -106,8 +106,9 @@ function saveDesign() {
     </template>
 
     <template v-else-if="section === 'cafe'">
-      <div class="feature-npc"><strong>许沐禾</strong><small>栖木咖啡主理人 · 咖啡店好感 {{ state.cafeRelation }}</small><p>“咖啡与甜点的搭配，像是两个人互相照亮。你的蛋糕很适合这里。”</p></div>
-      <button class="feature-primary" @click="run(chatCafeOwner)">聊天 · 1 行动力</button>
+      <div v-if="state.played.includes('EVT_ZHIQIU_CH01')" class="feature-npc"><strong>沈知秋</strong><small>秋屿咖啡主理人 · 熟悉度 {{ state.cafeRelation }}</small><p>“咖啡与甜点的搭配，像是两个人互相照亮。你的蛋糕很适合这里。”</p></div>
+      <p v-else class="feature-help">这间咖啡店还没有正式对外开放。</p>
+      <button class="feature-primary" :disabled="!state.played.includes('EVT_ZHIQIU_CH01')" @click="run(chatCafeOwner)">聊天 · 1 行动力</button>
       <button class="feature-secondary" @click="emit('open-panel', 'game:cafe')">一起设计联名套餐</button>
     </template>
 

@@ -47,7 +47,9 @@ try {
   assert(!s.changeOutfit('locked-outfit'));
 
   s.state.shopLevel = 2;
-  s.state.month = 6;
+  s.state.month = 11;
+  s.state.day = 4;
+  s.state.customAtM5 = true;
   assert(s.sceneAvailability('cafe').open);
   assert(s.chatCafeOwner().ok);
   assert.equal(s.state.cafeRelation, 3);
@@ -82,3 +84,4 @@ try {
 } finally {
   await vite.close();
 }
+
