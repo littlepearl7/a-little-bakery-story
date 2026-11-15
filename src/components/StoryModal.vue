@@ -1,11 +1,11 @@
 <script setup>
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { state, finishEvent, applyChoice } from '../store';
 import { resolveBeats } from '../story';
 import { BG, SPRITE, bgSrcOf, cgOf, faceOfName, sceneKey, sceneKeyOfEvent, spriteOf, spriteReady, wearOf } from '../vn';
 
 const props = defineProps({ ev: { type: Object, required: true } });
-const emit = defineEmits(['done']);
+const emit = defineEmits(['done', 'guide-target']);
 
 const list = ref([]);
 const idx = ref(0);
@@ -35,8 +35,81 @@ const isMapGuide = computed(() =>
 );
 const guideSpeaker = computed(() => (isSay.value ? cur.value.who : '林暖'));
 const text = computed(() => (cur.value && cur.value.text) || '');
+const guideTarget = computed(() => {
+  if (!isMapGuide.value) return '';
+  if (props.ev.id === 'EVT_TUTORIAL_PHONE') return 'phone';
+  const targets = {
+    EVT_TUTORIAL_START: [[/柜台|展示柜/, 'counter']],
+    EVT_TUTORIAL_FRONT: [
+      [/柜台|展示柜|接待顾客|收银|结账/, 'counter'],
+      [/装修册/, 'book'],
+      [/门口|出门|出去/, 'door'],
+      [/门帘|去后厨/, 'kitchen'],
+      [/和妈妈聊聊|找妈妈/, 'mom'],
+    ],
+    EVT_TUTORIAL_KITCHEN: [
+      [/操作台|排产|菜单/, 'workbench'],
+      [/设备区|烤箱|打蛋器/, 'devices'],
+      [/食材区|食材|库存/, 'pantry'],
+      [/实验台|研发/, 'lab'],
+      [/排班板|店员|员工/, 'staff'],
+      [/做一炉|制作蛋糕|蛋糕制作/, 'baking'],
+    ],
+    EVT_TUTORIAL_STREET: [
+      [/食材铺|采购|农场/, 'supplier'],
+      [/公园|散步/, 'park'],
+      [/苏晴|寻找苏晴/, 'sq'],
+      [/回家|休息/, 'home'],
+    ],
+  }[props.ev.id] || [];
+  const matches = targets.map(([pattern, id]) => ({ at: text.value.search(pattern), id }))
+    .filter((match) => match.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  return matches[0]?.id || '';
+});
+const guideBoxStyle = ref({});
 const shown = computed(() => text.value.slice(0, typed.value));
 const typing = computed(() => typed.value < text.value.length);
+
+function updateGuideLayout() {
+  const targetId = guideTarget.value;
+  emit('guide-target', targetId);
+  if (!targetId || typeof document === 'undefined') {
+    guideBoxStyle.value = {};
+    return;
+  }
+  nextTick(() => {
+    if (targetId !== guideTarget.value) return;
+    const target = document.querySelector(`[data-guide-key="${targetId}"]`);
+    if (!target) {
+      guideBoxStyle.value = {};
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    const targetX = rect.left + rect.width / 2;
+    const targetY = rect.top + rect.height / 2;
+    const targetBelow = targetY >= window.innerHeight / 2;
+    const horizontal = targetX < window.innerWidth * 0.38
+      ? { left: 'auto', right: '10px' }
+      : targetX > window.innerWidth * 0.62
+        ? { left: '10px', right: 'auto' }
+        : { left: 'auto', right: '10px' };
+    const freeHeight = targetBelow
+      ? (targetY / window.innerHeight) * 100 - 12
+      : ((window.innerHeight - targetY) / window.innerHeight) * 100 - 12;
+    guideBoxStyle.value = {
+      ...horizontal,
+      top: targetBelow ? '8%' : 'auto',
+      bottom: targetBelow ? 'auto' : '8%',
+      maxHeight: `${Math.max(24, Math.min(72, freeHeight))}%`,
+      transform: 'none',
+    };
+  });
+}
+
+watch(guideTarget, () => nextTick(updateGuideLayout), { flush: 'post' });
+onMounted(() => window.addEventListener('resize', updateGuideLayout));
 
 /* ---------------- 场景 / 立绘 / CG ---------------- */
 
@@ -250,6 +323,8 @@ function toggleAuto() {
 }
 
 onUnmounted(() => {
+  emit('guide-target', '');
+  window.removeEventListener('resize', updateGuideLayout);
   clearInterval(timer);
   clearInterval(autoTimer);
   clearTimeout(closeTimer);
@@ -315,7 +390,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 对话框 -->
-      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" @click="advance">
+      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" :style="isMapGuide ? guideBoxStyle : undefined" @click="advance">
         <div v-if="isMapGuide" class="guide-speaker">
           <img v-if="faceOfName(guideSpeaker)" :src="faceOfName(guideSpeaker)" alt="" />
           <span>{{ guideSpeaker }}</span>
