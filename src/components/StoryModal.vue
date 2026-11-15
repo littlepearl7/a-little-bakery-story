@@ -14,6 +14,10 @@ const auto = ref(false);
 let timer = 0;
 let autoTimer = 0;
 let closeTimer = 0;
+let holdStartTimer = 0;
+let fastForwardTimer = 0;
+let suppressClickUntil = 0;
+const fastForward = ref(false);
 
 /* ---------------- 初始化 ---------------- */
 
@@ -78,29 +82,21 @@ function updateGuideLayout() {
   nextTick(() => {
     if (targetId !== guideTarget.value) return;
     const target = document.querySelector(`[data-guide-key="${targetId}"]`);
-    if (!target) {
-      guideBoxStyle.value = {};
-      return;
-    }
+    if (!target) return;
 
     const rect = target.getBoundingClientRect();
     const targetX = rect.left + rect.width / 2;
-    const targetY = rect.top + rect.height / 2;
-    const targetBelow = targetY >= window.innerHeight / 2;
     const horizontal = targetX < window.innerWidth * 0.38
       ? { left: 'auto', right: '10px' }
       : targetX > window.innerWidth * 0.62
         ? { left: '10px', right: 'auto' }
         : { left: 'auto', right: '10px' };
-    const freeHeight = targetBelow
-      ? (targetY / window.innerHeight) * 100 - 12
-      : ((window.innerHeight - targetY) / window.innerHeight) * 100 - 12;
     guideBoxStyle.value = {
       ...horizontal,
-      top: targetBelow ? '8%' : 'auto',
-      bottom: targetBelow ? 'auto' : '8%',
-      maxHeight: `${Math.max(24, Math.min(72, freeHeight))}%`,
-      transform: 'none',
+      top: '50%',
+      bottom: 'auto',
+      maxHeight: '72%',
+      transform: 'translateY(-50%)',
     };
   });
 }
@@ -267,6 +263,39 @@ function advance() {
   idx.value = nextIndex(idx.value);
 }
 
+function advanceFromBox() {
+  if (Date.now() < suppressClickUntil) {
+    suppressClickUntil = 0;
+    return;
+  }
+  advance();
+}
+
+function startHoldFastForward(event) {
+  if (atChoice.value || (event.button !== undefined && event.button !== 0)) return;
+  clearTimeout(holdStartTimer);
+  try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+  holdStartTimer = setTimeout(() => {
+    fastForward.value = true;
+    fastForwardTimer = setInterval(() => {
+      if (atChoice.value) stopHoldFastForward();
+      else if (typing.value) {
+        typed.value = text.value.length;
+        clearInterval(timer);
+      } else if (finished.value) close();
+      else idx.value = nextIndex(idx.value);
+    }, 110);
+  }, 300);
+}
+
+function stopHoldFastForward() {
+  clearTimeout(holdStartTimer);
+  clearInterval(fastForwardTimer);
+  fastForwardTimer = 0;
+  if (fastForward.value) suppressClickUntil = Date.now() + 350;
+  fastForward.value = false;
+}
+
 function choose(opt, i) {
   applyChoice(cur.value, opt, i, props.ev.id);
   const tail = (opt.branch || []).concat(cur.value.after || []);
@@ -289,6 +318,7 @@ function skipAhead() {
 
 function close() {
   clearTimeout(closeTimer);
+  stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
   finishEvent(props.ev);
@@ -323,6 +353,7 @@ function toggleAuto() {
 onUnmounted(() => {
   emit('guide-target', '');
   window.removeEventListener('resize', updateGuideLayout);
+  stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
   clearTimeout(closeTimer);
@@ -388,7 +419,7 @@ onUnmounted(() => {
       </div>
 
       <!-- 对话框 -->
-      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" :style="isMapGuide ? guideBoxStyle : undefined" @click="advance">
+      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" :style="isMapGuide ? guideBoxStyle : undefined" @click="advanceFromBox" @pointerdown="startHoldFastForward" @pointerup="stopHoldFastForward" @pointercancel="stopHoldFastForward" @contextmenu.prevent>
         <div v-if="isMapGuide && isSay" class="guide-speaker">
           <img v-if="faceOfName(guideSpeaker)" :src="faceOfName(guideSpeaker)" alt="" />
           <span>{{ guideSpeaker }}</span>
@@ -401,6 +432,7 @@ onUnmounted(() => {
         </div>
         <div class="vn-text">{{ shown }}<span v-if="typing" class="caret"></span></div>
         <div class="vn-foot">
+          <span class="vn-hold-hint">{{ fastForward ? '快进中…' : '长按快进' }}</span>
           <span v-if="typing || !finished" class="vn-dot">▾</span>
         </div>
       </div>
@@ -438,6 +470,7 @@ onUnmounted(() => {
   bottom: auto;
   left: auto;
   width: min(62%, 290px);
+  height: auto;
   min-height: 0;
   max-height: 72%;
   overflow-y: auto;
@@ -683,7 +716,12 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   z-index: 30;
+  height: 28%;
   min-height: 166px;
+  max-height: 38%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 18px 20px 20px;
   background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(251, 243, 232, 0.985));
   border-top-left-radius: 16px;
@@ -747,9 +785,10 @@ onUnmounted(() => {
 .vn-foot {
   height: 16px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: flex-end;
 }
+.vn-hold-hint { font-size: 9px; color: rgba(107, 74, 52, 0.55); }
 .vn-dot {
   font-size: 12px;
   color: var(--ink-2);

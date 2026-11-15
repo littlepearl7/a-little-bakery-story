@@ -7,9 +7,10 @@ import {
 } from '../../store';
 import MiniShell from './MiniShell.vue';
 
-const props = defineProps({ paused: { type: Boolean, default: false } });
+const props = defineProps({ paused: { type: Boolean, default: false }, tutorial: { type: Boolean, default: false } });
 const emit = defineEmits(['exit']);
 const phase = ref('intro');
+const demoTicket = ref(null);
 const selected = ref('');
 const selectedDecoration = ref('');
 const selectedBlessing = ref('');
@@ -42,12 +43,15 @@ const LOOK = {
   signature: '棕黄色圆形蛋糕，表层栗子奶油呈螺旋纹，撒有细小金桂。',
 };
 
-const tickets = computed(() => state.service?.tickets || []);
-const current = computed(() => tickets.value.find((ticket) => ticket.id === state.service?.activeTicketId)
-  || tickets.value[state.service?.current || 0]
-  || null);
+const tickets = computed(() => props.tutorial ? (demoTicket.value ? [demoTicket.value] : []) : state.service?.tickets || []);
+const current = computed(() => props.tutorial
+  ? demoTicket.value
+  : tickets.value.find((ticket) => ticket.id === state.service?.activeTicketId)
+    || tickets.value[state.service?.current || 0]
+    || null);
 const ticketIndex = computed(() => tickets.value.findIndex((ticket) => ticket.id === current.value?.id));
 const activeTickets = computed(() => {
+  if (props.tutorial) return current.value ? [current.value] : [];
   if (!state.service) return [];
   const capacity = Math.max(1, Math.min(3, state.shopLevel));
   return state.service.tickets
@@ -57,8 +61,8 @@ const activeTickets = computed(() => {
 const isPickup = computed(() => current.value?.kind === 'appointment');
 const shelf = computed(() => availableProducts.value.map((product) => ({
   ...product,
-  qty: state.shelf[product.id] || 0,
-})));
+  qty: props.tutorial ? (product.id === 'plain' ? 1 : 0) : state.shelf[product.id] || 0,
+})).filter((product) => !props.tutorial || product.id === 'plain'));
 const cakeArt = (id) => artStatus(`cake-${id}.webp`) === 'ok' ? art(`cake-${id}.webp`) : '';
 const deliveredTickets = computed(() => tickets.value.filter((ticket) => ticket.status === 'delivered'));
 const steps = computed(() => deliveredTickets.value.length);
@@ -88,6 +92,18 @@ const mainActionLabel = computed(() => {
 });
 
 function start() {
+  if (props.tutorial) {
+    demoTicket.value = {
+      id: 'tutorial-order', kind: 'appointment', orderNo: 'LJ-DEMO', customer: '练习顾客',
+      product: 'plain', qty: 1, patience: 30, remaining: 30, status: 'waiting',
+      unhappy: false, type: '预约', due: '', blessing: '',
+    };
+    selected.value = '';
+    checked.value = false;
+    phase.value = 'play';
+    message.value = '这是独立练习单：先在手机核对订单编号，再从展示柜选蛋糕并播放打包动画。';
+    return;
+  }
   if (state.dayPhase === 'service-ready' && !state.service) {
     const result = openShop();
     if (!result) return message.value = '请先制作蛋糕、接好预约单，再开始柜台接待。';
@@ -126,7 +142,7 @@ function lookup() {
 function pick(id) {
   if (packing.value || !current.value || current.value.status !== 'waiting') return;
   selected.value = id;
-  message.value = `已选${displayProductName(id)}，柜台现有 ${state.shelf[id] || 0} 份。`;
+  message.value = `已选${displayProductName(id)}，柜台现有 ${shelf.value.find((item) => item.id === id)?.qty || 0} 份。`;
 }
 
 function runMainAction() {
@@ -144,13 +160,23 @@ function runMainAction() {
       message.value = '这款蛋糕的外观或口味不符合需求，请重新看描述。';
       return;
     }
-    if ((state.shelf[ticket.product] || 0) < ticket.qty) return message.value = '该款库存不足，请登记缺货结束这笔未成交订单。';
+    if (!props.tutorial && (state.shelf[ticket.product] || 0) < ticket.qty) return message.value = '该款库存不足，请登记缺货结束这笔未成交订单。';
+    if (props.tutorial) {
+      ticket.status = 'found';
+      message.value = '蛋糕与预约单吻合。下一步开始打包，动画完整播放后才算交付。';
+      return;
+    }
     const result = findCake(ticket.id, selected.value, ticket.qty);
     message.value = result.message;
     return;
   }
   if (ticket.status === 'searching') return message.value = '找货还在进行中，稍等片刻。';
   if (ticket.status === 'found') {
+    if (props.tutorial) {
+      ticket.status = 'ready';
+      resumePacking();
+      return;
+    }
     const result = packOrder(
       ticket.id,
       ticket.type === '定制' ? selectedDecoration.value : null,
@@ -187,6 +213,14 @@ function onPackError() {
 function finishPack() {
   const ticket = current.value;
   if (!ticket || ticket.status !== 'ready') return;
+  if (props.tutorial) {
+    packing.value = false;
+    packLoaded.value = false;
+    ticket.status = 'delivered';
+    message.value = '练习订单已交付。正式营业时，库存和收入会在这一步结算。';
+    phase.value = 'result';
+    return;
+  }
   packing.value = false;
   packLoaded.value = false;
   const result = deliverTicket(ticket.id);
@@ -213,6 +247,11 @@ function finishPack() {
 function deliver() {
   const ticket = current.value;
   if (!ticket || packing.value) return;
+  if (props.tutorial) {
+    ticket.status = 'delivered';
+    phase.value = 'result';
+    return;
+  }
   const result = deliverTicket(ticket.id);
   if (!result.ok) return message.value = result.message;
   message.value = result.message;
@@ -260,7 +299,7 @@ function tick() {
   const elapsed = lastTick ? Math.min(0.2, (now - lastTick) / 1000) : 0;
   lastTick = now;
   if (elapsed <= 0) return;
-  advanceServiceTime(elapsed);
+  if (!props.tutorial) advanceServiceTime(elapsed);
   if (packing.value && packLoaded.value && !packError.value) {
     packTime.value = Math.min(PACK_DURATION, packTime.value + elapsed * 1000);
     if (packTime.value >= PACK_DURATION && current.value?.status === 'ready') finishPack();
@@ -285,20 +324,20 @@ onUnmounted(() => {
   <MiniShell
     bg="minigame-delivery"
     title="订单交付"
-    :sub="phase === 'play' ? '已完成 ' + steps + ' / ' + tickets.length + ' 单 · 今日 ¥' + state.dayRev : '顾客点单与预约取货'"
+    :sub="tutorial ? '小游戏体验 · 不消耗经营资源' : phase === 'play' ? '已完成 ' + steps + ' / ' + tickets.length + ' 单 · 今日 ¥' + state.dayRev : '顾客点单与预约取货'"
     @exit="emit('exit')"
   >
     <div v-if="phase === 'intro'" class="game-scroll">
       <div class="game-card">
-        <h3 class="game-title">接待今日顾客</h3>
-        <p class="game-lead">普通客人会描述蛋糕外观，预约客人会报真实订单编号。取货、找货和打包都会推进耐心计时；离开游戏或切后台时会暂停。</p>
-        <div class="game-stats">
+        <h3 class="game-title">{{ tutorial ? '订单交付小游戏体验' : '接待今日顾客' }}</h3>
+        <p class="game-lead">{{ tutorial ? '先用手机核对预约编号，再按外观从展示柜选择蛋糕；确认后播放完整打包动画，练习不扣成品也不结算收入。' : '普通客人会描述蛋糕外观，预约客人会报真实订单编号。取货、找货和打包都会推进耐心计时；离开游戏或切后台时会暂停。' }}</p>
+        <div v-if="!tutorial" class="game-stats">
           <span>货架现货 {{ Object.values(state.shelf).reduce((sum, qty) => sum + qty, 0) }} 份</span>
           <span>预约订单 {{ state.orders.filter((order) => order.taken).length }} 笔</span>
         </div>
         <p v-if="message" class="game-message">{{ message }}</p>
         <button class="game-btn primary" style="width:100%;margin-top:10px" type="button" @click="start">
-          {{ state.service ? '继续当日营业' : '开始柜台营业' }}
+          {{ tutorial ? '开始订单练习' : state.service ? '继续当日营业' : '开始柜台营业' }}
         </button>
       </div>
     </div>
@@ -365,7 +404,7 @@ onUnmounted(() => {
         <p v-if="message" class="game-message" role="status">{{ message }}</p>
         <div class="game-grid">
           <button class="game-btn" type="button" :disabled="packing" @click="phone = true">📱 手机订单</button>
-          <button class="game-btn" type="button" :disabled="packing" @click="unavailable">登记缺货</button>
+          <button v-if="!tutorial" class="game-btn" type="button" :disabled="packing" @click="unavailable">登记缺货</button>
           <button class="game-btn primary" type="button" :disabled="packing || current.status === 'searching'" @click="runMainAction">
             {{ mainActionLabel }}
           </button>
@@ -416,15 +455,15 @@ onUnmounted(() => {
 
     <div v-if="phase === 'result'" class="game-scroll">
       <div class="game-card">
-        <h3 class="game-title">今日柜台结算</h3>
+        <h3 class="game-title">{{ tutorial ? '订单练习完成' : '今日柜台结算' }}</h3>
         <div class="game-stats">
-          <span>完成交付 {{ completed }} 份</span>
-          <span>本局收入 ¥{{ earned }}</span>
-          <span>选错／缺货 {{ misses }} 次</span>
-          <span>订单完成 {{ steps }} / {{ tickets.length }}</span>
+          <span>{{ tutorial ? '已体验订单核对、选货与打包' : '完成交付 ' + completed + ' 份' }}</span>
+          <span>{{ tutorial ? '不影响正式经营' : '本局收入 ¥' + earned }}</span>
+          <span>{{ tutorial ? '完整播放打包动画后完成' : '选错／缺货 ' + misses + ' 次' }}</span>
+          <span>{{ tutorial ? '练习订单 LJ-DEMO' : '订单完成 ' + steps + ' / ' + tickets.length }}</span>
         </div>
-        <p class="game-lead">交付和缺货处理均已记入经营数据。已完成订单不会因刷新重复结算。</p>
-        <button class="game-btn primary" style="width:100%" type="button" @click="emit('exit')">返回蛋糕店</button>
+        <p class="game-lead">{{ tutorial ? '普通顾客按外观描述选货；预约顾客先查订单号。正式交付时才会扣除成品并到账。' : '交付和缺货处理均已记入经营数据。已完成订单不会因刷新重复结算。' }}</p>
+        <button class="game-btn primary" style="width:100%" type="button" @click="emit('exit')">{{ tutorial ? '完成小游戏练习' : '返回蛋糕店' }}</button>
       </div>
     </div>
   </MiniShell>
@@ -433,3 +472,4 @@ onUnmounted(() => {
 <style scoped>
 .customer-queue{position:absolute;left:10px;right:10px;top:7%;z-index:6;display:flex;gap:5px;overflow-x:auto;max-width:100%;padding:2px}.queue-ticket{flex:0 0 96px;min-width:96px;min-height:48px;padding:5px 7px;border:1px solid #fffaf2a6;border-radius:9px;background:#fffaf2e8;color:#6b4a34;text-align:left}.queue-ticket.active{outline:2px solid #a9b99b}.queue-ticket.unhappy{border-color:#d95b67}.queue-ticket>span,.queue-ticket small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}.queue-ticket small{font-size:9px;color:#8c6a50}.queue-ticket i{display:block;height:4px;margin-top:4px;border-radius:99px;background:#eadbca;overflow:hidden}.queue-ticket i b{display:block;height:100%;background:#a9b99b}.customer{position:absolute;left:12px;top:16%;width:57%;max-width:260px;animation:enter .35s ease both}.customer-name{font-size:11px;border-radius:99px;background:#6b4a34d9;color:#fffaf2;padding:5px 10px}.customer p{background:#fffaf2f5;border-radius:12px;padding:10px 12px;box-shadow:0 6px 18px #35241638;font-size:12px;line-height:1.65;color:#6b4a34}.customer small{display:block;text-align:right;color:#fffaf2;text-shadow:0 1px 4px #382719;font-size:9px}.patience{height:6px;margin:5px 0;border-radius:99px;background:#eadbca;overflow:hidden}.patience i{display:block;height:100%;background:#a9b99b;transition:width .15s linear}.case{position:absolute;left:61%;right:2%;top:17%;height:44%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;overflow-y:auto;align-content:start}.cake-cell{min-width:0;min-height:78px;padding:4px 2px;border:1px solid #fffaf2b0;border-radius:9px;background:#fffaf2df;display:grid;justify-items:center;align-content:center;color:#6b4a34;cursor:pointer}.cake-cell.active{outline:2px solid #a9b99b}.cake-cell.empty{opacity:.5}.cake-cell:disabled{cursor:default}.cake-cell img{width:44px;height:42px;object-fit:contain}.cake-cell span{font-size:9px;text-align:center;line-height:1.3}.cake-cell small{font-size:8px;color:#8c6a50}.delivery-bar{position:absolute;left:8px;right:8px;bottom:8px;max-height:42%;overflow:auto;background:#fffaf2f5}.delivery-bar .game-row{font-size:11px}.delivery-bar .game-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}.delivery-bar .game-btn{min-width:0;min-height:42px;padding:5px;font-size:10px}.custom-options{margin-top:5px}.custom-options .game-section{font-size:10px}.choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:5px}.choice-grid .game-btn{min-height:38px;padding:3px;font-size:9px}.choice-grid .game-btn.selected{background:#a9b99b;color:#fff}.delivery-bar .game-message{margin:4px 0;font-size:10px}.phone-backdrop,.packing-mask{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:14px;background:#352416a6}.phone-screen{width:100%;max-width:400px;max-height:87%;overflow-y:auto}.phone-screen .game-row{gap:5px}.order-input{flex:1;min-width:0;height:44px;padding:5px 9px;border:1px solid #d5b99e;border-radius:9px;font-size:13px}.order-detail{margin-top:10px;padding:10px;border-radius:10px;background:#fffaf2;color:#6b4a34;font-size:12px}.order-detail p{margin:4px 0;line-height:1.6}.order-list{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #eadbca;font-size:10px;color:#6b4a34}.pack-card{width:min(88vw,350px);text-align:center}.pack-card img{display:block;width:100%;max-height:270px;object-fit:contain}.game-center{text-align:center}.game-message{white-space:normal;line-height:1.5}@keyframes enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 </style>
+

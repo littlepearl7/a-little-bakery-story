@@ -4,10 +4,11 @@ import { art, artStatus, INGREDIENTS, RECIPE_BOM } from '../../data';
 import { state, availableProducts, setPlan, missingIngredients, beginProductionTest, finishProductionTest, canConsumeRecipe, capacity, planPoints, save, displayProductName } from '../../store';
 import MiniShell from './MiniShell.vue';
 
+const props = defineProps({ tutorial: { type: Boolean, default: false } });
 const emit = defineEmits(['exit']);
 const phase = ref('intro');
-const chosen = ref(Object.keys(state.plan)[0] || 'strawberry');
-const quantity = ref(Math.max(1, state.plan[chosen.value] || 2));
+const chosen = ref(props.tutorial ? 'plain' : Object.keys(state.plan)[0] || 'strawberry');
+const quantity = ref(props.tutorial ? 1 : Math.max(1, state.plan[chosen.value] || 2));
 const picked = ref([]);
 const mix = ref(0);
 const bake = ref(0);
@@ -28,7 +29,7 @@ const rightGarnish = computed(() => ({ plain: '奶油裱花', strawberry: '新�
 const progress = computed(() => phase.value === 'ingredients' ? 20 : phase.value === 'mix' ? 40 : phase.value === 'oven' ? 60 : phase.value === 'decoration' ? 85 : phase.value === 'result' ? 100 : 0);
 
 function checkpoint() {
-  if (!state.productionMini || phase.value === 'intro' || phase.value === 'result') return;
+  if (props.tutorial || !state.productionMini || phase.value === 'intro' || phase.value === 'result') return;
   state.productionMini.checkpoint = {
     phase: phase.value, picked: [...picked.value], mix: mix.value, bake: bake.value,
     heat: heat.value, garnish: garnish.value, wrong: wrong.value, scores: { ...scores.value },
@@ -37,6 +38,7 @@ function checkpoint() {
 }
 
 function resume() {
+  if (props.tutorial) return false;
   const mini = state.productionMini;
   const cp = mini?.checkpoint;
   if (!mini || !cp || !['ingredients', 'mix', 'oven', 'decoration'].includes(cp.phase)) return false;
@@ -55,6 +57,15 @@ function resume() {
 }
 
 function begin() {
+  if (props.tutorial) {
+    chosen.value = 'plain';
+    quantity.value = 1;
+    picked.value = [];
+    wrong.value = 0;
+    message.value = '选取原味奶油蛋糕需要的材料，接着完成搅拌、烘烤和装饰。所有操作都是练习数据。';
+    phase.value = 'ingredients';
+    return;
+  }
   if (state.dayPhase !== 'prep') return message.value = '今天已经完成制作，请在下一个营业日再来。';
   if (resume()) return;
   if (!state.unlocked.includes(chosen.value)) return message.value = '配方还未解锁。';
@@ -83,7 +94,7 @@ function chooseIngredient(id) {
     checkpoint();
     return;
   }
-  if ((state.pantry[id] || 0) + (state.legacyStock || 0) < recipe.value[id] * quantity.value) {
+  if (!props.tutorial && (state.pantry[id] || 0) + (state.legacyStock || 0) < recipe.value[id] * quantity.value) {
     message.value = `${materialName(id)}余量不足，请检查排产或购买材料。`; return;
   }
   picked.value = [...picked.value, id];
@@ -128,6 +139,11 @@ function finish() {
   if (!garnish.value) return message.value = '还没有完成装饰。';
   scores.value.garnish = garnish.value === rightGarnish.value ? 100 : 45;
   const points = Math.round(scores.value.materials * .3 + scores.value.mix * .25 + scores.value.oven * .25 + scores.value.garnish * .2);
+  if (props.tutorial) {
+    settlement.value = { score: points, bonus: 0, name: displayProductName(chosen.value), qty: 1, grade: points >= 90 ? '优秀' : points >= 70 ? '良好' : '普通' };
+    phase.value = 'result';
+    return;
+  }
   const r = finishProductionTest(points, false, garnish.value);
   if (!r.ok) { message.value = r.msg || r.message; return; }
   settlement.value = { score: points, bonus: r.bonus || 0, name: displayProductName(chosen.value), qty: state.dayMade, grade: points >= 90 ? '优秀' : points >= 70 ? '良好' : '普通' };
@@ -140,28 +156,28 @@ onUnmounted(stopHold);
 </script>
 
 <template>
-  <MiniShell bg="minigame-production" title="蛋糕制作" :sub="phase === 'intro' ? '每日制作 · 一天只需完成一次' : '制作进度 ' + progress + '%'" @exit="emit('exit')">
+  <MiniShell bg="minigame-production" title="蛋糕制作" :sub="tutorial ? '小游戏体验 · 不消耗经营资源' : phase === 'intro' ? '每日制作 · 一天只需完成一次' : '制作进度 ' + progress + '%'" @exit="emit('exit')">
     <div v-if="phase !== 'intro' && phase !== 'result'" class="game-banner">{{ displayProductName(chosen) }} · {{ ({ ingredients: '准备材料', mix: '搅拌蛋糕胚', oven: '烘烤定型', decoration: '完成装饰' })[phase] }} <div class="game-progress"><i :style="{ width: progress + '%' }" /></div></div>
     <div class="game-scroll">
       <div v-if="phase === 'intro'" class="game-card">
-        <h3 class="game-title">今天的主打蛋糕</h3>
-        <p class="game-lead">选择配方并安排数量。完成一次材料、搅拌、烘烤和装饰操作，即可为今天整批蛋糕定级。</p>
-        <div class="game-grid">
+        <h3 class="game-title">{{ tutorial ? '跟着做一份原味奶油蛋糕' : '今天的主打蛋糕' }}</h3>
+        <p class="game-lead">{{ tutorial ? '小游戏会依次练习选材料、搅拌、烘烤和装饰。按住操作按钮控制进度，练习不会扣材料或增加成品。' : '选择配方并安排数量。完成一次材料、搅拌、烘烤和装饰操作，即可为今天整批蛋糕定级。' }}</p>
+        <div v-if="!tutorial" class="game-grid">
           <button v-for="p in availableProducts" :key="p.id" type="button" class="game-btn game-tile" :class="{selected:chosen===p.id}" @click="chosen=p.id;quantity=state.plan[p.id]||2">
             <img v-if="cakeArt(p.id)" :src="cakeArt(p.id)" :alt="p.name"><span>{{ displayProductName(p.id) }}</span><small>难度 {{ p.diff }}</small>
           </button>
         </div>
-        <div class="game-row"><strong>制作数量</strong><input class="game-number" type="number" min="1" max="12" v-model.number="quantity"></div>
+        <div v-if="!tutorial" class="game-row"><strong>制作数量</strong><input class="game-number" type="number" min="1" max="12" v-model.number="quantity"></div>
         <p class="game-lead">配方原料：{{ Object.entries(recipe).map(([id,n])=> materialName(id)+' ×'+(n*quantity)).join('、') }}</p>
-        <p class="game-lead">已有排产 {{ Object.values(state.plan).reduce((a,b)=>a+b,0) }} 份 · 体力 {{ state.stamina }} · 优秀额外奖励 ¥30</p>
+        <p v-if="!tutorial" class="game-lead">已有排产 {{ Object.values(state.plan).reduce((a,b)=>a+b,0) }} 份 · 体力 {{ state.stamina }} · 优秀额外奖励 ¥30</p>
         <div v-if="message" class="game-message">{{ message }}</div>
-        <button class="game-btn primary" type="button" style="width:100%;margin-top:10px" @click="begin">进入操作台</button>
+        <button class="game-btn primary" type="button" style="width:100%;margin-top:10px" @click="begin">{{ tutorial ? '开始小游戏体验' : '进入操作台' }}</button>
       </div>
 
       <div v-if="phase === 'ingredients'" class="game-card">
         <h3 class="game-title">① 备齐制作材料</h3>
         <p class="game-lead">按顺序取用：{{ ingredients.map(materialName).join(' → ') }}。已取 {{ picked.length }} / {{ ingredients.length }} 种</p>
-        <div class="game-grid"><button v-for="item in ingredientChoices" :key="item.id" type="button" class="game-btn" :class="{selected:picked.includes(item.id)}" @click="chooseIngredient(item.id)">{{ item.name }}<br>仓库 {{ state.pantry[item.id]||0 }}</button></div>
+        <div class="game-grid"><button v-for="item in ingredientChoices" :key="item.id" type="button" class="game-btn" :class="{selected:picked.includes(item.id)}" @click="chooseIngredient(item.id)">{{ item.name }}<br>{{ tutorial ? '练习材料' : '仓库 ' + (state.pantry[item.id]||0) }}</button></div>
         <button class="game-btn primary" type="button" style="width:100%" :disabled="picked.length<ingredients.length" @click="toMix">原料齐了 · 开始搅拌</button>
       </div>
 
@@ -189,11 +205,13 @@ onUnmounted(stopHold);
       <div v-if="phase === 'result' && settlement" class="game-card">
         <h3 class="game-title">制作完成 · {{ settlement.grade }}</h3>
         <div class="game-center"><img v-if="cakeArt(chosen)" :src="cakeArt(chosen)" style="height:130px;max-width:75%;object-fit:contain" alt="完成蛋糕"></div>
-        <div class="game-stats"><span>综合得分 {{ settlement.score }}</span><span>成品 {{ settlement.name }}</span><span>今日累计制作 {{ settlement.qty }} 份</span><span>额外奖励 ¥{{ settlement.bonus }}</span></div>
-        <p class="game-lead">已入库，可用于订单、市集和联名。今天完成一次制作小游戏即可。</p>
-        <button class="game-btn primary" type="button" style="width:100%" @click="emit('exit')">返回烘焙后厨</button>
+        <div class="game-stats"><span>综合得分 {{ settlement.score }}</span><span>蛋糕 {{ settlement.name }}</span><span>{{ tutorial ? '练习完成' : '今日累计制作 ' + settlement.qty + ' 份' }}</span><span>{{ tutorial ? '不影响正式经营' : '额外奖励 ¥' + settlement.bonus }}</span></div>
+        <p class="game-lead">{{ tutorial ? '你已经体验了选料、搅拌、烘烤和装饰。正式营业时，小游戏成绩会影响当日主打批次品质。' : '已入库，可用于订单、市集和联名。今天完成一次制作小游戏即可。' }}</p>
+        <button class="game-btn primary" type="button" style="width:100%" @click="emit('exit')">{{ tutorial ? '完成小游戏练习' : '返回烘焙后厨' }}</button>
       </div>
       <div v-if="message && phase !== 'intro' && phase !== 'result'" class="game-message">{{ message }}</div>
     </div>
   </MiniShell>
 </template>
+
+

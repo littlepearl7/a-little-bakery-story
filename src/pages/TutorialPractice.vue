@@ -48,8 +48,6 @@ function confirmPurchase() {
 
 function inspectPhone(tab) {
   phoneTab.value = tab;
-  const index = phoneTabs.indexOf(tab);
-  if (index < 0 || index === progress.value) next();
 }
 </script>
 
@@ -69,10 +67,13 @@ function inspectPhone(tab) {
       </template>
 
       <template v-else-if="step === 'phone'">
+        <div class="practice-task">{{ task[Math.min(progress, task.length - 1)] }} 点开页面后，按下方按钮继续。</div>
         <div class="phone-mock">
           <nav><button v-for="tab in phoneTabs" :key="tab" type="button" :class="{ active: phoneTab === tab }" @click="inspectPhone(tab)">{{ tab }}</button></nav>
           <div class="phone-content">{{ phoneTab === '订单' ? '练习订单 LJ-TEST · 原味奶油蛋糕 × 2' : phoneTab === '日历' ? '明天：准备营业日' : phoneTab === '收藏' ? '这里会保存图鉴、剧情和照片' : '欢迎来到林记烘焙，记得查看当天安排。' }}</div>
         </div>
+        <div class="practice-progress">练习 {{ Math.min(progress + 1, task.length) }} / {{ task.length }}</div>
+        <button class="practice-action practice-next" type="button" @click="next">{{ progress + 1 >= task.length ? '完成手机练习' : '继续练习 →' }}</button>
       </template>
 
       <template v-else>
@@ -82,11 +83,12 @@ function inspectPhone(tab) {
       </template>
 
       <button v-if="step !== 'purchase' && step !== 'phone'" class="practice-action" type="button" @click="next">{{ progress + 1 >= task.length ? '完成练习' : '下一步' }}</button>
-      <div class="practice-progress" v-if="task.length">练习 {{ Math.min(progress + 1, task.length) }} / {{ task.length }}</div>
+      <div class="practice-progress" v-if="task.length && step !== 'phone'">练习 {{ Math.min(progress + 1, task.length) }} / {{ task.length }}</div>
     </section>
   </div>
 </template>
 
 <style scoped>
-.practice-mask{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:18px;background:#241910aa}.practice-card{width:min(100%,430px);max-height:92dvh;overflow:auto;padding:18px;border:1px solid #e3c9ab;border-radius:20px;background:#fffaf2;color:#64452f;box-shadow:0 15px 50px #160f0a66}.practice-banner{height:112px;display:flex;align-items:flex-end;padding:10px;border-radius:13px;background:linear-gradient(135deg,#ead3b7,#a8b49a);color:white;text-shadow:0 1px 4px #443}.practice-card h1{margin:14px 0 4px;font-size:19px}.hint{margin:0 0 15px;color:#88715b;font-size:12px;line-height:1.6}.practice-task{min-height:62px;padding:13px;border-radius:12px;background:#f6ead8;font-size:14px;line-height:1.7}.mock-counter{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:14px 12px;border:1px dashed #cba987;border-radius:11px;font-size:12px}.mock-counter b{padding:7px 10px;border-radius:8px;background:#ebe4d6;color:#628055;font-size:10px}.practice-action{width:100%;min-height:48px;margin-top:13px;border:0;border-radius:12px;background:#6b4a34;color:#fffaf2;font-size:14px;font-weight:700}.practice-action:disabled{opacity:.45}.practice-progress{margin-top:9px;text-align:center;color:#88715b;font-size:11px}.quantity{display:flex;align-items:center;justify-content:space-between;margin-top:13px;font-size:13px}.quantity input{width:120px;min-height:44px;padding:6px 10px;border:1px solid #d8bea1;border-radius:10px;color:#64452f;font:inherit}.phone-mock{overflow:hidden;border:1px solid #d7c1a8;border-radius:16px;background:#fcf6ec}.phone-mock nav{display:flex;gap:4px;padding:8px}.phone-mock nav button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:#72553d;font-size:11px}.phone-mock nav button.active{background:#e9e3d5}.phone-content{min-height:90px;padding:16px;border-top:1px solid #e5d5c2;font-size:13px;line-height:1.7}
+.practice-mask{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:18px;background:#241910aa}.practice-card{width:min(100%,430px);max-height:92dvh;overflow:auto;padding:18px;border:1px solid #e3c9ab;border-radius:20px;background:#fffaf2;color:#64452f;box-shadow:0 15px 50px #160f0a66}.practice-banner{height:112px;display:flex;align-items:flex-end;padding:10px;border-radius:13px;background:linear-gradient(135deg,#ead3b7,#a8b49a);color:white;text-shadow:0 1px 4px #443}.practice-card h1{margin:14px 0 4px;font-size:19px}.hint{margin:0 0 15px;color:#88715b;font-size:12px;line-height:1.6}.practice-task{min-height:62px;padding:13px;border-radius:12px;background:#f6ead8;font-size:14px;line-height:1.7}.mock-counter{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:14px 12px;border:1px dashed #cba987;border-radius:11px;font-size:12px}.mock-counter b{padding:7px 10px;border-radius:8px;background:#ebe4d6;color:#628055;font-size:10px}.practice-action{width:100%;min-height:48px;margin-top:13px;border:0;border-radius:12px;background:#6b4a34;color:#fffaf2;font-size:14px;font-weight:700}.practice-action:disabled{opacity:.45}.practice-next{position:sticky;bottom:-18px;z-index:2;margin:10px -18px -18px;padding:10px 18px;width:calc(100% + 36px);min-height:68px;border-radius:0 0 20px 20px;background:#6b4a34;box-shadow:0 -10px 18px #fffaf2}.practice-progress{margin-top:9px;text-align:center;color:#88715b;font-size:11px}.quantity{display:flex;align-items:center;justify-content:space-between;margin-top:13px;font-size:13px}.quantity input{width:120px;min-height:44px;padding:6px 10px;border:1px solid #d8bea1;border-radius:10px;color:#64452f;font:inherit}.phone-mock{overflow:hidden;border:1px solid #d7c1a8;border-radius:16px;background:#fcf6ec}.phone-mock nav{display:flex;gap:4px;padding:8px}.phone-mock nav button{flex:1;min-height:44px;border:0;border-radius:9px;background:transparent;color:#72553d;font-size:11px}.phone-mock nav button.active{background:#e9e3d5}.phone-content{min-height:90px;padding:16px;border-top:1px solid #e5d5c2;font-size:13px;line-height:1.7}
 </style>
+

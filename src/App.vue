@@ -347,9 +347,12 @@ onMounted(() => {
     <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
     <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />
     <DeliveryGame v-if="minigame === 'delivery'" :paused="!!activeEvent" @exit="minigame = ''" />
-    <TutorialPractice v-if="started && state.tutorialPractice" :step="state.tutorialPractice" @done="finishTutorialPractice" />
+    <TutorialPractice v-if="started && state.tutorialPractice && !['counter', 'production'].includes(state.tutorialPractice)" :step="state.tutorialPractice" @done="finishTutorialPractice" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
+
+    <DeliveryGame v-if="started && state.tutorialPractice === 'counter'" tutorial @exit="finishTutorialPractice('counter')" />
+    <BakingGame v-if="started && state.tutorialPractice === 'production'" tutorial @exit="finishTutorialPractice('production')" />
 
     <StoryModal v-if="started && activeEvent" :ev="activeEvent" @guide-target="guideTarget = $event" @done="doneEvent" />
 
@@ -558,5 +561,7 @@ onMounted(() => {
 .scene-panel-content { overflow:auto; -webkit-overflow-scrolling:touch; padding:12px 14px calc(env(safe-area-inset-bottom,0px) + 20px); }
 .topbar-actions{display:flex;align-items:center;gap:9px}.topbar-save{min-width:48px;min-height:40px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--caramel);font:inherit;font-size:12px}
 .phone-fab{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 17px);z-index:26;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;width:55px;height:55px;border:2px solid #fff7eb;border-radius:17px;background:#6b4a34;color:#fff9ee;box-shadow:0 4px 13px #34241666;font:600 12px inherit;cursor:pointer;touch-action:manipulation}.phone-fab span{font-size:22px;line-height:1.1}.phone-fab small{font-size:10px;font-weight:700}.phone-fab:active{transform:scale(.96)}
+.phone-fab-guide-target{outline:3px solid #fff2ad;outline-offset:4px;box-shadow:0 0 0 9px rgba(192,112,48,.7),0 0 26px rgba(255,223,139,.95);animation:phoneGuideSpotlight 1.35s ease-in-out infinite alternate}
+@keyframes phoneGuideSpotlight{to{box-shadow:0 0 0 12px rgba(192,112,48,.38),0 0 34px rgba(255,223,139,.9)}}
 </style>
 
