@@ -2178,9 +2178,9 @@ export function chatCafeOwner() {
   return { ok: true, message: '和许沐禾聊了新品与小镇生活。咖啡店好感 +3。' };
 }
 
-export function startGame() {
+export function startGame(forcePrologue = false) {
   const pro = STORY.events.find((ev) => ev.kind === 'prologue');
-  if (pro && !state.played.includes(pro.id)) {
+  if (pro && (forcePrologue || !state.played.includes(pro.id))) {
     const queued = queue.events.findIndex((event) => event.id === pro.id);
     if (queued >= 0) queue.events.splice(queued, 1);
     queue.events.unshift(pro);
