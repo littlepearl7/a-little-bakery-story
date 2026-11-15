@@ -7,6 +7,7 @@ import {
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
+import { STORY } from './story';
 import TitleScreen from './components/TitleScreen.vue';
 import ShopPage from './pages/ShopPage.vue';
 import KitchenPage from './pages/KitchenPage.vue';
@@ -81,21 +82,34 @@ const canContinueStory = computed(() =>
 const pending = computed(() => queue.events.length);
 
 function enterGame(target = {}) {
-  // 标题继续/读档也可能载入尚未开始过的旧存档，确保序幕始终排在经营剧情之前。
-  if (!state.tutorialPractice && !state.played.includes('EVT_PROLOGUE_01')) startGame();
+  // 新游戏由 App 直接开启序幕，避免标题组件和地图初始化之间丢掉首段事件。
+  const freshStart = target.fresh === true;
+  if (!state.tutorialPractice && (freshStart || !state.played.includes('EVT_PROLOGUE_01'))) startGame(freshStart);
   started.value = true;
   saveCenterOpen.value = false;
   scene.value = 'shop';
   activePanel.value = target.panel || '';
   phoneOpen.value = false;
   activeManageSection.value = target.section || 'overview';
-  const tutorialPending = state.tutorialPromptPending || (!state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01'));
+  const opening = freshStart ? STORY.find('EVT_PROLOGUE_01') : null;
+  const tutorialPending = !freshStart && (state.tutorialPromptPending || (!state.tutorialSeen && state.month === 1 && state.played.includes('EVT_PROLOGUE_01')));
   if (tutorialPending) {
     state.tutorialPromptPending = true;
     askTutorial.value = true;
     save();
   }
-  if (!state.tutorialPractice && !tutorialPending && queue.events.length) activeEvent.value = queue.events[0];
+  if (freshStart && opening) {
+    state.tutorialSeen = false;
+    state.tutorialPromptPending = false;
+    askTutorial.value = false;
+    const queued = queue.events.findIndex((event) => event.id === opening.id);
+    if (queued >= 0) queue.events.splice(queued, 1);
+    queue.events.unshift(opening);
+    activeEvent.value = opening;
+    save();
+  } else if (!state.tutorialPractice && !tutorialPending && queue.events.length) {
+    activeEvent.value = queue.events[0];
+  }
   if (!state.tutorialPractice && !tutorialPending) {
     if (state.productionMini || state.productionResult) minigame.value = 'baking';
     else if (state.labPending) minigame.value = 'research';
