@@ -29,8 +29,11 @@ try {
     'T2只在明确讲解对应功能时标注热点'
   );
   const appSource = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
+  const mapSource = await readFile(new URL('../src/pages/SceneMapPage.vue', import.meta.url), 'utf8');
   assert(!appSource.includes('有 {{ pending }} 段剧情'), '不再显示右下角待播剧情按钮');
   assert(appSource.includes('if (queue.events.length) setTimeout(openNext, 180)'), '前一段结束后自动接续待播剧情');
+  assert.equal((mapSource.match(/\{ id: 'sq'/g) || []).length, 1, '主动找苏晴只保留在老街一个入口');
+  assert(mapSource.includes("{ id: 'mom', x: shopLayout.mom[0]"), '妈妈入口始终显示并由行动信息说明条件');
   assert(!appSource.includes('开场序幕没有成功载入'), '序幕异常不能再用标题页弹窗阻断进入游戏');
 
   store.reset();

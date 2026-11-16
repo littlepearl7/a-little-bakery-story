@@ -78,7 +78,6 @@ const hotspots = computed(() => {
     park: [
       { id: 'walk', x: 51, y: 56, text: '在公园散步', kind: 'action', value: 'walk' },
       { id: 'flowers', x: 74, y: 75, text: '拍摄花影', kind: 'panel', value: 'feature', section: 'park' },
-      { id: 'sq', x: 21, y: 73, text: '和苏晴聊聊', kind: 'action', value: 'sqchat' },
       { id: 'river', x: 53, y: 89, text: '去河边 →', kind: 'scene', value: 'river' },
       { id: 'back', x: 10, y: 90, text: '← 回老街', kind: 'scene', value: 'street' },
     ],
