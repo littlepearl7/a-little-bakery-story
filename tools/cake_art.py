@@ -1,4 +1,4 @@
-"""把 picture/蛋糕/ 里的产品图转成游戏用的 webp。
+"""把 picture/cake/ 里的产品图转成游戏用的 webp。
 
 - 自动裁掉四周透明边（有 alpha 的图），再居中补成正方形
 - 统一 480×480，保留透明通道
@@ -9,12 +9,12 @@ import os
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'picture', '蛋糕')
+SRC = os.path.join(ROOT, 'picture', 'cake')
 OUT = os.path.join(ROOT, 'public', 'art')
 
 # 文件名 -> 产品 id（和 src/data.js 的 PRODUCTS 对齐）
 MAP = {
-    '香草奶油蛋糕切面透明展示.png': 'plain',
+    '香草奶油蓝莓草莓蛋糕.png': 'plain',
     '草莓奶油蛋糕透明背景美食摄影.png': 'strawberry',
     '巧克力甘纳许蛋糕切片.png': 'chocolate',
     '紫薯芋泥夹心奶油蛋糕.png': 'taro',
