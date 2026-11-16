@@ -783,15 +783,19 @@ export function startNewGamePlus() {
   return true;
 }
 
-export function skipToNextMonth() {
-  if (state.phase !== 'playing') return false;
-  const startingMonth = state.month;
-  while (state.month === startingMonth && state.phase === 'playing') {
+export function skipCurrentDay() {
+  if (state.phase !== 'playing' || !['prep', 'service-ready', 'service', 'closing'].includes(state.dayPhase)) return null;
+  if (state.dayPhase === 'service') {
+    if (!state.service) return null;
+    state.service.tickets.forEach((ticket) => {
+      if (!['delivered', 'unavailable'].includes(ticket.status)) ticket.status = 'unavailable';
+    });
+    advanceServiceQueue(state.service);
+    finishServiceIfDone();
+  } else if (state.dayPhase !== 'closing') {
     state.dayPhase = 'closing';
-    state.service = { tickets: [], current: 0 };
-    closeDay('waste');
   }
-  return state.month !== startingMonth;
+  return closeDay('waste');
 }
 
 export function continueAfterShortEnding() {
@@ -1006,9 +1010,14 @@ export function zhiQiuStoryInfo() {
   if (next.month > state.month || (next.month === state.month && state.day < next.day)) {
     return { event: null, note: '今天可以和沈知秋聊聊咖啡与小镇生活。' };
   }
+  if (next.afterClose) return { event: null, note: '这段故事会在今天打烊后播放。' };
   if (!zhiQiuPrerequisite(next)) return { event: null, note: '这段故事的前置条件还没有完成。' };
   if (hasHigherPriorityStory()) return { event: null, note: '先看完排在前面的主线、母女或苏晴剧情。' };
   return { event: next, note: '播放「' + next.title + '」' };
+}
+
+export function zhiQiuIntroVisitRequired() {
+  return state.dayPhase === 'prep' && zhiQiuStoryInfo().event?.id === 'EVT_ZHIQIU_CH01';
 }
 
 export function actionInfo(id) {
@@ -2156,11 +2165,13 @@ function pushEvent(ev) {
 
 /** 主线事件：按月推进，条件不满足就继续等 */
 export function queueStory() {
+  const datePassed = (event) => event.month < state.month || (event.month === state.month && event.day < state.day);
+  const dateAvailable = (event) => datePassed(event) || (!event.afterClose && event.month === state.month && event.day === state.day);
   const due = STORY.events.filter((ev) => {
     if (ev.kind !== 'main') return false;
     if (state.played.includes(ev.id)) return false;
     if (ev.month == null) return false;
-    if (state.month < ev.month) return false;
+    if (!dateAvailable(ev)) return false;
     if (ev.test && !evalTest(ev.test, state)) return false;
     return true;
   });
@@ -2173,7 +2184,6 @@ export function queueStory() {
     .filter((ev) => ev.kind === 'style' && !state.played.includes(ev.id) && evalTest(ev.test, state))
     .forEach(pushEvent);
 
-  const dateReached = (event) => event.month < state.month || (event.month === state.month && event.day <= state.day);
   const regularPrerequisitesMet = (event) => {
     const done = (id) => state.played.includes(id);
     if (event.id === 'EVT_CROSS_M18') return done('EVT_GRANNY_M17') && done('EVT_UNCLE_M16');
@@ -2182,10 +2192,15 @@ export function queueStory() {
   };
   ['张奶奶', '陈叔', '小满'].forEach((person) => {
     const next = STORY.customers.find((event) => event.regularPerson === person && !state.played.includes(event.id));
-    if (next && dateReached(next) && regularPrerequisitesMet(next)) pushEvent(next);
+    if (next && datePassed(next) && regularPrerequisitesMet(next)) pushEvent(next);
   });
   const nextGroup = STORY.customers.find((event) => event.group && !state.played.includes(event.id));
-  if (nextGroup && dateReached(nextGroup) && regularPrerequisitesMet(nextGroup)) pushEvent(nextGroup);
+  if (nextGroup && datePassed(nextGroup) && regularPrerequisitesMet(nextGroup)) pushEvent(nextGroup);
+
+  if (!(state.month >= 26 && state.month <= 29)) {
+    const nextZhiQiu = STORY.zhiQiu.find((event) => !state.played.includes(event.id));
+    if (nextZhiQiu?.afterClose && datePassed(nextZhiQiu) && zhiQiuPrerequisite(nextZhiQiu)) pushEvent(nextZhiQiu);
+  }
 }
 
 /**
@@ -2347,7 +2362,7 @@ export function finishEvent(ev) {
   }
   const got = applyRewards(ev.rewards || []);
   if (got.length) log('剧情：' + ev.title, 'story');
-  if (ev.storyline === 'regular') queueStory();
+  queueStory();
   save();
 }
 

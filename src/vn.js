@@ -151,7 +151,7 @@ const RULES = [
  * 整段剧情背景保持不变，不会一句一换。
  */
 const MAIN_SCENE = {
-  1: 'home', 2: 'shop', 3: 'kitchen', 4: 'shop', 5: 'shop', 6: 'market',
+  1: 'shop', 2: 'shop', 3: 'kitchen', 4: 'shop', 5: 'shop', 6: 'market',
   7: 'shop', 8: 'shop', 9: 'kitchen', 10: 'shop', 11: 'shop', 12: 'shop',
   13: 'kitchen', 14: 'shop', 15: 'shop', 16: 'market', 17: 'street', 18: 'shop',
   19: 'store', 20: 'shop', 21: 'shop', 22: 'store', 23: 'shop', 24: 'shop',

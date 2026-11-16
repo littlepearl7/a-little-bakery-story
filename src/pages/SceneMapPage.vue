@@ -1,9 +1,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { art, artStatus } from '../data';
-import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene } from '../store';
+import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability } from '../store';
 
-const props = defineProps({ scene: { type: String, default: 'shop' }, guideTarget: { type: String, default: '' } });
+const props = defineProps({ scene: { type: String, default: 'shop' }, guideTarget: { type: String, default: '' }, visitOnlyScene: { type: String, default: '' } });
 const emit = defineEmits(['change-scene', 'open-panel', 'rest-day']);
 
 const LOCATIONS = {
@@ -114,11 +114,11 @@ function toast(message) {
 }
 
 function go(id) {
+  if (props.visitOnlyScene && ![props.visitOnlyScene, 'shop', 'street', 'kitchen'].includes(id)) return toast('今天先去秋屿咖啡拜访沈知秋。');
   const gate = sceneAvailability(id);
   if (!gate.open) return toast(gate.reason);
   selected.value = null;
   travelOpen.value = false;
-  visitTownScene(id);
   emit('change-scene', id);
 }
 
@@ -128,6 +128,10 @@ const chosenInfo = computed(() => {
 });
 
 function activate(item) {
+  if (props.visitOnlyScene) {
+    if (item.kind === 'scene' && [props.visitOnlyScene, 'shop', 'street', 'kitchen'].includes(item.value)) return go(item.value);
+    return toast('今天先去秋屿咖啡拜访沈知秋。');
+  }
   if (item.kind === 'scene') return go(item.value);
   if (item.unlock && !sceneAvailability(item.unlock).open) return toast(sceneAvailability(item.unlock).reason);
   if (item.kind === 'rest') {
@@ -179,7 +183,7 @@ function confirm() {
       <div v-if="travelOpen" class="world-travel">
         <div class="world-travel-head"><span>选择地点</span><button type="button" aria-label="关闭地点地图" @click="travelOpen = false">✕</button></div>
         <div class="world-travel-grid">
-          <button v-for="place in places" :key="place.id" type="button" class="world-travel-place" :class="{ current: scene === place.id, locked: !place.gate.open }" :title="place.gate.reason" @click="go(place.id)">
+          <button v-for="place in places" :key="place.id" type="button" class="world-travel-place" :class="{ current: scene === place.id, locked: !place.gate.open || (visitOnlyScene && ![visitOnlyScene, 'shop', 'street', 'kitchen'].includes(place.id)) }" :disabled="!!visitOnlyScene && ![visitOnlyScene, 'shop', 'street', 'kitchen'].includes(place.id)" :title="visitOnlyScene && ![visitOnlyScene, 'shop', 'street', 'kitchen'].includes(place.id) ? '今天先去秋屿咖啡拜访沈知秋。' : place.gate.reason" @click="go(place.id)">
             <img :src="art(place.img)" alt="" />
             <span>{{ place.gate.open ? place.icon : '🔒' }} {{ place.name }}</span>
           </button>

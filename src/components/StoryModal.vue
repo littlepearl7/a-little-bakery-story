@@ -15,7 +15,6 @@ const typed = ref(0);
 const auto = ref(false);
 let timer = 0;
 let autoTimer = 0;
-let closeTimer = 0;
 let holdStartTimer = 0;
 let fastForwardTimer = 0;
 let suppressClickUntil = 0;
@@ -249,7 +248,6 @@ function slotStyle(i) {
 
 function startType() {
   clearInterval(timer);
-  clearTimeout(closeTimer);
   typed.value = 0;
   if (atChoice.value || !text.value) {
     typed.value = text.value.length;
@@ -296,7 +294,6 @@ function openStoryPhoneMessage(index) {
   auto.value = false;
   clearInterval(autoTimer);
   stopHoldFastForward();
-  clearTimeout(closeTimer);
   save();
 }
 
@@ -411,18 +408,12 @@ function skipAhead() {
 }
 
 function close() {
-  clearTimeout(closeTimer);
   stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
   finishEvent(props.ev);
   emit('done');
 }
-
-watch([finished, typing, atChoice, phoneConversationOpen], ([isFinished, isTyping, isChoice, isPhoneOpen]) => {
-  clearTimeout(closeTimer);
-  if (isFinished && !isTyping && !isChoice && !isPhoneOpen) closeTimer = setTimeout(close, 1300);
-}, { immediate: true });
 
 function toggleAuto() {
   if (phoneConversationOpen.value) return;
@@ -431,8 +422,7 @@ function toggleAuto() {
   if (!auto.value) return;
   autoTimer = setInterval(() => {
     if (finished.value) {
-      clearInterval(autoTimer);
-      auto.value = false;
+      close();
       return;
     }
     if (atChoice.value) {
@@ -451,7 +441,6 @@ onUnmounted(() => {
   stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
-  clearTimeout(closeTimer);
 });
 </script>
 

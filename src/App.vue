@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { monthLabel, PARTNERS, STAGES } from './data';
 import {
   state, queue, startGame, save, DAYS_PER_MONTH, stageInfo, partnerEndingOf,
-  skipToNextMonth, continueAfterShortEnding, startNewGamePlus, startTutorial, restAtHome, sceneAvailability, visitTownScene, addTownNotice,
+  skipCurrentDay, continueAfterShortEnding, startNewGamePlus, startTutorial, restAtHome, sceneAvailability, visitTownScene, addTownNotice, zhiQiuIntroVisitRequired, zhiQiuStoryInfo,
 } from './store';
 import StoryModal from './components/StoryModal.vue';
 import { preloadSprites } from './vn';
@@ -52,6 +52,15 @@ function navigateTown(target) {
   visitTownScene(target);
   phoneOpen.value = false;
   scene.value = target;
+  if (target === 'cafe') {
+    const event = zhiQiuStoryInfo().event;
+    if (event && !event.afterClose && !queue.events.some((item) => item.id === event.id)) {
+      queue.events.unshift(event);
+      state.cafeLastTalk = state.dayIndex;
+      state.autoStory = true;
+      save();
+    }
+  }
 }
 
 function sleepAtHome() {
@@ -223,13 +232,13 @@ function continueStory() {
   openNext();
 }
 
-function devSkipMonth() {
-  if (activeEvent.value || dayReport.value) return;
-  if (!skipToNextMonth()) return;
+function devSkipDay() {
+  if (activeEvent.value || dayReport.value || minigame.value || state.tutorialPractice || queue.events.length) return;
+  const report = skipCurrentDay();
+  if (!report) return;
   activeEvent.value = null;
   monthReport.value = null;
-  dayReport.value = null;
-  openNext();
+  onClosed(report);
 }
 
 watch(
@@ -255,13 +264,14 @@ const locationNotices = [
   ['store', '品牌新店开放', '林念已经有能力规划更远处的品牌门店。', 'store'],
 ];
 
-watch(() => [state.dayIndex, state.month, state.shopLevel, state.brand, state.customOrders, state.staff.length, state.sqchatMonth, state.sceneVisits.park], () => {
+watch(() => [state.dayIndex, state.month, state.dayPhase, state.shopLevel, state.brand, state.customOrders, state.staff.length, state.sqchatMonth, state.sceneVisits.park, queue.events.length], () => {
   locationNotices.forEach(([key, title, detail, target]) => {
     if (sceneAvailability(key).open && !state.unlockNotified.includes(key)) {
       state.unlockNotified.push(key);
       addTownNotice(title, detail, target);
     }
   });
+  if (zhiQiuIntroVisitRequired()) addTownNotice('今天去秋屿咖啡看看', '秋屿咖啡今天正式开门了。先去拜访沈知秋，初见后再继续经营。', 'cafe');
 }, { immediate: true });
 
 const partnerLines = computed(() => {
@@ -289,10 +299,10 @@ onMounted(() => {
       v-if="started && state.phase === 'playing'"
       class="dev-backdoor"
       type="button"
-      aria-label="开发者后门，跳到下个月"
-      title="跳到下个月"
-      :disabled="!!activeEvent || !!dayReport"
-      @click="devSkipMonth"
+      aria-label="开发者后门，跳过当天养成"
+      title="跳过当天养成"
+      :disabled="!!activeEvent || !!dayReport || !!minigame || !!state.tutorialPractice || queue.events.length > 0"
+      @click="devSkipDay"
     >开发者后门</button>
 
     <div v-if="started" class="topbar game-in">
@@ -312,7 +322,7 @@ onMounted(() => {
         <span class="chip">行动力 {{ state.ap }} · 体力 {{ state.stamina }}</span>
       </div>
 
-      <SceneMapPage :scene="scene" :guide-target="activeGuideTarget" @change-scene="scene = $event" @open-panel="openPanel" />
+      <SceneMapPage :scene="scene" :guide-target="activeGuideTarget" :visit-only-scene="zhiQiuIntroVisitRequired() ? 'cafe' : ''" @change-scene="navigateTown" @open-panel="openPanel" />
 
       <div v-if="activePanel" class="scene-panel-mask" @click.self="closePanel">
         <section class="scene-panel">

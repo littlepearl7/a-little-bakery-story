@@ -16,9 +16,6 @@
  */
 
 import raw from '../story/文案v6.md?raw';
-import momRaw from '../story/林暖剧情.md?raw';
-import zhiQiuRaw from '../story/秋屿来信.md?raw';
-import regularRaw from '../story/常客剧情.md?raw';
 import { phoneContactId } from './phone';
 
 /* ---------------- 名词表 ---------------- */
@@ -254,7 +251,7 @@ function pushProse(line, target) {
 
 function parseBlock(lines, opts = {}) {
   const beats = [];
-  const meta = { ids: [], month: null, kind: null, test: null, title: '', cond: null };
+  const meta = { ids: [], month: null, day: null, afterClose: false, kind: null, test: null, title: '', cond: null };
 
   let mode = 'main'; // main | branch | then | else | inline
   let mainTarget = beats;
@@ -362,12 +359,25 @@ function parseBlock(lines, opts = {}) {
           else if (k === '触发月份' || k === '触发时间') {
             const m = v.match(/M(\d+)/);
             if (m) meta.month = Number(m[1]);
+            const day = v.match(/第\s*(\d+)\s*个经营日/);
+            if (day) meta.day = Number(day[1]);
+            if (/(?:打烊后|闭店后|夜晚|回家途中)/.test(v) && !/(?:至|到).*?(?:打烊后|闭店后)/.test(v)) meta.afterClose = true;
           } else if (k === '触发条件') {
             if (/新游戏开始|开始游戏/.test(v)) meta.kind = 'prologue';
             const t = parseCondText(v);
             if (t) meta.cond = t;
           }
         });
+        continue;
+      }
+      const schedule = inner.match(/^(?:触发月份|触发时间|触发时段|插入节点|具体插入节点)\s*[：:]\s*(.*)$/);
+      if (schedule) {
+        const value = schedule[1];
+        const month = value.match(/M(\d+)/);
+        const day = value.match(/第\s*(\d+)\s*个经营日/);
+        if (month) meta.month = Number(month[1]);
+        if (day) meta.day = Number(day[1]);
+        if (/(?:打烊后|闭店后|夜晚|回家途中)/.test(value) && !/(?:至|到).*?(?:打烊后|闭店后)/.test(value)) meta.afterClose = true;
         continue;
       }
       if (/^(触发条件|状态变更|初始状态|检查条件|注意|系统提示)/.test(inner)) continue;
@@ -640,6 +650,8 @@ function parseStory(md) {
               title: cleanTitle(t),
               chapter: chapTitle,
               month,
+              day: parsed.meta.day || 1,
+              afterClose: parsed.meta.afterClose || (parsed.meta.day || 1) > 1,
               kind: 'main',
               test: parsed.meta.cond,
               beats,
@@ -700,6 +712,8 @@ function parseStory(md) {
           title: cleanTitle(t),
           chapter: chapTitle,
           month: monthFinal,
+          day: meta.day || 1,
+          afterClose: meta.afterClose || (meta.day || 1) > 1,
           kind: 'main',
           test,
           beats,
@@ -940,9 +954,10 @@ function partnerKeyFromTitle(text) {
 function parseSideEvents(md, storyline, orderStart) {
   const events = [];
   const tree = buildTree(md);
+  const prefix = storyline === 'mom' ? 'MOM' : 'ZHIQIU';
   const walk = (node) => {
     const text = node.lines.join('\n');
-    const idMatch = text.match(/【[^】]*事件ID[：:]\s*`?(EVT_(?:MOM|ZHIQIU)_[A-Z0-9_]+)/);
+    const idMatch = text.match(new RegExp('【[^】]*事件ID[：:]\\s*\\x60?(EVT_' + prefix + '_[A-Z0-9_]+)'));
     if (idMatch) {
       const id = idMatch[1];
       const parsed = parseBlock(node.lines, { title: node.text });
@@ -952,6 +967,7 @@ function parseSideEvents(md, storyline, orderStart) {
       const bond = source.match(/familyHarmony\s*\+\s*(\d+)/);
       const keepsake = source.match(/(?:解锁|补全)旧物收藏《([^》]+)》/);
       const trigger = source.match(/(?:插入节点|具体插入节点)[^\n】]*第(\d+)个经营日/);
+      const schedule = source.match(/(?:插入节点|具体插入节点)[^\n】]*/);
       const cgNum = source.match(/(?:母女)?CG\s*(\d+)/);
       const bondGate = source.match(/familyHarmony\s*[≥>=]+\s*(\d+)/);
       const keepsakeName = keepsake ? keepsake[1].replace(/[（(].*?[）)]/g, '') : '';
@@ -962,6 +978,7 @@ function parseSideEvents(md, storyline, orderStart) {
         chapter: storyline === 'mom' ? '林暖 · 和妈妈聊聊' : '沈知秋 · 秋屿来信',
         month: monthMatch ? Number(monthMatch[1]) : null,
         day: trigger ? Number(trigger[1]) : 1,
+        afterClose: storyline === 'zhiQiu' && !!schedule && /(?:打烊后|闭店后|夜晚|回家途中)/.test(schedule[0]) && !/(?:至|到).*?(?:打烊后|闭店后)/.test(schedule[0]),
         kind: storyline,
         storyline,
         bondGain: bond ? Number(bond[1]) : 0,
@@ -1032,6 +1049,7 @@ function parseCustomerEvents(md, orderStart) {
           chapter: '常客 · ' + people[owner ? owner[1] : 'CROSS'],
           month: month ? Number(month[1]) : null,
           day: trigger ? Number(trigger[1]) : 1,
+          afterClose: true,
           kind: 'regular',
           storyline: 'regular',
           regularPerson: people[owner ? owner[1] : 'CROSS'],
@@ -1048,9 +1066,9 @@ function parseCustomerEvents(md, orderStart) {
 }
 
 const parsedStory = parseStory(raw);
-const momEvents = parseSideEvents(momRaw, 'mom', parsedStory.events.length);
-const zhiQiuEvents = parseSideEvents(zhiQiuRaw, 'zhiQiu', parsedStory.events.length + momEvents.length);
-const customerEvents = parseCustomerEvents(regularRaw, parsedStory.events.length + momEvents.length + zhiQiuEvents.length);
+const momEvents = parseSideEvents(raw, 'mom', parsedStory.events.length);
+const zhiQiuEvents = parseSideEvents(raw, 'zhiQiu', parsedStory.events.length + momEvents.length);
+const customerEvents = parseCustomerEvents(raw, parsedStory.events.length + momEvents.length + zhiQiuEvents.length);
 const bySchedule = (a, b) => a.month - b.month || a.day - b.day || a.order - b.order;
 momEvents.sort(bySchedule);
 zhiQiuEvents.sort(bySchedule);
