@@ -132,6 +132,7 @@ function returnToTitle() {
 
 function openNext() {
   if (state.tutorialPractice) return;
+  while (queue.events.length && state.played.includes(queue.events[0].id)) queue.events.shift();
   if (!queue.events.length) return;
   const next = queue.events[0];
   if (next.kind === 'tutorial') {
@@ -144,13 +145,15 @@ function openNext() {
 
 function doneEvent() {
   const completed = activeEvent.value;
-  queue.events.shift();
+  if (!completed) return;
+  const queuedIndex = queue.events.findIndex((event) => event.id === completed.id);
+  if (queuedIndex >= 0) queue.events.splice(queuedIndex, 1);
   activeEvent.value = null;
   save();
   if (completed?.id === STORY.prologue.id) {
     const tutorialChoice = state.storyChoices[completed.id]?.['0.1'];
     state.tutorialPromptPending = false;
-    startTutorial(tutorialChoice === 0);
+    if (!state.tutorialSeen) startTutorial(tutorialChoice === 0);
     openNext();
     save();
     return;

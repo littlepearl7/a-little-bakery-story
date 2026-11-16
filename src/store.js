@@ -504,18 +504,25 @@ function applySaveData(data) {
     if (data.v < 10) backfillPlayedPhoneMessages(state, STORY.events);
     state.savedAt = Number(data.savedAt) || 0;
     const storyEvents = new Map(STORY.events.map((event) => [event.id, event]));
-    const storyQueue = (data.storyQueue || []).map((event) =>
-      typeof event === 'string' ? storyEvents.get(event) : event
-    ).filter((event) =>
-      event && typeof event === 'object' && typeof event.id === 'string' && Array.isArray(event.beats)
-    );
+    const savedStoryQueue = data.storyQueue || [];
+    const queuedIds = new Set();
+    const storyQueue = [];
+    savedStoryQueue.forEach((entry) => {
+      const event = typeof entry === 'string' ? storyEvents.get(entry) : entry;
+      if (!event || typeof event !== 'object' || typeof event.id !== 'string' || !Array.isArray(event.beats)) return;
+      if (state.played.includes(event.id) || queuedIds.has(event.id)) return;
+      queuedIds.add(event.id);
+      storyQueue.push(event);
+    });
+    const storyQueueChanged = storyQueue.length !== savedStoryQueue.length
+      || savedStoryQueue.some((event, index) => (typeof event === 'string' ? event : event?.id) !== storyQueue[index]?.id);
     queue.events.splice(0, queue.events.length, ...storyQueue);
     state.challengeDayIndex = Number(state.challengeDayIndex || 0);
     const needsChallenge = state.dayPhase === 'prep' && (!state.challenge || state.challengeDayIndex !== state.dayIndex);
     if (needsChallenge) startChallengeForDay();
     const careerBefore = JSON.stringify(state.career);
     recordCareer();
-    if (migrated || needsChallenge || careerBefore !== JSON.stringify(state.career)) save();
+    if (migrated || needsChallenge || storyQueueChanged || careerBefore !== JSON.stringify(state.career)) save();
     return true;
   } catch (e) {
     return false;
@@ -2192,7 +2199,9 @@ export function startTutorial(show) {
   const pick = show
     ? list.filter((e) => e.id !== 'EVT_TUTORIAL_SKIP')
     : list.filter((e) => e.id === 'EVT_TUTORIAL_SKIP');
-  const queued = pick.filter((event) => !queue.events.some((item) => item.id === event.id));
+  const queued = pick.filter((event) =>
+    !state.played.includes(event.id) && !queue.events.some((item) => item.id === event.id)
+  );
   queue.events.unshift(...queued);
   state.tutorialSeen = true;
   state.tutorialPromptPending = false;
