@@ -106,3 +106,4 @@ const unlockedCount=computed(()=>availableProducts.value.length);
     </div>
   </MiniShell>
 </template>
+

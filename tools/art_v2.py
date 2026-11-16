@@ -33,6 +33,7 @@ SPRITES = [
     ('许知遥', 'zy', '许知遥/许知遥默认立绘（店内）.png', '许知遥/许知遥默认立绘（店外）.png'),
     ('唐鸢',   'ty', '唐鸢/唐鸢默认立绘（店内）.png',   '唐鸢/唐鸢默认立绘（店外）.png'),
     ('叶星河', 'xh', '叶星河/叶星河默认立绘（店内）.png', '叶星河/叶星河默认立绘（店外）.png'),
+    ('沈知秋', 'zhiqiu', '沈知秋/沈知秋默认立绘（店内）.png', '沈知秋/沈知秋默认立绘（店外）.png'),
 ]
 
 # 背景：源文件名 -> 输出名（bg-shool 是原始拼写，输出修正为 school）
@@ -65,6 +66,19 @@ CG_FILES = [
     ('cg-flagship.png', 'cg-flagship.webp'),
     ('cg-album.png', 'cg-album.webp'),
     ('cg-finale.png', 'cg-finale.webp'),
+    ('cg-mom-handover.png', 'cg-mom-01.webp'),
+    ('cg-mom-recipebook.png', 'cg-mom-02.webp'),
+    ('cg-mom-osmanthus-lesson.png', 'cg-mom-03.webp'),
+    ('cg-mom-yearend-ledger.png', 'cg-mom-04.webp'),
+    ('cg-mom-anniversary.png', 'cg-mom-05.webp'),
+    ('cg-mom-sunset-future.png', 'cg-mom-06.webp'),
+    ('cg-zhiqiu-firstmeet.png', 'cg-zhiqiu-01.webp'),
+    ('cg-zhiqiu-tasting.png', 'cg-zhiqiu-02.webp'),
+    ('cg-zhiqiu-busyweekend.png', 'cg-zhiqiu-03.webp'),
+    ('cg-zhiqiu-rainstory.png', 'cg-zhiqiu-04.webp'),
+    ('cg-zhiqiu-fourseasons.png', 'cg-zhiqiu-05.webp'),
+    ('cg-zhiqiu-nightlight.png', 'cg-zhiqiu-06.webp'),
+    ('栖云四季联名菜单.png', 'cg-zhiqiu-menu.webp'),
 ]
 
 COVERS = [

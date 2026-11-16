@@ -19,6 +19,7 @@ import raw from '../story/文案v6.md?raw';
 import momRaw from '../story/林暖剧情.md?raw';
 import zhiQiuRaw from '../story/秋屿来信.md?raw';
 import regularRaw from '../story/常客剧情.md?raw';
+import { phoneContactId } from './phone';
 
 /* ---------------- 名词表 ---------------- */
 
@@ -236,9 +237,10 @@ function pushProse(line, target) {
 
   const m = s.match(SPEAK_RE);
   if (m) {
+    const who = NAMES[m[1]];
     target.push({
-      t: 'say',
-      who: NAMES[m[1]],
+      t: /手机消息|短信/.test(m[2] || '') && phoneContactId(who) ? 'phoneMessage' : 'say',
+      who,
       emo: m[2] || '',
       text: cleanText(m[4].replace(/\*\*/g, '')),
     });
@@ -959,6 +961,13 @@ function parseSideEvents(md, storyline, orderStart) {
   };
   tree.children.forEach(walk);
   if (storyline === 'zhiQiu') {
+    const invitations = {
+      EVT_ZHIQIU_CH02: '念念，这周的试饮咖啡豆已经养好豆了，今天下午四点带几款标准蛋糕样品来秋屿坐坐吧。',
+      EVT_ZHIQIU_CH06_A: '念念，关于我一直想做的那份《栖云四季》菜单，今天上午忙完备料我有空过来找你聊聊吗？',
+    };
+    events.forEach((event) => {
+      if (invitations[event.id]) event.beats.unshift({ t: 'phoneMessage', who: '沈知秋', emo: '手机消息', text: invitations[event.id] });
+    });
     const findFinale = (node) => {
       if (/第三幕：心愿达成/.test(node.text)) return node;
       for (const child of node.children) {
@@ -1072,4 +1081,3 @@ if (typeof console !== 'undefined') {
   );
   if (STORY.warnings.length) STORY.warnings.forEach((w) => console.warn('[剧情] ' + w));
 }
-

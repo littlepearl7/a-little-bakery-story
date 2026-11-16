@@ -9,6 +9,7 @@ import {
 import { STORY, evalTest, PARTNER_OF } from './story';
 import { evaluateResearchTrial, evaluateSignatureTrial, improvementFor } from './lab';
 import { CG_COLLECTION } from './vn';
+import { backfillPlayedPhoneMessages } from './phone';
 
 const SAVE_KEY = 'alb-save-v6';
 const MANUAL_SAVE_KEY = 'alb-manual-save-v1';
@@ -21,7 +22,7 @@ const STAFF_CAPACITY = 40; // 每位伙伴的产能
 
 export function newState() {
   return {
-    v: 9,
+    v: 10,
     month: 1,
     day: 1,
     cash: 12000,
@@ -129,6 +130,7 @@ export function newState() {
     monthSold: {},
     played: [],
     storyChoices: {},
+    phoneMessages: [],
     photos: [],
     log: [],
     phase: 'playing',
@@ -399,7 +401,7 @@ export function save() {
 }
 
 function validSaveData(data) {
-  return !!data && typeof data === 'object' && [6, 7, 8, 9].includes(data.v) &&
+  return !!data && typeof data === 'object' && [6, 7, 8, 9, 10].includes(data.v) &&
     Number.isInteger(Number(data.month)) && Number(data.month) >= 1 && Number(data.month) <= 36 &&
     Number.isInteger(Number(data.day)) && Number(data.day) >= 1 && Number(data.day) <= DAYS_PER_MONTH &&
     Number.isFinite(Number(data.cash)) &&
@@ -434,7 +436,7 @@ function applySaveData(data) {
   if (!validSaveData(data)) return false;
   try {
     Object.assign(state, newState());
-    const migrated = data.v !== 9;
+    const migrated = data.v !== 10;
     Object.keys(newState()).forEach((k) => {
       if (data[k] !== undefined && k !== 'regularCustomers' && k !== 'career') state[k] = data[k];
     });
@@ -466,7 +468,7 @@ function applySaveData(data) {
       state.challenge = null;
       state.challengeDayIndex = 0;
     }
-    state.v = 9;
+    state.v = 10;
     state.pantry = state.pantry || {};
     state.legacyStock = Number(state.legacyStock || 0);
     state.batches = state.batches || [];
@@ -498,6 +500,8 @@ function applySaveData(data) {
     if (data.customAtM5 === undefined && data.customOrders > 0 && data.month >= 11) state.customAtM5 = true;
     if (state.service && state.dayPhase === 'service' && state.service.formalBusiness === undefined) state.service.formalBusiness = true;
     state.storyChoices = state.storyChoices || {};
+    state.phoneMessages = Array.isArray(data.phoneMessages) ? data.phoneMessages : [];
+    if (data.v < 10) backfillPlayedPhoneMessages(state, STORY.events);
     state.savedAt = Number(data.savedAt) || 0;
     const storyEvents = new Map(STORY.events.map((event) => [event.id, event]));
     const storyQueue = (data.storyQueue || []).map((event) =>
@@ -1818,7 +1822,7 @@ export function deliverTicket(ticketId) {
   }
   if (ticket.type === '线上') state.onlineOrders += 1;
   if (ticket.type === '节日') state.festivalOrders += 1;
-  if (ticket.customer === '陈奶奶' || ticket.customer === '张叔') recordCustomerPurchases({ [ticket.product]: ticket.qty });
+  if (ticket.customer === '张奶奶' || ticket.customer === '陈叔') recordCustomerPurchases({ [ticket.product]: ticket.qty });
   state.loyalty = clamp(state.loyalty + 0.15);
   state.popularity = clamp(state.popularity + 0.02);
   ticket.revenue = revenue;
@@ -2166,9 +2170,6 @@ export function queueStory() {
     const done = (id) => state.played.includes(id);
     if (event.id === 'EVT_CROSS_M18') return done('EVT_GRANNY_M17') && done('EVT_UNCLE_M16');
     if (event.id === 'EVT_CROSS_M28') return done('EVT_GRANNY_M25') && done('EVT_UNCLE_M24') && done('EVT_XIAOMAN_M25');
-    if (event.id === 'EVT_CROSS_M36') {
-      return STORY.customers.filter((item) => !item.group && item.month < 36).every((item) => done(item.id));
-    }
     return true;
   };
   ['张奶奶', '陈叔', '小满'].forEach((person) => {
@@ -2375,4 +2376,3 @@ export function partnerEndingOf(pid) {
 }
 
 export { PRODUCTS, CITIES, SHOP_LEVELS, PARTNERS, ENDINGS, shopLevelInfo, DEVICES, deviceById };
-

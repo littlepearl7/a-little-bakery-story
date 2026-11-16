@@ -286,7 +286,8 @@ function leaveSettings() {
       </div>
     </Transition>
 
-    <div v-if="screen === 'collection'" class="title-collection">      <header><h1>查看收集</h1><button class="title-back" type="button" @click="screen = 'menu'">返回主菜单</button></header>
+    <div v-if="screen === 'collection'" class="title-collection">
+      <header><h1>查看收集</h1><button class="title-back" type="button" @click="screen = 'menu'">返回主菜单</button></header>
       <div class="title-collection-body"><CodexPage initial-segment="collection" /></div>
     </div>
 

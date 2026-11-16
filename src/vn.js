@@ -194,7 +194,7 @@ export function sceneKey(text) {
  */
 const SPRITE_DEF = {
   林念: { in: 'ln-sprite-in.webp', out: 'ln-sprite-out.webp', face: 'ln-face.webp' },
-  沈知秋: { in: 'zhiqiu-sprite-in.webp', out: 'zhiqiu-sprite-out.webp', face: '' },
+  沈知秋: { in: 'zhiqiu-sprite-in.webp', out: 'zhiqiu-sprite-out.webp', face: 'zhiqiu-face.webp' },
   苏晴: { in: 'sq-sprite-in.webp', out: 'sq-sprite-out.webp', face: 'sq-face.webp' },
   林暖: { in: 'nu-sprite-in.webp', out: 'nu-sprite-out.webp', face: 'nu-face.webp' },
   周雨桐: { in: 'xy-sprite-in.webp', out: 'xy-sprite-out.webp', face: 'xy-face.webp' },
@@ -281,12 +281,14 @@ export const CG = {
   'zhiqiu-04': { img: 'cg-zhiqiu-04.webp', name: '雨天的故事' },
   'zhiqiu-05': { img: 'cg-zhiqiu-05.webp', name: '栖云四季' },
   'zhiqiu-06': { img: 'cg-zhiqiu-06.webp', name: '秋屿的夜晚' },
+  'zhiqiu-menu': { img: 'cg-zhiqiu-menu.webp', name: '栖云四季纪念菜单' },
   osmanthus: { img: 'cg-osmanthus.webp', name: '桂花栗子蛋糕' },
   festival: { img: 'cg-festival.webp', name: '秋日文化节' },
   memory: { img: 'cg-memory.webp', name: '高三晚自习' },
   flagship: { img: 'cg-flagship.webp', name: '旗舰店方案' },
   album: { img: 'cg-album.webp', name: '三年相册' },
   finale: { img: 'cg-finale.webp', name: '三周年合影' },
+  group: { img: 'cg-group.webp', name: '我们都在这里' },
 };
 
 export const CG_COLLECTION = [
@@ -296,6 +298,7 @@ export const CG_COLLECTION = [
   { id: 'memory', event: 'EVT_M29_MAIN' },
   { id: 'flagship', event: 'EVT_M33_MAIN' },
   { id: 'album', event: 'EVT_M35_MAIN' },
+  { id: 'group', event: 'EVT_M36_MAIN' },
   { id: 'finale', event: 'EVT_FINAL_END_NATIONAL' },
   { id: 'mom-01', event: 'EVT_MOM_M01' },
   { id: 'mom-02', event: 'EVT_MOM_M06' },
@@ -308,6 +311,7 @@ export const CG_COLLECTION = [
   { id: 'zhiqiu-03', event: 'EVT_ZHIQIU_CH04' },
   { id: 'zhiqiu-04', event: 'EVT_ZHIQIU_CH05' },
   { id: 'zhiqiu-05', event: 'EVT_ZHIQIU_CH06_WIN' },
+  { id: 'zhiqiu-menu', event: 'EVT_ZHIQIU_CH06_WIN' },
   { id: 'zhiqiu-06', event: 'EVT_ZHIQIU_SP_NIGHT' },
 ];
 
@@ -322,5 +326,4 @@ export function bgSrcOf(cfg) {
   if (!cfg || !cfg.img) return '';
   return artStatus(cfg.img) === 'ok' ? art(cfg.img) : '';
 }
-
 

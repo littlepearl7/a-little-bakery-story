@@ -1,8 +1,10 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { state, finishEvent, applyChoice } from '../store';
+import { state, finishEvent, applyChoice, save } from '../store';
 import { resolveBeats } from '../story';
 import { BG, SPRITE, bgSrcOf, cgOf, faceOfName, sceneKey, sceneKeyOfEvent, spriteOf, spriteReady, wearOf } from '../vn';
+import { appendPhoneMessage, phoneConversationId, storyPhoneMessageId } from '../phone';
+import PhonePage from '../pages/PhonePage.vue';
 
 const props = defineProps({ ev: { type: Object, required: true } });
 const emit = defineEmits(['done', 'guide-target']);
@@ -18,6 +20,9 @@ let holdStartTimer = 0;
 let fastForwardTimer = 0;
 let suppressClickUntil = 0;
 const fastForward = ref(false);
+const phoneConversationOpen = ref(false);
+const activeStoryMessageId = ref('');
+const activeStoryMessage = computed(() => state.phoneMessages.find((message) => message.id === activeStoryMessageId.value) || null);
 
 /* ---------------- 初始化 ---------------- */
 
@@ -216,7 +221,12 @@ const cast = computed(() => {
   if (isSay.value) return can(cur.value.who) ? [cur.value.who] : [];
 
   const t = (cur.value && cur.value.text) || '';
-  const names = [...Object.keys(SPRITE), '陈奶奶', '张叔', '李婶', '赵叔', '沈知夏'];
+  // 旁白点名才换人：主角之外还有三位常客和街坊（有立绘的才会真的上台）
+  const names = [
+    ...Object.keys(SPRITE),
+    '张奶奶', '陈叔', '小满', '李婶', '赵叔', '沈知秋',
+    '陈奶奶', '张叔', '沈知夏',
+  ];
   const mentions = names.map((name) => ({ name, at: t.indexOf(name) }))
     .concat(Object.entries(NICKNAME).map(([nick, name]) => ({ name, at: t.indexOf(nick) })))
     .filter((row) => row.at >= 0)
@@ -230,6 +240,8 @@ const speaker = computed(() => (isSay.value ? cur.value.who : ''));
 watch(
   () => props.ev,
   () => {
+    phoneConversationOpen.value = false;
+    activeStoryMessageId.value = '';
     guideBoxStyle.value = {};
     guidePlacement = '';
     // 条件段落（伙伴信赖、家庭默契）在这里按当前存档展开
@@ -291,8 +303,62 @@ function nextIndex(from) {
   return Math.min(i, list.value.length - 1);
 }
 
+function openStoryPhoneMessage(index) {
+  const beat = list.value[index];
+  if (!beat || beat.t !== 'phoneMessage') return;
+  const contactId = phoneConversationId(list.value, index);
+  if (!contactId) return;
+  const ordinal = list.value.slice(0, index).filter((item) => item.t === 'phoneMessage').length;
+  const message = appendPhoneMessage(state, {
+    id: storyPhoneMessageId(props.ev.id, ordinal),
+    eventId: props.ev.id,
+    contactId,
+    sender: beat.who === '林念' ? 'player' : contactId,
+    text: beat.text,
+    read: true,
+  });
+  activeStoryMessageId.value = message.id;
+  phoneConversationOpen.value = true;
+  auto.value = false;
+  clearInterval(autoTimer);
+  stopHoldFastForward();
+  clearTimeout(closeTimer);
+  save();
+}
+
+watch([() => props.ev.id, () => idx.value], () => {
+  if (!phoneConversationOpen.value) openStoryPhoneMessage(idx.value);
+}, { flush: 'post' });
+
+function returnFromStoryPhone() {
+  if (!phoneConversationOpen.value) return;
+  phoneConversationOpen.value = false;
+  activeStoryMessageId.value = '';
+  if (finished.value) close();
+  else idx.value = nextIndex(idx.value);
+}
+
+function recordSkippedMessages(start, end) {
+  let ordinal = list.value.slice(0, start).filter((item) => item.t === 'phoneMessage').length;
+  for (let i = start; i <= end && i < list.value.length; i++) {
+    const beat = list.value[i];
+    if (beat.t !== 'phoneMessage') continue;
+    const contactId = phoneConversationId(list.value, i);
+    if (contactId) appendPhoneMessage(state, {
+      id: storyPhoneMessageId(props.ev.id, ordinal),
+      eventId: props.ev.id,
+      contactId,
+      sender: beat.who === '林念' ? 'player' : contactId,
+      text: beat.text,
+      read: false,
+    });
+    ordinal += 1;
+  }
+  save();
+}
+
 function advance() {
-  if (atChoice.value) return;
+  if (atChoice.value || phoneConversationOpen.value) return;
   if (typing.value) {
     typed.value = text.value.length;
     clearInterval(timer);
@@ -314,7 +380,7 @@ function advanceFromBox() {
 }
 
 function startHoldFastForward(event) {
-  if (atChoice.value || (event.button !== undefined && event.button !== 0)) return;
+  if (atChoice.value || phoneConversationOpen.value || (event.button !== undefined && event.button !== 0)) return;
   clearTimeout(holdStartTimer);
   try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
   holdStartTimer = setTimeout(() => {
@@ -348,12 +414,15 @@ function choose(opt, i) {
 }
 
 function skipAhead() {
+  if (phoneConversationOpen.value) return;
   for (let i = idx.value + 1; i < list.value.length; i++) {
     if (list.value[i].t === 'choice') {
+      recordSkippedMessages(idx.value + 1, i - 1);
       idx.value = i;
       return;
     }
   }
+  recordSkippedMessages(idx.value + 1, list.value.length - 1);
   idx.value = list.value.length - 1;
   typed.value = text.value.length;
 }
@@ -367,12 +436,13 @@ function close() {
   emit('done');
 }
 
-watch([finished, typing, atChoice], ([isFinished, isTyping, isChoice]) => {
+watch([finished, typing, atChoice, phoneConversationOpen], ([isFinished, isTyping, isChoice, isPhoneOpen]) => {
   clearTimeout(closeTimer);
-  if (isFinished && !isTyping && !isChoice) closeTimer = setTimeout(close, 1300);
+  if (isFinished && !isTyping && !isChoice && !isPhoneOpen) closeTimer = setTimeout(close, 1300);
 }, { immediate: true });
 
 function toggleAuto() {
+  if (phoneConversationOpen.value) return;
   auto.value = !auto.value;
   clearInterval(autoTimer);
   if (!auto.value) return;
@@ -479,6 +549,11 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <PhonePage
+      v-if="phoneConversationOpen && activeStoryMessage"
+      :story-message="activeStoryMessage"
+      @story-message-done="returnFromStoryPhone"
+    />
   </div>
 </template>
 
@@ -906,4 +981,3 @@ onUnmounted(() => {
   text-align: center;
 }
 </style>
-

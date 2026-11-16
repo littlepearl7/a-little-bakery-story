@@ -66,4 +66,3 @@ try {
 } finally {
   await vite.close();
 }
-

@@ -52,7 +52,7 @@ const cities = computed(() =>
   }))
 );
 
-const customers = computed(() => CUSTOMERS.map((customer) => ({
+const customers = computed(() => CUSTOMERS.filter((customer) => (state.regularCustomers[customer.id]?.purchases || 0) > 0).map((customer) => ({
   ...customer,
   productName: PRODUCTS.find((product) => product.id === customer.product).name,
   visit: state.regularCustomers[customer.id],

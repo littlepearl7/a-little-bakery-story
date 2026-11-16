@@ -80,6 +80,9 @@ const canContinueStory = computed(() =>
   state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
 );
 const pending = computed(() => queue.events.length);
+const activeGuideTarget = computed(() =>
+  started.value && state.tutorialPractice === 'phone' && !phoneOpen.value ? 'phone' : guideTarget.value
+);
 
 function enterGame(target = {}) {
   const freshStart = target.fresh === true;
@@ -178,9 +181,16 @@ function finishTutorialPractice(step) {
   if (state.tutorialPractice !== step) return;
   state.tutorialPractice = null;
   state.tutorialPracticeProgress = 0;
+  if (step === 'phone') phoneOpen.value = false;
   state.tutorialProgress += 1;
   save();
   setTimeout(openNext, 180);
+}
+
+function updatePhoneTutorialStep(step) {
+  if (state.tutorialPractice !== 'phone') return;
+  state.tutorialPracticeProgress = Math.max(0, Math.min(7, Number(step) || 0));
+  save();
 }
 
 function onClosed(report) {
@@ -306,7 +316,7 @@ onMounted(() => {
         @click="devSkipMonth"
       >开发者后门 · 跳到下个月</button>
 
-      <SceneMapPage :scene="scene" :guide-target="guideTarget" @change-scene="scene = $event" @open-panel="openPanel" />
+      <SceneMapPage :scene="scene" :guide-target="activeGuideTarget" @change-scene="scene = $event" @open-panel="openPanel" />
 
       <div v-if="activePanel" class="scene-panel-mask" @click.self="closePanel">
         <section class="scene-panel">
@@ -345,8 +355,17 @@ onMounted(() => {
       </div>
     </div>
 
-    <button v-if="started && !minigame" class="phone-fab" :class="{ 'phone-fab-guide-target': guideTarget === 'phone' }" :data-guide-key="guideTarget === 'phone' ? 'phone' : undefined" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
-    <PhonePage v-if="started && phoneOpen && !minigame" @close="phoneOpen = false" @navigate="navigateTown" @open-panel="openPanel" />
+    <button v-if="started && !minigame" class="phone-fab" :class="{ 'phone-fab-guide-target': activeGuideTarget === 'phone' }" :data-guide-key="activeGuideTarget === 'phone' ? 'phone' : undefined" type="button" aria-label="打开常驻手机" @click="phoneOpen = true"><span>▣</span><small>手机</small></button>
+    <PhonePage
+      v-if="started && phoneOpen && !minigame"
+      :tutorial="state.tutorialPractice === 'phone'"
+      :tutorial-progress="state.tutorialPracticeProgress"
+      @close="phoneOpen = false"
+      @navigate="navigateTown"
+      @open-panel="openPanel"
+      @tutorial-step="updatePhoneTutorialStep"
+      @tutorial-done="finishTutorialPractice('phone')"
+    />
 
     <button
       v-if="started && pending"
@@ -361,7 +380,7 @@ onMounted(() => {
     <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
     <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />
     <DeliveryGame v-if="minigame === 'delivery'" :paused="!!activeEvent" @exit="minigame = ''" />
-    <TutorialPractice v-if="started && state.tutorialPractice && !['counter', 'production', 'purchase'].includes(state.tutorialPractice)" :step="state.tutorialPractice" @done="finishTutorialPractice" />
+    <TutorialPractice v-if="started && state.tutorialPractice && !['counter', 'production', 'purchase', 'phone'].includes(state.tutorialPractice)" :step="state.tutorialPractice" @done="finishTutorialPractice" />
     <MarketGame v-if="minigame === 'market'" @exit="minigame = ''" />
     <CafeGame v-if="minigame === 'cafe'" @exit="minigame = ''" />
 

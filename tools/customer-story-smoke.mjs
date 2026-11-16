@@ -15,7 +15,7 @@ try {
   const store = await vite.ssrLoadModule('/src/store.js');
   const vn = await vite.ssrLoadModule('/src/vn.js');
 
-  assert.equal(story.STORY.customers.length, 36, '三位常客与三段交叉剧情都应被解析');
+  assert.equal(story.STORY.customers.length, 32, '常客个人事件与合并后的交叉事件应按可播放事件计数');
   for (const name of ['张奶奶', '陈叔', '小满']) assert(vn.SPRITE[name], name + '应配置立绘');
   assert(story.STORY.find('EVT_GRANNY_M17').beats.some((beat) => beat.t === 'cg' && beat.key === 'regular-granny-m17'));
   assert(story.STORY.find('EVT_CROSS_M28').beats.some((beat) => beat.who === '陈叔'), 'M28群像对白应识别陈叔');
@@ -46,4 +46,3 @@ try {
 } finally {
   await vite.close();
 }
-
