@@ -288,7 +288,10 @@ export const CG = {
   flagship: { img: 'cg-flagship.webp', name: '旗舰店方案' },
   album: { img: 'cg-album.webp', name: '三年相册' },
   finale: { img: 'cg-finale.webp', name: '三周年合影' },
-  group: { img: 'cg-group.webp', name: '我们都在这里' },
+  group: { img: 'cg-finale.webp', name: '我们都在这里' },
+  'regular-granny-m17': { img: 'cg-customer-granny-reading.webp', name: '没有取消的聚会' },
+  'regular-uncle-m24': { img: 'cg-customer-uncle-workshop.webp', name: '市集的准备' },
+  'regular-xiaoman-m10': { img: 'cg-customer-xiaoman-firstdesign.webp', name: '失败的作品' },
 };
 
 export const CG_COLLECTION = [
@@ -299,6 +302,9 @@ export const CG_COLLECTION = [
   { id: 'flagship', event: 'EVT_M33_MAIN' },
   { id: 'album', event: 'EVT_M35_MAIN' },
   { id: 'group', event: 'EVT_M36_MAIN' },
+  { id: 'regular-granny-m17', event: 'EVT_GRANNY_M17' },
+  { id: 'regular-uncle-m24', event: 'EVT_UNCLE_M24' },
+  { id: 'regular-xiaoman-m10', event: 'EVT_XIAOMAN_M10' },
   { id: 'finale', event: 'EVT_FINAL_END_NATIONAL' },
   { id: 'mom-01', event: 'EVT_MOM_M01' },
   { id: 'mom-02', event: 'EVT_MOM_M06' },

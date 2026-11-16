@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'vite';
+import { readFile } from 'node:fs/promises';
 
 const values = new Map();
 globalThis.localStorage = {
@@ -18,6 +19,12 @@ try {
   assert.equal(story.STORY.customers.length, 32, '常客个人事件与合并后的交叉事件应按可播放事件计数');
   for (const name of ['张奶奶', '陈叔', '小满']) assert(vn.SPRITE[name], name + '应配置立绘');
   assert(story.STORY.find('EVT_GRANNY_M17').beats.some((beat) => beat.t === 'cg' && beat.key === 'regular-granny-m17'));
+  assert(story.STORY.find('EVT_M36_MAIN').beats.some((beat) => beat.t === 'cg' && beat.key === 'group'), 'M36群像使用已收到的全员合影');
+  for (const id of ['regular-granny-m17', 'regular-uncle-m24', 'regular-xiaoman-m10']) {
+    assert(vn.CG_COLLECTION.some((cg) => cg.id === id), id + '应出现在CG收藏中');
+    assert(vn.CG[id]?.img, id + '应配置对应图片文件');
+    await readFile(new URL('../public/art/' + vn.CG[id].img, import.meta.url));
+  }
   assert(story.STORY.find('EVT_CROSS_M28').beats.some((beat) => beat.who === '陈叔'), 'M28群像对白应识别陈叔');
 
   store.reset();

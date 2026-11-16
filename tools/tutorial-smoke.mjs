@@ -22,7 +22,15 @@ try {
   const opening = story.STORY.prologue;
   assert.equal(opening?.id, 'EVT_PROLOGUE_01', '开场序幕必须能从事件类型找到');
   assert(opening.beats.length > 0, '开场序幕必须含有可播放正文');
+  assert(!story.STORY.find('EVT_TUTORIAL_START').beats.some((beat) => beat.guideTarget), 'T1泛泛介绍时不误框柜台');
+  assert.deepEqual(
+    story.STORY.find('EVT_TUTORIAL_FRONT').beats.filter((beat) => beat.guideTarget).map((beat) => beat.guideTarget),
+    ['counter', 'book', 'door', 'kitchen', 'mom'],
+    'T2只在明确讲解对应功能时标注热点'
+  );
   const appSource = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
+  assert(!appSource.includes('有 {{ pending }} 段剧情'), '不再显示右下角待播剧情按钮');
+  assert(appSource.includes('if (queue.events.length) setTimeout(openNext, 180)'), '前一段结束后自动接续待播剧情');
   assert(!appSource.includes('开场序幕没有成功载入'), '序幕异常不能再用标题页弹窗阻断进入游戏');
 
   store.reset();
@@ -62,9 +70,12 @@ try {
   const apBeforeChat = store.state.ap;
   assert(store.doAction('sqchat', {}), '准备阶段可以开始本月苏晴剧情');
   assert.equal(store.queue.events[0]?.id, story.STORY.friend[1]?.id, '主动互动剧情排在待播主线之前');
+  assert.equal(store.state.sqchatMonth, 0, '苏晴剧情开始时不提前标记完成');
   assert.equal(store.state.ap, apBeforeChat - 1, '苏晴互动只扣一次行动力');
   assert.equal(store.doAction('sqchat', {}), false, '同月重复互动不会重复触发');
   assert.equal(store.state.ap, apBeforeChat - 1, '重复互动不再扣行动力');
+  store.finishEvent(story.STORY.friend[1]);
+  assert.equal(store.state.sqchatMonth, 1, '苏晴剧情读完后才记录本月完成');
   console.log('✓ 序幕开场、教程提示与苏晴互动剧情流程通过');
 } finally {
   await vite.close();

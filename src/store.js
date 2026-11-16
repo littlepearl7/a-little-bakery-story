@@ -1044,12 +1044,14 @@ export function actionInfo(id) {
       };
     }
     case 'sqchat': {
-      const used = state.sqchatMonth === state.month;
-      const available = !!STORY.friend[state.month];
+      const event = STORY.friend[state.month];
+      const queued = event && queue.events.some((item) => item.id === event.id);
+      const used = event && state.played.includes(event.id);
+      const available = !!event;
       return {
-        name: '与苏晴互动', ap: 1, cost: 0,
-        note: used ? '这个月已经聊过了' : available ? '本月专属相处剧情' : '本月没有新的互动剧情',
-        disabled: used || !available,
+        name: '与苏晴互动', ap: state.sqchatMonth === state.month && !used ? 0 : 1, cost: 0,
+        note: used ? '这个月已经聊过了' : queued ? '本月剧情正在等待播放' : state.sqchatMonth === state.month ? '继续播放本月互动剧情' : available ? '本月专属相处剧情' : '本月没有新的互动剧情',
+        disabled: used || queued || !available,
       };
     }
     case 'market':
@@ -1162,8 +1164,7 @@ export function doAction(id, opt) {
     }
     case 'sqchat': {
       const ev = STORY.friend[state.month];
-      if (!ev) return false;
-      state.sqchatMonth = state.month;
+      if (!ev || state.played.includes(ev.id)) return false;
       state.autoStory = true;
       const queued = queue.events.findIndex((event) => event.id === ev.id);
       if (queued >= 0) queue.events.splice(queued, 1);
@@ -2323,6 +2324,11 @@ export function finishEvent(ev) {
   const ids = ev.ids && ev.ids.length ? ev.ids : [ev.id];
   ids.forEach((id) => {
     if (!state.played.includes(id)) state.played.push(id);
+  });
+  if (ev.kind === 'friend') state.sqchatMonth = ev.month;
+  if (!Array.isArray(state.career.cgs)) state.career.cgs = [];
+  CG_COLLECTION.forEach((cg) => {
+    if (ids.includes(cg.event) && !state.career.cgs.includes(cg.id)) state.career.cgs.push(cg.id);
   });
   if (ev.storyline === 'mom') {
     state.momBond = clamp(state.momBond + (ev.bondGain || 0));

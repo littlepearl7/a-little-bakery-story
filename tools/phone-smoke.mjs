@@ -60,11 +60,14 @@ try {
   assert.equal(store.state.phoneMessages.length, 2, '刷新后聊天记录仍保留');
 
   const phoneUi = await readFile(new URL('../src/pages/PhonePage.vue', import.meta.url), 'utf8');
+  const storyModal = await readFile(new URL('../src/components/StoryModal.vue', import.meta.url), 'utf8');
   const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
   const codex = await readFile(new URL('../src/pages/CodexPage.vue', import.meta.url), 'utf8');
   assert(phoneUi.includes('tutorialProgress') && phoneUi.includes('tutorial-step') && phoneUi.includes('Teleport to="body"'));
   assert(app.includes("state.tutorialPractice === 'phone'") && app.includes("'phone'].includes(state.tutorialPractice)"));
   assert(phoneUi.includes("state.staff.includes(person.id)"), '未入队伙伴不出现在人物列表');
+  assert(phoneUi.includes('phone-story-foot') && phoneUi.includes('storyBeat'), '手机剧情期间对白在手机底部继续');
+  assert(storyModal.includes(':story-beat="cur?.t === \'phoneMessage\' ? null : cur"'), '短信之间保留手机页面并显示对白');
   assert(phoneUi.includes("state.played.includes('EVT_ZHIQIU_CH01')"), '沈知秋首章读完后才解锁联系人');
   assert(codex.includes('state.regularCustomers[customer.id]?.purchases || 0) > 0'), '常客首次购买前不显示顾客档案');
   console.log('phone smoke passed: story SMS, tutorial gating, legacy backfill, deduplication, and CG collection');

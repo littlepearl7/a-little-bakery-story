@@ -79,6 +79,9 @@ CG_FILES = [
     ('cg-zhiqiu-fourseasons.png', 'cg-zhiqiu-05.webp'),
     ('cg-zhiqiu-nightlight.png', 'cg-zhiqiu-06.webp'),
     ('栖云四季联名菜单.png', 'cg-zhiqiu-menu.webp'),
+    ('cg-customer-granny-reading.png', 'cg-customer-granny-reading.webp'),
+    ('cg-customer-uncle-workshop.png', 'cg-customer-uncle-workshop.webp'),
+    ('cg-customer-xiaoman-firstdesign.png', 'cg-customer-xiaoman-firstdesign.webp'),
 ]
 
 COVERS = [

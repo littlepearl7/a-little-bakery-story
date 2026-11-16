@@ -76,7 +76,6 @@ const ending = computed(() =>
 const canContinueStory = computed(() =>
   state.ending && STAGES.some((stage) => !stage.final && stage.short.key === state.ending.key)
 );
-const pending = computed(() => queue.events.length);
 const activeGuideTarget = computed(() =>
   started.value && state.tutorialPractice === 'phone' && !phoneOpen.value ? 'phone' : guideTarget.value
 );
@@ -168,9 +167,7 @@ function doneEvent() {
     save();
     return;
   }
-  // 教程需要连续演出；普通剧情结束后回地图，由玩家决定何时继续待播剧情。
-  const next = queue.events[0];
-  if (next?.kind === 'tutorial') setTimeout(openNext, 200);
+  if (queue.events.length) setTimeout(openNext, 180);
 
 }
 
@@ -232,8 +229,6 @@ function devSkipMonth() {
   openNext();
 }
 
-// 只有玩家主动触发的剧情（比如和苏晴聊天）才立刻弹出来；
-// 主线剧情一律等玩家点「有 N 段剧情」，演完就回去经营。
 watch(
   () => state.autoStory,
   (v) => {
@@ -364,16 +359,6 @@ onMounted(() => {
       @tutorial-step="updatePhoneTutorialStep"
       @tutorial-done="finishTutorialPractice('phone')"
     />
-
-    <button
-      v-if="started && pending"
-      class="btn primary"
-      type="button"
-      style="position: absolute; right: 14px; bottom: 16px; z-index: 20; box-shadow: var(--shadow)"
-      @click="openNext"
-    >
-      有 {{ pending }} 段剧情
-    </button>
 
     <BakingGame v-if="minigame === 'baking'" @exit="minigame = ''" />
     <ResearchGame v-if="minigame === 'research'" @exit="minigame = ''" />

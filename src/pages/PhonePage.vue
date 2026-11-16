@@ -10,6 +10,7 @@ const props = defineProps({
   tutorial: { type: Boolean, default: false },
   tutorialProgress: { type: Number, default: 0 },
   storyMessage: { type: Object, default: null },
+  storyBeat: { type: Object, default: null },
 });
 const emit = defineEmits(['close', 'navigate', 'open-panel', 'tutorial-step', 'tutorial-done', 'story-message-done']);
 const sections = [
@@ -151,7 +152,10 @@ onMounted(() => {
 });
 
 watch(() => [props.tutorial, props.tutorialProgress], ([tutorial, progress]) => {
-  if (!tutorial) return;
+  if (!tutorial) {
+    notice.value = '';
+    return;
+  }
   addTutorialMessage();
   tab.value = GUIDE_STEPS[Math.max(0, Math.min(GUIDE_STEPS.length - 1, progress))].tab;
   selectedContactId.value = progress === 0 ? 'sura' : '';
@@ -164,6 +168,8 @@ watch(() => props.storyMessage, (message) => {
   selectedContactId.value = message.contactId;
   markContactRead(message.contactId);
 });
+
+watch(() => props.storyBeat, () => { notice.value = ''; });
 
 const guideText = computed(() => GUIDE_STEPS[Math.max(0, Math.min(GUIDE_STEPS.length - 1, props.tutorialProgress))].text);
 
@@ -201,7 +207,7 @@ function formatStatus(order) {
   <Teleport to="body">
   <div class="phone-mask" @click.self="closePhone">
     <section class="phone-body" role="dialog" aria-label="林念的手机">
-      <header class="phone-top"><div><span>QIYUN · 林念的手机</span><h2>{{ storyMessage ? '剧情消息' : selectedPerson ? selectedPerson.name : '今天想做点什么？' }}</h2></div><button type="button" :aria-label="storyMessage ? '返回剧情' : '关闭手机'" @click="closePhone">✕</button></header>
+      <header class="phone-top"><div><span>QIYUN · 林念的手机</span><h2>{{ storyMessage ? '剧情消息' : selectedPerson ? selectedPerson.name : '今天想做点什么？' }}</h2></div><button type="button" :aria-label="storyMessage ? '继续剧情' : '关闭手机'" @click="closePhone">{{ storyMessage ? '›' : '✕' }}</button></header>
       <nav v-if="!storyMessage" class="phone-tabs" aria-label="手机功能">
         <button v-for="item in sections" :key="item[0]" :data-tab-id="item[0]" type="button" :class="{ active: tab === item[0] }" @click="selectSection(item[0])">{{ item[1] }}<i v-if="item[0] === 'notices' && pendingAlerts.length">{{ pendingAlerts.length }}</i><i v-if="item[0] === 'messages' && state.phoneMessages.filter((message) => !message.read).length">{{ state.phoneMessages.filter((message) => !message.read).length }}</i></button>
       </nav>
@@ -214,7 +220,6 @@ function formatStatus(order) {
             <div class="chat-heading"><img v-if="selectedPerson.avatar" :src="selectedPerson.avatar" :alt="selectedPerson.name" /><div><strong>{{ selectedPerson.name }}</strong><small>{{ selectedPerson.detail }}</small></div></div>
             <div v-if="!conversationMessages.length" class="phone-empty">暂无消息</div>
             <div v-for="message in conversationMessages" :key="message.id" class="chat-row" :class="{ sent: message.sender === 'player' }"><small>{{ message.sender === 'player' ? '林念' : selectedPerson.name }}</small><div class="chat-bubble">{{ message.text }}</div></div>
-            <button v-if="storyMessage" class="phone-primary" type="button" @click="emit('story-message-done')">返回剧情</button>
           </template>
           <template v-else>
             <h3>消息</h3><p v-if="!inboxRows.length" class="phone-empty">暂无消息</p>
@@ -278,6 +283,12 @@ function formatStatus(order) {
           <p v-if="!state.notices.length && !pendingAlerts.length" class="phone-empty">暂时没有新消息。经营与探索后会收到提醒。</p>
         </template>
       </main>
+      <footer v-if="storyMessage" class="phone-story-foot">
+        <div v-if="storyBeat?.t === 'say'" class="phone-story-speaker"><img v-if="faceOfName(storyBeat.who)" :src="faceOfName(storyBeat.who)" alt="" /><strong>{{ storyBeat.who }}</strong></div>
+        <p v-if="storyBeat && storyBeat.t !== 'phoneMessage'">{{ storyBeat.text }}</p>
+        <p v-else-if="!storyBeat">手机收到了一条新消息。</p>
+        <button type="button" aria-label="继续剧情" @click="emit('story-message-done')">继续</button>
+      </footer>
       <footer v-if="tutorial" class="phone-guide-foot">
         <div class="phone-guide-copy"><img v-if="faceOfName('林暖')" :src="faceOfName('林暖')" alt="林暖" /><div><strong>林暖 · {{ sections.find((item) => item[0] === GUIDE_STEPS[tutorialProgress]?.tab)?.[1] || '手机讲解' }}</strong><p>{{ guideText }}</p></div></div>
         <button type="button" @click="advanceTutorial">{{ tutorialProgress >= GUIDE_STEPS.length - 1 ? '完成讲解' : '下一项' }}</button>
@@ -291,5 +302,13 @@ function formatStatus(order) {
 <style scoped>
 .phone-mask{position:fixed;inset:0;z-index:1000;background:#2b211c9c;display:flex;align-items:flex-end;justify-content:center}.phone-body{display:flex;flex-direction:column;width:min(100%,440px);height:min(95%,860px);min-height:0;background:#fbf5ec;border-radius:22px 22px 0 0;box-shadow:0 -10px 45px #2b201a55;overflow:hidden}.phone-top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:19px 17px 12px;background:#e8d1b5}.phone-top span{font-size:10px;letter-spacing:1.2px;color:#84664d}.phone-top h2{margin:2px 0 0;font-family:serif;font-size:20px;font-weight:600}.phone-top>button{width:44px;height:44px;border-radius:50%;border:1px solid #cfbaa2;background:#fff8ec;color:#6b4a34;font-size:18px}.phone-tabs{display:flex;gap:5px;overflow-x:auto;flex:0 0 auto;padding:9px 10px;border-bottom:1px solid #eadbca;background:#fffaf3;scrollbar-width:none}.phone-tabs button{position:relative;flex:0 0 auto;min-height:43px;padding:7px 12px;background:#f7e6d0;border:1px solid transparent;border-radius:14px;color:#6b4a34;font-size:12px;font-weight:600;white-space:nowrap}.phone-tabs button.active{background:#6b4a34;color:white}.phone-tabs i{position:absolute;right:0;top:-5px;min-width:16px;height:16px;border-radius:50%;background:#d95b67;color:#fff;font-size:10px;font-style:normal}.phone-content{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 15px}.phone-content h3{font-size:15px;margin:5px 0 10px}.phone-sub{font-size:12px;line-height:1.7;color:#8c6a50;margin:0 0 12px}.phone-card{background:#fffdf9;border:1px solid #e9d8c4;border-radius:13px;margin-bottom:9px;padding:12px;box-shadow:0 2px 6px #6b4a3410}.phone-card strong{font-size:13px}.phone-card p{font-size:12px;line-height:1.85;color:#8c6a50;margin:6px 0}.phone-card>button{border:1px solid #c9b298;background:#f7e6d0;border-radius:9px;min-height:40px;padding:6px 13px;color:#6b4a34;font-weight:600;font-size:12px}.phone-card>button:disabled{opacity:.4}.phone-card-title{display:flex;justify-content:space-between;gap:10px}.phone-card-title span{font-size:11px;color:#8a9a7e}.phone-search{display:block;width:100%;height:44px;border:1px solid #dec8b2;border-radius:10px;background:#fffdf8;padding:8px 12px;margin:0 0 12px;color:#6b4a34}.phone-primary{display:block;width:100%;min-height:44px;margin-top:12px;border:0;border-radius:10px;background:#6b4a34;color:#fffaf2;font-size:12px;font-weight:700}.phone-empty{padding:14px;color:#8c6a50;font-size:12px;border:1px dashed #d6c2ab;border-radius:10px}.phone-material,.phone-ledger{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid #eadbca;font-size:12px}.phone-material b,.phone-ledger b{font-weight:600}.phone-material .missing,.phone-ledger .missing{color:#c6665c}.phone-stats{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 14px}.phone-stats span{background:#e8efdf;border-radius:8px;padding:8px 10px;color:#526747;font-size:11px}.phone-entry{font-size:12px;line-height:1.7;padding:8px 0;border-bottom:1px solid #eadbca}.phone-notice{font-size:12px;background:#e5efdf;color:#536d4c;border-radius:10px;padding:9px 10px;line-height:1.6}.phone-alert{border-color:#e6c1ad}.phone-foot{flex:0 0 auto;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid #eadbca;background:#fffaf3;display:flex;justify-content:space-between;align-items:center;gap:8px}.phone-foot span{font-size:10px;color:#9b8573}.phone-foot button{min-height:44px;min-width:100px;border:0;border-radius:10px;background:#a9b99b;color:#32452c;font-weight:700}
 .phone-back{min-height:40px;margin-bottom:10px;padding:0 12px;border:0;border-radius:10px;background:#f1e2d0;color:#6b4a34;font-size:12px;font-weight:700}.chat-heading{display:flex;align-items:center;gap:10px;margin:4px 0 16px;padding-bottom:12px;border-bottom:1px solid #eadbca}.chat-heading img,.inbox-card>img,.person-card>img,.phone-guide-copy>img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#f2e4d3}.chat-heading div,.inbox-copy{display:flex;min-width:0;flex-direction:column;gap:3px}.chat-heading small{font-size:11px;color:#92765e}.chat-row{display:flex;flex-direction:column;align-items:flex-start;margin:12px 0}.chat-row.sent{align-items:flex-end}.chat-row>small{margin:0 5px 4px;color:#987d66;font-size:10px}.chat-bubble{max-width:86%;padding:10px 13px;border-radius:15px 15px 15px 4px;background:#fffdf9;color:#5d4939;font-size:13px;line-height:1.7;white-space:pre-wrap}.chat-row.sent .chat-bubble{border-radius:15px 15px 4px 15px;background:#e5efdf}.inbox-card{display:flex;width:100%;align-items:center;gap:10px;text-align:left;color:#6b4a34}.inbox-copy{flex:1}.inbox-copy small{overflow:hidden;color:#92765e;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.inbox-card>i{min-width:19px;height:19px;border-radius:50%;background:#d95b67;color:white;text-align:center;font-size:11px;font-style:normal;line-height:19px}.person-card{display:grid;grid-template-columns:48px minmax(0,1fr);gap:9px;align-items:start}.person-card>img{width:48px;height:58px;border-radius:10px;object-position:center 15%}.person-copy{min-width:0}.person-copy p{white-space:pre-line}.person-copy small{font-size:11px;color:#718260}.person-actions{grid-column:2;display:flex;flex-wrap:wrap;gap:6px}.person-actions button{min-height:40px;padding:6px 11px;border:1px solid #c9b298;border-radius:9px;background:#f7e6d0;color:#6b4a34;font-size:12px;font-weight:600}.phone-guide-foot{flex:0 0 auto;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid #eadbca;background:#fffaf3}.phone-guide-copy{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px}.phone-guide-copy>img{flex:0 0 38px;width:38px;height:38px}.phone-guide-copy strong{font-size:12px;color:#6b4a34}.phone-guide-copy p{margin:3px 0 0;color:#80634c;font-size:11px;line-height:1.55}.phone-guide-foot>button{width:100%;min-height:44px;border:0;border-radius:11px;background:#6b4a34;color:#fff8ee;font-size:14px;font-weight:700}.phone-guide-foot>button:active{transform:scale(.99)}
+</style>
+
+<style scoped>
+.phone-story-foot{flex:0 0 auto;padding:12px 15px calc(env(safe-area-inset-bottom,0px) + 12px);border-top:1px solid #eadbca;background:#fffaf3}
+.phone-story-foot p{margin:5px 0 10px;color:#604a38;font-size:14px;line-height:1.7;white-space:pre-wrap}
+.phone-story-speaker{display:flex;align-items:center;gap:8px;color:#6b4a34;font-size:13px}
+.phone-story-speaker img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.phone-story-foot button{width:100%;min-height:44px;border:0;border-radius:10px;background:#6b4a34;color:#fff8ee;font-size:14px;font-weight:700}
 </style>
 

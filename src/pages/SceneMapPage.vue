@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { art, artStatus } from '../data';
-import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene, momStoryInfo } from '../store';
+import { state, actionInfo, doAction, stageInfo, stageProgress, sceneAvailability, visitTownScene } from '../store';
 
 const props = defineProps({ scene: { type: String, default: 'shop' }, guideTarget: { type: String, default: '' } });
 const emit = defineEmits(['change-scene', 'open-panel', 'rest-day']);
@@ -33,7 +33,7 @@ const hotspots = computed(() => {
   const layouts = {
     shop: [
       { id: 'counter', x: shopLayout.counter[0], y: shopLayout.counter[1], text: '柜台 · 预约与营业', kind: 'panel', value: 'shop', section: 'counter' },
-      ...(momStoryInfo().event || props.guideTarget === 'mom' ? [{ id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' }] : []),
+      { id: 'mom', x: shopLayout.mom[0], y: shopLayout.mom[1], text: '和妈妈聊聊', kind: 'action', value: 'momchat' },
       { id: 'book', x: shopLayout.book[0], y: shopLayout.book[1], text: '装修册 · 店铺升级', kind: 'panel', value: 'renovation' },
       { id: 'kitchen', x: shopLayout.kitchen[0], y: shopLayout.kitchen[1], text: '去后厨 →', kind: 'scene', value: 'kitchen' },
       { id: 'door', x: shopLayout.door[0], y: shopLayout.door[1], text: '出门 →', kind: 'scene', value: 'street' },

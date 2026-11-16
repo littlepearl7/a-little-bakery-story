@@ -263,6 +263,7 @@ function parseBlock(lines, opts = {}) {
   let curCond = null;
   let lastCond = null;
   let inlineCond = null;
+  let pendingGuideTarget = '';
   let para = 0;
   let sawBlank = true;
 
@@ -275,6 +276,14 @@ function parseBlock(lines, opts = {}) {
   };
 
   const push = (b) => target().push(b);
+  const pushMarkedProse = (line, dest) => {
+    const before = dest.length;
+    pushProse(line, dest);
+    if (pendingGuideTarget && dest.length > before) {
+      dest[before].guideTarget = pendingGuideTarget;
+      pendingGuideTarget = '';
+    }
+  };
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -333,6 +342,12 @@ function parseBlock(lines, opts = {}) {
       const inner = mark[1];
       const rest = (mark[2] || '').replace(/^[：:]\s*/, '').trim();
 
+      const guide = inner.match(/^教学指向\s*[：:]\s*([a-z-]+)$/);
+      if (guide) {
+        pendingGuideTarget = guide[1];
+        continue;
+      }
+
       // 事件 ID / 触发条件 / 状态变更 / 初始状态 / 检查条件：元数据
       // 注意：事件ID 有时跟在「触发条件｜」后面，所以不能只看行首
       if (inner.indexOf('事件ID') >= 0) {
@@ -363,7 +378,7 @@ function parseBlock(lines, opts = {}) {
           '张奶奶|没有取消的聚会': 'regular-granny-m17',
           '陈叔|市集的准备': 'regular-uncle-m24',
           '小满|失败的作品': 'regular-xiaoman-m10',
-          '群像|我们都在这里': 'regular-group-m36',
+          '群像|我们都在这里': 'group',
         }[regularCg[1] + '|' + regularCg[2].trim()];
         if (key) push({ t: 'cg', key });
         continue;
@@ -499,7 +514,7 @@ function parseBlock(lines, opts = {}) {
       continue;
     }
 
-    pushProse(line, target());
+    pushMarkedProse(line, target());
     sawBlank = false;
   }
 

@@ -46,35 +46,8 @@ const guideSpeaker = computed(() => (isSay.value ? cur.value.who : ''));
 const text = computed(() => (cur.value && cur.value.text) || '');
 const guideTarget = computed(() => {
   if (!isMapGuide.value) return '';
-  if (props.ev.id === 'EVT_TUTORIAL_PHONE') return 'phone';
-  const targets = {
-    EVT_TUTORIAL_START: [[/柜台|展示柜/, 'counter']],
-    EVT_TUTORIAL_FRONT: [
-      [/柜台|展示柜|接待顾客|收银|结账/, 'counter'],
-      [/装修册/, 'book'],
-      [/门口|出门|出去/, 'door'],
-      [/门帘|去后厨/, 'kitchen'],
-      [/和妈妈聊聊|找妈妈/, 'mom'],
-    ],
-    EVT_TUTORIAL_KITCHEN: [
-      [/操作台|排产|菜单/, 'workbench'],
-      [/设备区|烤箱|打蛋器/, 'devices'],
-      [/食材区|食材|库存/, 'pantry'],
-      [/实验台|研发/, 'lab'],
-      [/排班板|店员|员工/, 'staff'],
-      [/做一炉|制作蛋糕|蛋糕制作/, 'baking'],
-    ],
-    EVT_TUTORIAL_STREET: [
-      [/食材铺|采购|农场/, 'supplier'],
-      [/公园|散步/, 'park'],
-      [/苏晴|寻找苏晴/, 'sq'],
-      [/回家|休息/, 'home'],
-    ],
-  }[props.ev.id] || [];
-  const matches = targets.map(([pattern, id]) => ({ at: text.value.search(pattern), id }))
-    .filter((match) => match.at >= 0)
-    .sort((a, b) => a.at - b.at);
-  return matches[0]?.id || '';
+  if (props.ev.id === 'EVT_TUTORIAL_PHONE') return '';
+  return cur.value?.guideTarget || '';
 });
 const guideBoxStyle = ref({});
 let guidePlacement = '';
@@ -293,10 +266,11 @@ watch(() => idx.value, startType);
 
 /* ---------------- 推进 ---------------- */
 
-function nextIndex(from) {
+function nextIndex(from, stopAtScene = false) {
   let i = from + 1;
   while (i < list.value.length) {
     const t = list.value[i].t;
+    if (stopAtScene && ['scene', 'cg', 'cgend', 'act', 'choice'].includes(t)) return i;
     if (t === 'scene' || t === 'cg' || t === 'cgend' || t === 'act') i++;
     else break;
   }
@@ -327,15 +301,24 @@ function openStoryPhoneMessage(index) {
 }
 
 watch([() => props.ev.id, () => idx.value], () => {
-  if (!phoneConversationOpen.value) openStoryPhoneMessage(idx.value);
+  if (list.value[idx.value]?.t === 'phoneMessage') openStoryPhoneMessage(idx.value);
 }, { flush: 'post' });
 
 function returnFromStoryPhone() {
   if (!phoneConversationOpen.value) return;
-  phoneConversationOpen.value = false;
-  activeStoryMessageId.value = '';
-  if (finished.value) close();
-  else idx.value = nextIndex(idx.value);
+  if (finished.value) {
+    close();
+    return;
+  }
+  const next = nextIndex(idx.value, true);
+  const nextBeat = list.value[next];
+  if (!nextBeat || ['scene', 'cg', 'cgend', 'act', 'choice'].includes(nextBeat.t)) {
+    phoneConversationOpen.value = false;
+    activeStoryMessageId.value = '';
+    idx.value = nextBeat?.t === 'cg' ? next : nextIndex(next);
+    return;
+  }
+  idx.value = next;
 }
 
 function recordSkippedMessages(start, end) {
@@ -552,6 +535,7 @@ onUnmounted(() => {
     <PhonePage
       v-if="phoneConversationOpen && activeStoryMessage"
       :story-message="activeStoryMessage"
+      :story-beat="cur?.t === 'phoneMessage' ? null : cur"
       @story-message-done="returnFromStoryPhone"
     />
   </div>
