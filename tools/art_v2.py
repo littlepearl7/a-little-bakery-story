@@ -27,12 +27,13 @@ OUT = os.path.join(ROOT, 'public', 'art')
 # 角色 -> (前缀, 店内源文件, 店外源文件)
 SPRITES = [
     ('林念',   'ln', '林念/林念默认立绘（店内）.png',   '林念/林念默认立绘（店外）.png'),
-    ('苏晴',   'sq', '苏晴/苏晴的暖色系咖啡店制服造型-1.png', '苏晴/苏晴默认立绘.png'),
+    ('苏晴',   'sq', '苏晴/苏晴默认立绘.png', '苏晴/苏晴默认立绘.png'),
     ('林暖',   'nu', '林暖/林暖默认立绘（店内）.png',   '林暖/林暖默认立绘（店外）.png'),
     ('周雨桐', 'xy', '周雨桐/小雨默认立绘（店内）.png', '周雨桐/小雨默认立绘（店外）.png'),
     ('许知遥', 'zy', '许知遥/许知遥默认立绘（店内）.png', '许知遥/许知遥默认立绘（店外）.png'),
     ('唐鸢',   'ty', '唐鸢/唐鸢默认立绘（店内）.png',   '唐鸢/唐鸢默认立绘（店外）.png'),
     ('叶星河', 'xh', '叶星河/叶星河默认立绘（店内）.png', '叶星河/叶星河默认立绘（店外）.png'),
+    ('沈知秋', 'zhiqiu', '沈知秋/沈知秋默认立绘（店内）.png', '沈知秋/沈知秋默认立绘（店外）.png'),
 ]
 
 # 背景：源文件名 -> 输出名（bg-shool 是原始拼写，输出修正为 school）
@@ -51,10 +52,38 @@ BACKGROUNDS = [
 
 # 店铺等级插画
 SHOPS = [
-    ('shop-lv1.png', 'shop-lv1.webp'),
-    ('shop-lv2.png', 'shop-lv2.webp'),
-    ('shop-lv3.png', 'shop-lv3.webp'),
-    ('shop-lv4.png', 'shop-lv4.webp'),
+    ('bg-shop-lv1.png', 'bg-shop-lv1.webp'),
+    ('bg-shop-lv2.png', 'bg-shop-lv2.webp'),
+    ('bg-shop-lv3.png', 'bg-shop-lv3.webp'),
+    ('bg-shop-lv4.png', 'bg-shop-lv4.webp'),
+]
+
+CG_FILES = [
+    ('毕业季的拒信.png', 'cg-graduation-rejection.webp'),
+    ('cg-osmanthus.png', 'cg-osmanthus.webp'),
+    ('cg-festival.png', 'cg-festival.webp'),
+    ('cg-memory.png', 'cg-memory.webp'),
+    ('cg-flagship.png', 'cg-flagship.webp'),
+    ('cg-album.png', 'cg-album.webp'),
+    ('cg-finale.png', 'cg-finale.webp'),
+    ('cg-mom-handover.png', 'cg-mom-01.webp'),
+    ('cg-mom-recipebook.png', 'cg-mom-02.webp'),
+    ('cg-mom-osmanthus-lesson.png', 'cg-mom-03.webp'),
+    ('cg-mom-yearend-ledger.png', 'cg-mom-04.webp'),
+    ('cg-mom-anniversary.png', 'cg-mom-05.webp'),
+    ('cg-mom-sunset-future.png', 'cg-mom-06.webp'),
+    ('cg-zhiqiu-firstmeet.png', 'cg-zhiqiu-01.webp'),
+    ('cg-zhiqiu-tasting.png', 'cg-zhiqiu-02.webp'),
+    ('cg-zhiqiu-busyweekend.png', 'cg-zhiqiu-03.webp'),
+    ('cg-zhiqiu-rainstory.png', 'cg-zhiqiu-04.webp'),
+    ('cg-zhiqiu-fourseasons.png', 'cg-zhiqiu-05.webp'),
+    ('cg-zhiqiu-nightlight.png', 'cg-zhiqiu-06.webp'),
+    ('栖云四季联名菜单.png', 'cg-zhiqiu-menu.webp'),
+]
+
+COVERS = [
+    ('封面.png', 'cover.webp'),
+    ('封面选项.png', 'cover-options.webp'),
 ]
 
 SPRITE_H = 1100      # 立绘输出高度
@@ -288,6 +317,49 @@ def main():
         img.save(p, 'WEBP', quality=86, method=6)
         total += os.path.getsize(p)
         rows.append((dst, img.size, os.path.getsize(p)))
+
+    # ---------- 封面 ----------
+    for src, dst in COVERS:
+        path = os.path.join(PIC, BG_DIR, src)
+        if not os.path.exists(path):
+            print('缺少封面：', src)
+            continue
+        img = Image.open(path).convert('RGB').resize((BG_W, BG_H), Image.LANCZOS)
+        p = os.path.join(OUT, dst)
+        img.save(p, 'WEBP', quality=88, method=6)
+        total += os.path.getsize(p)
+        rows.append((dst, img.size, os.path.getsize(p)))
+
+    # ---------- CG：等比缩放并留黑边，不裁掉人物和关键细节 ----------
+    for src, dst in CG_FILES:
+        path = os.path.join(PIC, 'CG', src)
+        if not os.path.exists(path):
+            print('缺少 CG：', src)
+            continue
+        img = Image.open(path).convert('RGB')
+        img.thumbnail((BG_W, BG_H), Image.LANCZOS)
+        canvas = Image.new('RGB', (BG_W, BG_H), (26, 20, 16))
+        canvas.paste(img, ((BG_W - img.width) // 2, (BG_H - img.height) // 2))
+        p = os.path.join(OUT, dst)
+        canvas.save(p, 'WEBP', quality=88, method=6)
+        total += os.path.getsize(p)
+        rows.append((dst, canvas.size, os.path.getsize(p)))
+
+    # ---------- 常客头像：从默认透明立绘裁头 ----------
+    for source, output in [
+        ('陈奶奶默认立绘.png', 'customer-chen.webp'),
+        ('张叔默认立绘.png', 'customer-zhang.webp'),
+    ]:
+        path = os.path.join(PIC, CHAR_DIR, '常客', source)
+        if not os.path.exists(path):
+            print('缺少常客立绘：', source)
+            continue
+        sprite = load_sprite(os.path.join('常客', source))
+        face = make_face(sprite)
+        if face:
+            size = save_face(face, output)
+            total += size
+            rows.append((output, (FACE, FACE), size))
 
     print('%-26s %-12s %s' % ('文件', '尺寸', '大小'))
     for n, size, b in rows:

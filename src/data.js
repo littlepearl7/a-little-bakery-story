@@ -119,6 +119,43 @@ export const RECIPE_INGREDIENTS = {
   signature: [['高山秋栗', '金桂冻', '戚风胚']],
 };
 
+// 主库存采用基础包、乳制基底和特色食材；研发提示与营业生产共享这份配方表。
+export const INGREDIENTS = [
+  { id: 'base', name: '基础烘焙包', price: 20, month: 1 },
+  { id: 'dairy', name: '乳制基底', price: 10, month: 1 },
+  { id: 'decor', name: '裱花装饰料', price: 5, month: 1 },
+  { id: 'strawberry', name: '鲜草莓', price: 10, month: 1 },
+  { id: 'cocoa', name: '可可粉', price: 10, month: 1 },
+  { id: 'taro', name: '荔浦芋泥', price: 10, month: 3 },
+  { id: 'crisp', name: '焦糖杏仁薄脆', price: 10, month: 3 },
+  { id: 'matcha', name: '春日抹茶粉', price: 10, month: 4 },
+  { id: 'redbean', name: '蜜红豆', price: 10, month: 4 },
+  { id: 'mango', name: '台农芒果泥', price: 10, month: 6 },
+  { id: 'mascarpone', name: '马斯卡彭', price: 10, month: 8 },
+  { id: 'coffee', name: '浓缩咖啡液', price: 10, month: 8 },
+  { id: 'fig', name: '波姬红无花果', price: 10, month: 10 },
+  { id: 'seasonal', name: '四季时令鲜果', price: 10, month: 12 },
+  { id: 'filling', name: '定制夹心', price: 10, month: 12 },
+  { id: 'redrice', name: '传统红曲', price: 10, month: 20 },
+  { id: 'chestnut', name: '高山秋栗', price: 10, month: 20 },
+  { id: 'osmanthus', name: '金桂冻', price: 10, month: 26 },
+];
+
+export const RECIPE_BOM = {
+  plain: { base: 1, dairy: 1 },
+  strawberry: { base: 1, dairy: 1, strawberry: 1 },
+  chocolate: { base: 1, dairy: 1, cocoa: 1 },
+  taro: { base: 1, dairy: 1, taro: 1, crisp: 1 },
+  matcha: { base: 1, dairy: 1, matcha: 1, redbean: 1 },
+  mango: { base: 1, dairy: 1, mango: 1 },
+  tiramisu: { base: 1, mascarpone: 1, coffee: 1 },
+  fig: { base: 1, dairy: 1, fig: 1 },
+  seasonal: { base: 1, dairy: 1, seasonal: 1, filling: 1 },
+  custom: { base: 2, dairy: 1, filling: 1, decor: 1 },
+  festival: { base: 1, dairy: 1, chestnut: 1, decor: 1 },
+  signature: { base: 1, dairy: 1, chestnut: 1, osmanthus: 1 },
+};
+
 export const DECORATIONS = [
   { id: 'greenery', name: '窗边绿植', category: '绿植', cost: 600, shopLevel: 1 },
   { id: 'lamp', name: '暖黄吊灯', category: '灯具', cost: 1200, shopLevel: 1 },
@@ -129,19 +166,19 @@ export const DECORATIONS = [
 export const CUSTOMERS = [
   {
     id: 'chen',
-    name: '陈奶奶',
+    name: '张奶奶',
     month: 2,
     day: 2,
     product: 'plain',
     preference: '每次都买原味奶油蛋糕，给小孙子也带一份。',
     stories: [
-      '“我家小孙子指定要吃你们家的味道。”陈奶奶说，家里三代人的生日蛋糕全是在林记订的。',
+      '“我家小孙子指定要吃你们家的味道。”张奶奶说，家里三代人的生日蛋糕全是在林记订的。',
       '她看着林念接过店，也和苏晴一起盼着林记的老味道走出栖云镇。',
     ],
   },
   {
     id: 'zhang',
-    name: '张叔',
+    name: '陈叔',
     month: 28,
     day: 4,
     product: 'signature',
@@ -276,7 +313,7 @@ export const ACTIONS = [
   { id: 'restock', name: '原料采购', ap: 1, hint: '花钱补原料' },
   { id: 'feedback', name: '顾客反馈', ap: 1, hint: '口碑与忠诚度' },
   { id: 'talk', name: '伙伴交流', ap: 1, hint: '提升信赖度' },
-  { id: 'research', name: '新品研发', ap: 2, hint: '提高产品熟练度' },
+  { id: 'lab', name: '烘焙实验室', ap: 0, hint: '试做新品、改良配方、查看实验档案' },
   { id: 'market', name: '市场宣传', ap: 2, hint: '知名度与品牌' },
   { id: 'train', name: '员工培训', ap: 2, hint: '专业能力' },
   { id: 'decorate', name: '店铺装修', ap: 2, hint: '升级店铺' },
@@ -327,7 +364,7 @@ export const STAGES = [
     short: {
       key: 'familiar_taste', name: '短文结局 · 熟悉的味道',
       title: '没有成为大品牌，但林记依然是大家熟悉的林记',
-      text: '一年过去，林记依然是栖云镇那家熟悉的老店。除夕夜，店里摆满提前预订的蛋糕。陈奶奶笑着说，还是你们家的蛋糕好吃，这么多年都没变。',
+      text: '一年过去，林记依然是栖云镇那家熟悉的老店。除夕夜，店里摆满提前预订的蛋糕。张奶奶笑着说，还是你们家的蛋糕好吃，这么多年都没变。',
     },
   },
   {

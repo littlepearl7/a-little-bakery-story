@@ -4,8 +4,11 @@ import { PRODUCTS, PHOTOS, CITIES, CUSTOMERS, DECORATIONS, STAGES, ENDINGS } fro
 import { state, priceOf } from '../store';
 import { STORY } from '../story';
 import CakeArt from '../components/CakeArt.vue';
+import { CG_COLLECTION, cgOf } from '../vn';
 
-const seg = ref('product');
+const props = defineProps({ initialSegment: { type: String, default: 'product' } });
+const seg = ref(props.initialSegment);
+const selectedCg = ref(null);
 
 const products = computed(() =>
   PRODUCTS.map((p) => ({
@@ -30,6 +33,16 @@ const photos = computed(() =>
     collected: state.career.photos.includes(id),
   }))
 );
+const labReports = computed(() => PRODUCTS.map((product) => ({
+  ...product,
+  reports: state.career.labReports[product.id] || {},
+})).filter((product) => product.reports.development || product.reports.improvement));
+const osmanthusCG = computed(() => cgOf('osmanthus').src);
+const cgs = computed(() => CG_COLLECTION.map((item) => ({
+  id: item.id,
+  ...cgOf(item.id),
+  collected: state.career.cgs.includes(item.id),
+})));
 
 const cities = computed(() =>
   CITIES.map((c) => ({
@@ -39,7 +52,7 @@ const cities = computed(() =>
   }))
 );
 
-const customers = computed(() => CUSTOMERS.map((customer) => ({
+const customers = computed(() => CUSTOMERS.filter((customer) => (state.regularCustomers[customer.id]?.purchases || 0) > 0).map((customer) => ({
   ...customer,
   productName: PRODUCTS.find((product) => product.id === customer.product).name,
   visit: state.regularCustomers[customer.id],
@@ -58,11 +71,23 @@ const collection = computed(() => ({
     collected: state.career.photos.includes(id),
     current: state.photos.includes(id),
   })),
+  cgs: cgs.value.map((cg) => ({
+    id: cg.id,
+    name: cg.name,
+    collected: cg.collected,
+    current: cg.collected,
+  })),
   decorations: DECORATIONS.map((item) => ({
     id: item.id,
     name: item.name,
     collected: state.career.decorations.includes(item.id),
     current: state.decorations.includes(item.id),
+  })),
+  keepsakes: ['店铺钥匙', '旧配方本', '老店照片', '手写笔记'].map((name) => ({
+    id: name,
+    name,
+    collected: (state.career.keepsakes || []).includes(name),
+    current: (state.momKeepsakes || []).includes(name),
   })),
   endings: [
     ...STAGES.filter((stage) => !stage.final).map((stage) => ({
@@ -94,8 +119,10 @@ function collectionStatus(item) {
           { k: 'product', t: '产品' },
           { k: 'customer', t: '顾客' },
           { k: 'photo', t: '相册' },
+          { k: 'cg', t: 'CG' },
           { k: 'city', t: '门店' },
           { k: 'collection', t: '收藏' },
+          { k: 'lab', t: '实验档案' },
         ]"
         :key="s.k"
         type="button"
@@ -143,6 +170,49 @@ function collectionStatus(item) {
       </div>
     </div>
 
+    <div v-else-if="seg === 'cg'" class="cg-gallery">
+      <button v-for="cg in cgs" :key="cg.id" class="photo cg-card" type="button" :disabled="!cg.collected || !cg.src" @click="selectedCg = cg">
+        <span class="im">
+          <img v-if="cg.collected && cg.src" :src="cg.src" :alt="cg.name" />
+          <span v-else>?</span>
+        </span>
+        <span class="cp">
+          <span class="ti">{{ cg.collected ? cg.name : '还没发生' }}</span>
+          <span class="cc">{{ collectionStatus(cg) }}</span>
+        </span>
+      </button>
+    </div>
+
+    <div v-else-if="seg === 'lab'" class="lab-list">
+      <div v-if="!labReports.length" class="card card-pad small muted">完成一次新品上架或配方改良后，报告会保存在这里。</div>
+      <article v-for="product in labReports" :key="product.id" class="card card-pad lab-report">
+        <div class="between">
+          <div class="h2" style="margin: 0">{{ product.name }}</div>
+          <span class="chip" style="font-size: 10px">{{ state.career.products.includes(product.id) ? '配方已收录' : '已研发' }}</span>
+        </div>
+        <img v-if="product.reports.development?.type === 'signature' && osmanthusCG" class="lab-cg" :src="osmanthusCG" alt="桂花栗子蛋糕复原插画" />
+        <div v-for="kind in ['development', 'improvement']" :key="kind" class="lab-entry">
+          <template v-if="product.reports[kind]">
+            <div class="between">
+              <strong>{{ kind === 'improvement' ? '配方改良' : product.reports[kind].type === 'signature' ? '外婆配方复原' : product.reports[kind].refined ? '精制新品研发' : '新品研发' }}</strong>
+              <span class="small muted">第 {{ product.reports[kind].run }} 轮 · M{{ product.reports[kind].month }}</span>
+            </div>
+            <div v-if="kind === 'development'" class="lab-scores">
+              <span>总分 {{ product.reports[kind].score }}</span>
+              <span v-for="metric in [
+                { key: 'flavor', label: '风味' },
+                { key: 'texture', label: '口感' },
+                { key: 'appearance', label: '外观' },
+                { key: 'cost', label: '成本' },
+              ]" :key="metric.key">{{ metric.label }} {{ product.reports[kind].scores[metric.key] }}</span>
+            </div>
+            <div v-else class="small muted">熟练度 Lv{{ product.reports[kind].levelBefore }} → Lv{{ product.reports[kind].levelAfter }}</div>
+            <p v-for="note in product.reports[kind].feedback" :key="note" class="lab-note">{{ note }}</p>
+          </template>
+        </div>
+      </article>
+    </div>
+
     <div v-else-if="seg === 'city'" class="card">
       <div
         v-for="c in cities"
@@ -184,7 +254,9 @@ function collectionStatus(item) {
       <div v-for="section in [
         { key: 'products', title: '产品' },
         { key: 'photos', title: '相册' },
+        { key: 'cgs', title: 'CG' },
         { key: 'decorations', title: '装饰' },
+        { key: 'keepsakes', title: '妈妈的旧物' },
         { key: 'endings', title: '结局' },
       ]" :key="section.key" class="card card-pad">
         <div class="h2">{{ section.title }}</div>
@@ -193,6 +265,12 @@ function collectionStatus(item) {
           <span class="small muted">{{ collectionStatus(item) }}</span>
         </div>
       </div>
+    </div>
+
+    <div v-if="selectedCg" class="cg-lightbox" role="dialog" aria-modal="true" :aria-label="selectedCg.name" @click.self="selectedCg = null">
+      <button class="cg-lightbox-close" type="button" aria-label="关闭 CG" @click="selectedCg = null">✕</button>
+      <img :src="selectedCg.src" :alt="selectedCg.name" />
+      <div>{{ selectedCg.name }}</div>
     </div>
   </div>
 </template>
@@ -223,10 +301,16 @@ function collectionStatus(item) {
   box-shadow: var(--shadow);
 }
 .customer-list,
-.collection {
+.collection,
+.lab-list {
   display: grid;
   gap: 10px;
 }
+.lab-report { display: grid; gap: 8px; }
+.lab-entry { padding-top: 8px; border-top: 1px dashed var(--line); font-size: 12px; }
+.lab-scores { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-top: 6px; color: var(--ink-2); font-size: 11px; }
+.lab-note { margin: 5px 0 0; color: var(--caramel-soft); font-size: 11px; line-height: 1.65; }
+.lab-cg { width: 100%; max-height: 220px; border-radius: 12px; object-fit: cover; }
 .customer .cc {
   margin-top: 4px;
   color: var(--ink-2);
@@ -244,6 +328,7 @@ function collectionStatus(item) {
   padding: 6px 0;
   border-top: 1px dashed var(--line);
 }
+.cg-gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cg-card{display:block;width:100%;padding:0;text-align:left;color:var(--caramel);font:inherit;cursor:pointer}.cg-card:disabled{cursor:default}.cg-card .im{height:175px}.cg-card .im img{object-fit:cover}.cg-card .cp{display:grid;gap:3px;padding:7px 9px 9px}.cg-lightbox{position:fixed;inset:0;z-index:700;display:grid;grid-template-rows:minmax(0,1fr) auto;justify-items:center;align-items:center;padding:24px 14px max(22px,env(safe-area-inset-bottom));background:#150f0ceF;color:#fffaf1;font-size:13px}.cg-lightbox img{width:100%;height:100%;object-fit:contain;min-height:0}.cg-lightbox-close{position:absolute;top:max(12px,env(safe-area-inset-top));right:14px;z-index:1;width:44px;height:44px;border:0;border-radius:50%;background:#fff2;color:white;font-size:19px}
 </style>
 
 <style scoped>

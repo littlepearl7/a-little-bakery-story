@@ -48,7 +48,7 @@ npm run build
 |---|---|---|
 | `bg-<key>.webp` | `public/art/` | 10 张场景背景（720×1280 竖构图） |
 | `cg-<key>.webp` | `public/art/` | 整屏 CG，key 由文案里的 `【CG：…】` 指定 |
-| `<id>-sprite-in.webp` | `public/art/` | 店内立绘（围裙），透明底，高 1100 |
+| `<id>-sprite-in.webp` | `public/art/` | 店内场景立绘（按角色标注穿着，非员工不强制围裙），透明底，高 1100 |
 | `<id>-sprite-out.webp` | `public/art/` | 店外立绘（便装），透明底，高 1100 |
 | `<id>-face.webp` | `public/art/` | 对话头像，从立绘头部裁的 160×160 |
 | `shop-lv1..4.webp` | `public/art/` | 店铺页插画，跟着装修等级换 |
@@ -161,6 +161,7 @@ picture/                   ← 原始设定集与蛋糕图
 tools/crop_art.py          ← 切图脚本
 tools/cutout.py            ← 立绘去底（抠透明）
 tools/art_v2.py            ← 新素材一键转档：立绘两套 + 头像 + 背景 + 店铺插画
+tools/make_bgm.py          ← 程序化合成 BGM（独立 mp3，游戏暂未引用）
 tools/cake_art.py          ← 蛋糕产品图转 webp（含文件名映射）
 tools/grid_preview.py      ← 给原图打网格，用来量切图坐标
 tools/make-standalone.mjs  ← 生成可双击的单文件 HTML

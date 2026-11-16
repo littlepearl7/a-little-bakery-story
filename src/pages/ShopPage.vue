@@ -1,300 +1,82 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { art, artStatus, shopLevelInfo, monthLabel, productById, DEVICES, DECORATIONS } from '../data';
+import { art, artStatus, productById } from '../data';
 import {
-  state, capacity, openShop, closeDay, takeOrder, DAYS_PER_MONTH,
-  monthFixedCost, LEFTOVER_MODES, deviceTier, deviceNext, upgradeDevice,
-  customersToday, decorationComfort, buyDecoration,
+  state, openShop, closeDay, takeOrder, DAYS_PER_MONTH, monthFixedCost,
+  LEFTOVER_MODES, actionInfo, doAction, customersToday,
 } from '../store';
 
-const emit = defineEmits(['closed']);
+const emit = defineEmits(['closed', 'open-panel']);
+const notice = ref('');
+const shelfTotal = computed(() => Object.values(state.shelf || {}).reduce((sum, qty) => sum + qty, 0));
+const appointmentOrders = computed(() => state.orders);
+const regularVisits = computed(() => customersToday());
+const feedbackInfo = computed(() => actionInfo('feedback'));
+const leftoverDescriptions = { discount: '整理并打折售出', staff: '留给一起工作的伙伴', share: '分享给街坊邻居', waste: '妥善报损处理' };
 
-const lv = computed(() => shopLevelInfo(state.shopLevel));
-const shelfTotal = computed(() => Object.values(state.shelf || {}).reduce((a, b) => a + b, 0));
-const opened = computed(() => state.dayRev > 0 || state.daySold > 0);
-const shelfRows = computed(() =>
-  Object.keys(state.shelf || {})
-    .filter((id) => state.shelf[id] > 0)
-    .map((id) => ({ id, name: productById(id).name, qty: state.shelf[id] }))
-);
-const showClose = ref(false);
+function begin() {
+  if (!shelfTotal.value) {
+    notice.value = '展示柜还是空的，先去后厨制作蛋糕。';
+    return;
+  }
+  if (openShop()) emit('open-panel', 'game:delivery');
+}
 
-/** 店铺插画按等级换：Lv1 社区小店 → Lv4 高端主题门店 */
-const heroSrc = computed(() => {
-  const f = 'shop-lv' + state.shopLevel + '.webp';
-  return artStatus(f) === 'ok' ? art(f) : art('shop-exterior.webp');
-});
+function hearFeedback() {
+  if (state.dayPhase !== 'prep' || state.ap < feedbackInfo.value.ap || feedbackInfo.value.disabled) {
+    notice.value = feedbackInfo.value.note;
+    return;
+  }
+  notice.value = doAction('feedback', {}) ? '谢谢你把顾客的意见认真记了下来。' : '现在无法收集反馈。';
+}
 
-const devices = computed(() =>
-  DEVICES.map((d) => {
-    const tier = deviceTier(d.id);
-    return {
-      id: d.id,
-      name: d.name,
-      note: d.note,
-      desc: d.desc,
-      tier,
-      now: tier ? d.tiers[tier - 1].text : '',
-      next: deviceNext(d.id),
-    };
-  })
-);
-const visitors = computed(() => customersToday().map((customer) => ({
-  ...customer,
-  productName: productById(customer.product).name,
-  visit: state.regularCustomers[customer.id],
-})));
-const decorations = computed(() => DECORATIONS.map((item) => ({
-  ...item,
-  owned: state.decorations.includes(item.id),
-  available: state.shopLevel >= item.shopLevel,
-})));
-
-function pick(mode) {
+function finish(mode) {
   const report = closeDay(mode);
-  showClose.value = false;
-  emit('closed', report);
+  if (report) emit('closed', report);
 }
 </script>
 
 <template>
   <div>
-    <div class="shop-hero">
-      <span class="tag">{{ lv.name }}</span>
-      <img :src="heroSrc" alt="林记烘焙" />
-      <div class="cap">
-        <div class="n serif">林记烘焙</div>
-        <div class="small muted">
-          {{ monthLabel(state.month) }} · 第 {{ state.day }} / {{ DAYS_PER_MONTH }} 个经营日
-          · 共 {{ state.storeCount }} 家店
-        </div>
-      </div>
+    <div class="card card-pad">
+      <div class="between"><div><div class="h2" style="margin:0">柜台营业</div><div class="small muted">{{ state.month }} 月 · 第 {{ state.day }}/{{ DAYS_PER_MONTH }} 个经营日</div></div><span class="chip">口碑 {{ Math.round(state.reputation) }}</span></div>
+      <img v-if="artStatus('bg-counter.webp') === 'ok'" class="counter-art" :src="art('bg-counter.webp')" alt="林记烘焙营业柜台" />
+      <div class="counter-stats small muted"><span>待售 {{ shelfTotal }} 个</span><span>预约 {{ appointmentOrders.length }} 笔</span><span>今日收入 ¥{{ state.dayRev.toLocaleString() }}</span></div>
+      <div v-if="state.dayPhase === 'service-ready'" class="small muted">蛋糕已经摆进展示柜，准备好就开门接待。</div>
+      <button v-if="state.dayPhase === 'prep'" class="btn block" style="margin-top:9px" type="button" :disabled="feedbackInfo.disabled || state.ap < feedbackInfo.ap" @click="hearFeedback">顾客反馈 · {{ feedbackInfo.note }}</button>
+      <div v-if="state.dayPhase === 'prep' && regularVisits.length" class="small regular-visit"><strong>今日常客来访</strong><span v-for="customer in regularVisits" :key="customer.id">{{ customer.name }} · 想买{{ productById(customer.product).name }}</span></div>
+      <div v-if="state.dayPhase === 'prep' && state.challenge" class="small regular-visit"><strong>今日经营挑战</strong><span>{{ state.challenge.type === 'stock' ? '精准备货 · 剩货率不超过 10%' : state.challenge.type === 'new' ? '新品主题日 · ' + productById(state.challenge.target).name + ' 销售至少 3 份' : '定制专场 · 完成当天定制要求' }}</span></div>
+      <button v-if="state.dayPhase === 'service-ready'" class="btn primary block" style="margin-top:10px" type="button" @click="begin">开门营业 · 开始接待</button>
+      <button v-if="state.dayPhase === 'service'" class="btn primary block" style="margin-top:10px" type="button" @click="emit('open-panel', 'game:delivery')">继续全屏订单交付</button>
+      <button v-if="state.dayPhase === 'prep' && !shelfTotal" class="btn block" style="margin-top:10px" type="button" disabled>先去后厨制作蛋糕</button>
     </div>
 
-    <div class="card card-pad" style="margin-top: 12px">
-      <div class="h2">今天</div>
-      <div class="between" style="margin-bottom: 6px">
-        <span class="small muted">产能（体力 + 妈妈 + 伙伴）</span>
-        <span class="small">{{ capacity }} 点</span>
+    <div v-if="state.dayPhase === 'prep' && appointmentOrders.length" class="card card-pad section-card">
+      <div class="h2">今日预约</div>
+      <div v-for="order in appointmentOrders" :key="order.id" class="order-row">
+        <div><strong>{{ order.customer }} · {{ productById(order.product).name }} ×{{ order.qty }}</strong><div class="small muted">{{ order.type === '定制' ? '装饰：' + order.due + ' · 祝福：' + order.blessing + ' · ' : '' }}预计收入 ¥{{ order.pay }}</div></div>
+        <button class="btn" type="button" :disabled="order.taken" @click="takeOrder(order.id)">{{ order.taken ? '已接单' : '接下预约' }}</button>
       </div>
-      <div class="between" style="margin-bottom: 6px">
-        <span class="small muted">原料库存</span>
-        <span class="small">{{ state.stock }} 份</span>
-      </div>
-      <div class="between" style="margin-bottom: 6px">
-        <span class="small muted">待售成品</span>
-        <span class="small">{{ shelfTotal }} 个</span>
-      </div>
-      <div class="between">
-        <span class="small muted">本月固定成本</span>
-        <span class="small">¥{{ monthFixedCost }}</span>
-      </div>
+      <p class="small muted">接下的预约会在营业队列中优先出现。</p>
     </div>
 
-    <div v-if="visitors.length" class="card card-pad" style="margin-top: 12px">
-      <div class="h2">今天的常客</div>
-      <div v-for="visitor in visitors" :key="visitor.id" class="dev">
-        <div class="dev-body">
-          <div class="dev-name">{{ visitor.name }} · 想买 {{ visitor.productName }}</div>
-          <div class="dev-desc">{{ visitor.preference }}</div>
-          <div class="dev-next">
-            已买 {{ visitor.visit.purchases }} 次 · 当天自然客流卖出后计入档案
-          </div>
-        </div>
+    <div v-if="state.dayPhase === 'service'" class="card card-pad section-card small muted">顾客正在等待。请进入全屏订单交付继续营业；离开交付页面时，耐心计时会暂停。</div>
+
+    <div v-if="state.dayPhase === 'closing'" class="card card-pad section-card">
+      <div class="h2">今日接待完成</div>
+      <div class="between small"><span class="muted">营业结果</span><span>{{ state.daySold }} 个蛋糕 · ¥{{ state.dayRev.toLocaleString() }} 已到账</span></div>
+      <div v-if="shelfTotal" class="leftovers">
+        <div class="small muted">选择剩余成品的处理方式</div>
+        <button v-for="(mode,key) in LEFTOVER_MODES" :key="key" class="leftover-button" type="button" @click="finish(key)">{{ mode.label }}<span>{{ leftoverDescriptions[key] }}</span></button>
       </div>
+      <button v-else class="btn primary block" style="margin-top:10px" type="button" @click="finish('waste')">打烊，进入下一经营日</button>
     </div>
 
-    <div v-if="state.orders.length" class="card" style="margin-top: 12px">
-      <div class="card-pad" style="padding-bottom: 2px">
-        <div class="h2" style="margin: 0">今日订单 <span class="sub">接单后营业时优先交付</span></div>
-      </div>
-      <div v-for="o in state.orders" :key="o.id" class="cake" style="align-items: center">
-        <div style="flex: 1 1 auto; min-width: 0">
-          <div style="font-size: 14px; font-weight: 600">
-            {{ o.type }} · {{ productById(o.product).name }} × {{ o.qty }}
-          </div>
-          <div class="small muted">交付可得 ¥{{ o.pay }}</div>
-        </div>
-        <button
-          class="btn"
-          :class="{ primary: o.taken }"
-          style="height: 34px; padding: 0 14px; font-size: 13px"
-          type="button"
-          @click="takeOrder(o.id)"
-        >
-          {{ o.taken ? '已接' : '接单' }}
-        </button>
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-top: 12px">
-      <div class="between" style="margin-bottom: 6px">
-        <div class="h2" style="margin: 0">店铺装饰</div>
-        <span class="small muted">舒适度 {{ decorationComfort }} / 4 · 自然客流 +{{ decorationComfort * 2 }}%</span>
-      </div>
-      <div v-for="d in decorations" :key="d.id" class="dev">
-        <div class="dev-body">
-          <div class="dev-name">{{ d.name }} <span class="chip" style="font-size: 10px">{{ d.category }}</span></div>
-          <div class="dev-desc">舒适度 +1 · 店铺等级 {{ d.shopLevel }} 解锁</div>
-        </div>
-        <button
-          class="btn"
-          type="button"
-          style="height: 34px; padding: 0 12px; font-size: 12.5px; flex: 0 0 auto"
-          :disabled="d.owned || !d.available || state.cash < d.cost || state.phase !== 'playing'"
-          @click="buyDecoration(d.id)"
-        >
-          {{ d.owned ? '已购' : !d.available ? '等级不足' : '¥' + d.cost }}
-        </button>
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-top: 12px">
-      <div v-if="!opened">
-        <div class="h2">营业</div>
-        <p class="small muted" style="margin: 0 0 10px">
-          开门之后先交付已接的订单，剩下的按客流卖出去。
-        </p>
-        <button class="btn primary block" type="button" :disabled="shelfTotal === 0" @click="openShop">
-          {{ shelfTotal === 0 ? '还没有成品，先去厨房做' : '开门营业' }}
-        </button>
-      </div>
-
-      <div v-else>
-        <div class="h2">今天的成绩</div>
-        <div class="between" style="margin-bottom: 6px">
-          <span class="small muted">卖出</span><span class="small">{{ state.daySold }} 个</span>
-        </div>
-        <div class="between" style="margin-bottom: 10px">
-          <span class="small muted">收入</span><span class="small">¥{{ state.dayRev }}</span>
-        </div>
-
-        <div v-if="shelfRows.length" class="shelf-left">
-          <div class="small muted" style="margin-bottom: 6px">还剩</div>
-          <div class="between" v-for="r in shelfRows" :key="r.id" style="margin-bottom: 4px">
-            <span class="small">{{ r.name }}</span><span class="small muted">{{ r.qty }} 个</span>
-          </div>
-        </div>
-
-        <button v-if="!showClose" class="btn primary block" type="button" @click="showClose = true">
-          打烊结算
-        </button>
-        <div v-else>
-          <div class="small muted" style="margin-bottom: 8px">剩下的怎么处理？</div>
-          <button
-            v-for="(m, key) in LEFTOVER_MODES"
-            :key="key"
-            class="opt"
-            type="button"
-            @click="pick(key)"
-          >
-            {{ m.label }}
-            <span class="r">
-              {{ m.cashRate ? '回收一半成本' : '不换钱' }}{{ m.community ? '，社区好感 +' + m.community : '' }}
-            </span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-top: 12px">
-      <div class="between" style="margin-bottom: 6px">
-        <div class="h2" style="margin: 0">设备</div>
-        <span class="small muted">买了立刻生效</span>
-      </div>
-      <div v-for="d in devices" :key="d.id" class="dev">
-        <div class="dev-body">
-          <div class="dev-name">
-            {{ d.name }}
-            <span class="dots"><i v-for="i in 3" :key="i" :class="{ on: i <= d.tier }"></i></span>
-            <span class="chip" style="font-size: 10px">{{ d.tier ? d.now : d.note }}</span>
-          </div>
-          <div class="dev-desc">{{ d.desc }}</div>
-          <div class="dev-next" v-if="d.next">升级：{{ d.next.text }}</div>
-          <div class="dev-next" v-else>已经是最好的了</div>
-        </div>
-        <button
-          class="btn"
-          type="button"
-          style="height: 34px; padding: 0 12px; font-size: 12.5px; flex: 0 0 auto"
-          :disabled="!d.next || state.cash < d.next.cost"
-          @click="upgradeDevice(d.id)"
-        >
-          {{ d.next ? '¥' + d.next.cost : '满级' }}
-        </button>
-      </div>
-    </div>
-
-    <div class="card card-pad" style="margin-top: 12px">
-      <div class="h2">统计</div>
-      <div
-        class="stat"
-        v-for="s in [
-          { k: '口碑', v: state.reputation, cls: 'sage' },
-          { k: '知名度', v: state.popularity, cls: 'sage' },
-          { k: '顾客忠诚', v: state.loyalty, cls: '' },
-          { k: '品牌影响', v: state.brand, cls: 'pink' },
-        ]"
-        :key="s.k"
-      >
-        <span class="k">{{ s.k }}</span>
-        <span class="track"><span class="fill" :class="s.cls" :style="{ width: s.v + '%' }"></span></span>
-        <span class="v">{{ Math.round(s.v) }}</span>
-      </div>
-    </div>
+    <p v-if="notice" class="small notice" role="status">{{ notice }}</p>
+    <div class="card card-pad section-card small muted"><div>本月固定成本 ¥{{ monthFixedCost }}</div><div style="margin-top:4px">顾客超时会影响口碑，完成订单仍按原价结算。</div></div>
   </div>
 </template>
 
 <style scoped>
-.dev {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 0;
-  border-top: 1px dashed var(--line);
-}
-.dev:first-of-type {
-  border-top: 0;
-}
-.dev-body {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.dev-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-.dots {
-  display: inline-flex;
-  gap: 3px;
-}
-.dots i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--apricot-deep);
-}
-.dots i.on {
-  background: var(--sage);
-}
-.dev-desc {
-  margin-top: 2px;
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.dev-next {
-  margin-top: 1px;
-  font-size: 11px;
-  color: var(--caramel-soft);
-}
-.shelf-left {
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--apricot);
-  margin-bottom: 12px;
-}
+.counter-stats{display:flex;justify-content:space-between;gap:5px;margin:10px 0}.counter-art{display:block;width:100%;height:110px;margin-top:8px;border-radius:10px;object-fit:cover;object-position:center 62%}.section-card{margin-top:10px}.order-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid var(--line-soft)}.order-row strong{font-size:12px}.regular-visit{display:grid;gap:2px;margin-top:8px;padding:8px;border-radius:9px;background:#fff8ec}.regular-visit strong{color:var(--caramel)}.leftovers{margin-top:10px}.leftover-button{width:100%;min-height:44px;margin-top:5px;text-align:left;padding:8px 10px;border:1px solid var(--line-soft);border-radius:9px;background:var(--paper);color:var(--caramel)}.leftover-button span{display:block;margin-top:2px;font-size:10px;color:var(--ink-2)}.notice{padding:8px;background:#fff8ec;border-radius:8px}
 </style>

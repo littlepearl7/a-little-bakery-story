@@ -134,7 +134,7 @@ export const BG = {
 
 const RULES = [
   [/后厨|厨房|研发室|操作台|烤箱|烤炉/, 'kitchen'],
-  [/咖啡店|咖啡馆|下午茶/, 'cafe'],
+  [/秋屿咖啡|咖啡店|咖啡馆|下午茶/, 'cafe'],
   [/市集|生活节|文化节|展览|活动当天|摊位/, 'market'],
   [/旗舰店|新店|分店|开业|门店/, 'store'],
   [/宿舍|卧室|家里|房间/, 'home'],
@@ -171,6 +171,8 @@ const FRIEND_SCENE = {
 /** 事件的默认场景；short/style/final 这类用标题关键词兜底 */
 export function sceneKeyOfEvent(ev) {
   if (!ev) return 'shop';
+  if (ev.storyline === 'mom') return 'shop';
+  if (ev.storyline === 'zhiQiu') return ev.id === 'EVT_ZHIQIU_CH06_A' ? 'shop' : 'cafe';
   if (ev.kind === 'main' && MAIN_SCENE[ev.month]) return MAIN_SCENE[ev.month];
   if (ev.kind === 'friend' && FRIEND_SCENE[ev.month]) return FRIEND_SCENE[ev.month];
   return sceneKey(ev.title) || 'shop';
@@ -192,12 +194,16 @@ export function sceneKey(text) {
  */
 const SPRITE_DEF = {
   林念: { in: 'ln-sprite-in.webp', out: 'ln-sprite-out.webp', face: 'ln-face.webp' },
+  沈知秋: { in: 'zhiqiu-sprite-in.webp', out: 'zhiqiu-sprite-out.webp', face: 'zhiqiu-face.webp' },
   苏晴: { in: 'sq-sprite-in.webp', out: 'sq-sprite-out.webp', face: 'sq-face.webp' },
   林暖: { in: 'nu-sprite-in.webp', out: 'nu-sprite-out.webp', face: 'nu-face.webp' },
   周雨桐: { in: 'xy-sprite-in.webp', out: 'xy-sprite-out.webp', face: 'xy-face.webp' },
   许知遥: { in: 'zy-sprite-in.webp', out: 'zy-sprite-out.webp', face: 'zy-face.webp' },
   唐鸢: { in: 'ty-sprite-in.webp', out: 'ty-sprite-out.webp', face: 'ty-face.webp' },
   叶星河: { in: 'xh-sprite-in.webp', out: 'xh-sprite-out.webp', face: 'xh-face.webp' },
+  张奶奶: { in: 'regular-granny-zhang.webp', out: 'regular-granny-zhang.webp', face: '' },
+  陈叔: { in: 'regular-uncle-chen.webp', out: 'regular-uncle-chen.webp', face: '' },
+  小满: { in: 'regular-xiaoman.webp', out: 'regular-xiaoman.webp', face: '' },
 };
 
 export const SPRITE = SPRITE_DEF;
@@ -262,7 +268,52 @@ export const CG = {
   friends: { img: 'sq-friends.webp', name: '合影' },
   mom: { img: 'nu-duo.webp', name: '母亲' },
   shop: { img: 'shop-exterior.webp', name: '林记烘焙' },
+  'graduation-rejection': { img: 'cg-graduation-rejection.webp', name: '毕业季的拒信' },
+  'mom-01': { img: 'cg-mom-01.webp', name: '交到你手上了' },
+  'mom-02': { img: 'cg-mom-02.webp', name: '旧配方本的温度' },
+  'mom-03': { img: 'cg-mom-03.webp', name: '复原桂花栗子香' },
+  'mom-04': { img: 'cg-mom-04.webp', name: '第一个年末的账本' },
+  'mom-05': { img: 'cg-mom-05.webp', name: '两周年的店门合影' },
+  'mom-06': { img: 'cg-mom-06.webp', name: '三周年的初心老店' },
+  'zhiqiu-01': { img: 'cg-zhiqiu-01.webp', name: '午后初见' },
+  'zhiqiu-02': { img: 'cg-zhiqiu-02.webp', name: '第一次合作' },
+  'zhiqiu-03': { img: 'cg-zhiqiu-03.webp', name: '忙碌的周末' },
+  'zhiqiu-04': { img: 'cg-zhiqiu-04.webp', name: '雨天的故事' },
+  'zhiqiu-05': { img: 'cg-zhiqiu-05.webp', name: '栖云四季' },
+  'zhiqiu-06': { img: 'cg-zhiqiu-06.webp', name: '秋屿的夜晚' },
+  'zhiqiu-menu': { img: 'cg-zhiqiu-menu.webp', name: '栖云四季纪念菜单' },
+  osmanthus: { img: 'cg-osmanthus.webp', name: '桂花栗子蛋糕' },
+  festival: { img: 'cg-festival.webp', name: '秋日文化节' },
+  memory: { img: 'cg-memory.webp', name: '高三晚自习' },
+  flagship: { img: 'cg-flagship.webp', name: '旗舰店方案' },
+  album: { img: 'cg-album.webp', name: '三年相册' },
+  finale: { img: 'cg-finale.webp', name: '三周年合影' },
+  group: { img: 'cg-group.webp', name: '我们都在这里' },
 };
+
+export const CG_COLLECTION = [
+  { id: 'graduation-rejection', event: 'EVT_PROLOGUE_01' },
+  { id: 'osmanthus', event: 'EVT_M26_MAIN' },
+  { id: 'festival', event: 'EVT_M29_MAIN' },
+  { id: 'memory', event: 'EVT_M29_MAIN' },
+  { id: 'flagship', event: 'EVT_M33_MAIN' },
+  { id: 'album', event: 'EVT_M35_MAIN' },
+  { id: 'group', event: 'EVT_M36_MAIN' },
+  { id: 'finale', event: 'EVT_FINAL_END_NATIONAL' },
+  { id: 'mom-01', event: 'EVT_MOM_M01' },
+  { id: 'mom-02', event: 'EVT_MOM_M06' },
+  { id: 'mom-03', event: 'EVT_MOM_M08' },
+  { id: 'mom-04', event: 'EVT_MOM_M12' },
+  { id: 'mom-05', event: 'EVT_MOM_M24' },
+  { id: 'mom-06', event: 'EVT_MOM_M36' },
+  { id: 'zhiqiu-01', event: 'EVT_ZHIQIU_CH01' },
+  { id: 'zhiqiu-02', event: 'EVT_ZHIQIU_CH02' },
+  { id: 'zhiqiu-03', event: 'EVT_ZHIQIU_CH04' },
+  { id: 'zhiqiu-04', event: 'EVT_ZHIQIU_CH05' },
+  { id: 'zhiqiu-05', event: 'EVT_ZHIQIU_CH06_WIN' },
+  { id: 'zhiqiu-menu', event: 'EVT_ZHIQIU_CH06_WIN' },
+  { id: 'zhiqiu-06', event: 'EVT_ZHIQIU_SP_NIGHT' },
+];
 
 export function cgOf(key) {
   const c = CG[key];
@@ -275,3 +326,4 @@ export function bgSrcOf(cfg) {
   if (!cfg || !cfg.img) return '';
   return artStatus(cfg.img) === 'ok' ? art(cfg.img) : '';
 }
+

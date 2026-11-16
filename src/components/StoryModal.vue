@@ -1,11 +1,13 @@
 <script setup>
-import { computed, onUnmounted, ref, watch } from 'vue';
-import { state, finishEvent, applyChoice } from '../store';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { state, finishEvent, applyChoice, save } from '../store';
 import { resolveBeats } from '../story';
 import { BG, SPRITE, bgSrcOf, cgOf, faceOfName, sceneKey, sceneKeyOfEvent, spriteOf, spriteReady, wearOf } from '../vn';
+import { appendPhoneMessage, phoneConversationId, storyPhoneMessageId } from '../phone';
+import PhonePage from '../pages/PhonePage.vue';
 
 const props = defineProps({ ev: { type: Object, required: true } });
-const emit = defineEmits(['done']);
+const emit = defineEmits(['done', 'guide-target']);
 
 const list = ref([]);
 const idx = ref(0);
@@ -13,6 +15,14 @@ const typed = ref(0);
 const auto = ref(false);
 let timer = 0;
 let autoTimer = 0;
+let closeTimer = 0;
+let holdStartTimer = 0;
+let fastForwardTimer = 0;
+let suppressClickUntil = 0;
+const fastForward = ref(false);
+const phoneConversationOpen = ref(false);
+const activeStoryMessageId = ref('');
+const activeStoryMessage = computed(() => state.phoneMessages.find((message) => message.id === activeStoryMessageId.value) || null);
 
 /* ---------------- 初始化 ---------------- */
 
@@ -29,9 +39,116 @@ const finished = computed(() => idx.value >= list.value.length - 1);
 const atChoice = computed(() => !!cur.value && cur.value.t === 'choice');
 const isSay = computed(() => !!cur.value && cur.value.t === 'say');
 const isNar = computed(() => !!cur.value && cur.value.t === 'nar');
+const isMapGuide = computed(() =>
+  ['EVT_TUTORIAL_START', 'EVT_TUTORIAL_FRONT', 'EVT_TUTORIAL_KITCHEN', 'EVT_TUTORIAL_STREET', 'EVT_TUTORIAL_PHONE'].includes(props.ev.id)
+);
+const guideSpeaker = computed(() => (isSay.value ? cur.value.who : ''));
 const text = computed(() => (cur.value && cur.value.text) || '');
+const guideTarget = computed(() => {
+  if (!isMapGuide.value) return '';
+  if (props.ev.id === 'EVT_TUTORIAL_PHONE') return 'phone';
+  const targets = {
+    EVT_TUTORIAL_START: [[/柜台|展示柜/, 'counter']],
+    EVT_TUTORIAL_FRONT: [
+      [/柜台|展示柜|接待顾客|收银|结账/, 'counter'],
+      [/装修册/, 'book'],
+      [/门口|出门|出去/, 'door'],
+      [/门帘|去后厨/, 'kitchen'],
+      [/和妈妈聊聊|找妈妈/, 'mom'],
+    ],
+    EVT_TUTORIAL_KITCHEN: [
+      [/操作台|排产|菜单/, 'workbench'],
+      [/设备区|烤箱|打蛋器/, 'devices'],
+      [/食材区|食材|库存/, 'pantry'],
+      [/实验台|研发/, 'lab'],
+      [/排班板|店员|员工/, 'staff'],
+      [/做一炉|制作蛋糕|蛋糕制作/, 'baking'],
+    ],
+    EVT_TUTORIAL_STREET: [
+      [/食材铺|采购|农场/, 'supplier'],
+      [/公园|散步/, 'park'],
+      [/苏晴|寻找苏晴/, 'sq'],
+      [/回家|休息/, 'home'],
+    ],
+  }[props.ev.id] || [];
+  const matches = targets.map(([pattern, id]) => ({ at: text.value.search(pattern), id }))
+    .filter((match) => match.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  return matches[0]?.id || '';
+});
+const guideBoxStyle = ref({});
+let guidePlacement = '';
 const shown = computed(() => text.value.slice(0, typed.value));
 const typing = computed(() => typed.value < text.value.length);
+
+function updateGuideLayout() {
+  const targetId = guideTarget.value;
+  emit('guide-target', targetId);
+  if (!targetId || typeof document === 'undefined') return;
+  nextTick(() => {
+    if (targetId !== guideTarget.value) return;
+    const target = document.querySelector(`[data-guide-key="${targetId}"]`);
+    const stage = document.querySelector('.vn-stage');
+    const box = document.querySelector('.vn-guide-box');
+    if (!target || !stage || !box) return;
+
+    const targetRect = target.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
+    const safeTarget = {
+      left: targetRect.left - 64,
+      right: targetRect.right + 64,
+      top: targetRect.top - 72,
+      bottom: targetRect.bottom + 72,
+    };
+    const left = 12;
+    const right = Math.max(left, stageRect.width - boxRect.width - 12);
+    const top = 52;
+    const bottom = Math.max(top, stageRect.height - boxRect.height - 150);
+    const candidates = [
+      { key: 'top-left', x: left, y: top },
+      { key: 'top-right', x: right, y: top },
+      { key: 'bottom-left', x: left, y: bottom },
+      { key: 'bottom-right', x: right, y: bottom },
+    ].map((candidate) => ({
+      ...candidate,
+      rect: {
+        left: stageRect.left + candidate.x,
+        right: stageRect.left + candidate.x + boxRect.width,
+        top: stageRect.top + candidate.y,
+        bottom: stageRect.top + candidate.y + boxRect.height,
+      },
+    }));
+    const overlapsTarget = (candidate) =>
+      candidate.rect.left < safeTarget.right && candidate.rect.right > safeTarget.left
+      && candidate.rect.top < safeTarget.bottom && candidate.rect.bottom > safeTarget.top;
+    const current = candidates.find((candidate) => candidate.key === guidePlacement);
+    const available = candidates.filter((candidate) => !overlapsTarget(candidate));
+    const targetX = (safeTarget.left + safeTarget.right) / 2;
+    const targetY = (safeTarget.top + safeTarget.bottom) / 2;
+    const placement = current && !overlapsTarget(current)
+      ? current
+      : (available.length ? available : candidates).sort((a, b) => {
+        const distance = (candidate) => {
+          const x = (candidate.rect.left + candidate.rect.right) / 2 - targetX;
+          const y = (candidate.rect.top + candidate.rect.bottom) / 2 - targetY;
+          return x * x + y * y;
+        };
+        return distance(b) - distance(a);
+      })[0];
+    guidePlacement = placement.key;
+    guideBoxStyle.value = {
+      left: `${placement.x}px`,
+      right: 'auto',
+      top: `${placement.y}px`,
+      bottom: 'auto',
+      transform: 'none',
+    };
+  });
+}
+
+watch(guideTarget, () => nextTick(updateGuideLayout), { flush: 'post' });
+onMounted(() => window.addEventListener('resize', updateGuideLayout));
 
 /* ---------------- 场景 / 立绘 / CG ---------------- */
 
@@ -60,6 +177,10 @@ const bg = computed(() => BG[bgKey.value] || BG.shop);
 const bgSrc = computed(() => bgSrcOf(bg.value));
 /** 店里穿围裙、出门换便装 */
 const wear = computed(() => wearOf(bgKey.value));
+function wearFor(who) {
+  if (who !== '林念' || state.outfit === 'auto') return wear.value;
+  return state.outfit === 'bakery' ? 'in' : 'out';
+}
 const flashback = computed(
   () => !!scene.value && /回忆|闪回|高中|高三|晚自习|那年|那一年/.test(scene.value.text)
 );
@@ -77,14 +198,12 @@ const cgKey = computed(() => {
   if (at < 0) return '';
   // 换场景就等于收掉 CG
   if (at < sceneIdx.value) return '';
-  return list.value[at].key;
+  const key = list.value[at].key;
+  return cgOf(key).src ? key : '';
 });
 const cg = computed(() => (cgKey.value ? cgOf(cgKey.value) : null));
 
-/**
- * 台上只站一个人：谁在说话就站谁。
- * 旁白时保留上一位开口的角色，不至于画面突然空掉。
- */
+/** 台上只显示当前发言者；旁白只有明确点名的角色才显示。 */
 /** 旁白里的常见称呼 → 角色名 */
 const NICKNAME = {
   念念: '林念',
@@ -97,29 +216,23 @@ const NICKNAME = {
 };
 
 const cast = computed(() => {
-  const can = (who) => who && SPRITE[who] && spriteReady(who, wear.value);
+  const can = (who) => who && SPRITE[who] && spriteReady(who, wearFor(who));
 
-  // 有人说话就站他
-  if (isSay.value && can(cur.value.who)) return [cur.value.who];
+  if (isSay.value) return can(cur.value.who) ? [cur.value.who] : [];
 
-  // 旁白里点了谁的名字，就让谁上台 —— 这样「林暖皱起眉」不会还站着苏晴
   const t = (cur.value && cur.value.text) || '';
-  for (const name of Object.keys(SPRITE)) {
-    if (can(name) && t.indexOf(name) >= 0) return [name];
-  }
-  for (const nick of Object.keys(NICKNAME)) {
-    if (t.indexOf(nick) >= 0 && can(NICKNAME[nick])) return [NICKNAME[nick]];
-  }
-
-  // 谁都没提到：保留上一位开口的角色，别让画面空掉
-  for (let i = idx.value; i >= 0; i--) {
-    const b = list.value[i];
-    if (b.t === 'say' && can(b.who)) return [b.who];
-  }
-  for (const b of list.value) {
-    if (b.t === 'say' && can(b.who)) return [b.who];
-  }
-  return [];
+  // 旁白点名才换人：主角之外还有三位常客和街坊（有立绘的才会真的上台）
+  const names = [
+    ...Object.keys(SPRITE),
+    '张奶奶', '陈叔', '小满', '李婶', '赵叔', '沈知秋',
+    '陈奶奶', '张叔', '沈知夏',
+  ];
+  const mentions = names.map((name) => ({ name, at: t.indexOf(name) }))
+    .concat(Object.entries(NICKNAME).map(([nick, name]) => ({ name, at: t.indexOf(nick) })))
+    .filter((row) => row.at >= 0)
+    .sort((a, b) => a.at - b.at);
+  const first = mentions[0];
+  return first && can(first.name) ? [first.name] : [];
 });
 
 const speaker = computed(() => (isSay.value ? cur.value.who : ''));
@@ -127,8 +240,22 @@ const speaker = computed(() => (isSay.value ? cur.value.who : ''));
 watch(
   () => props.ev,
   () => {
+    phoneConversationOpen.value = false;
+    activeStoryMessageId.value = '';
+    guideBoxStyle.value = {};
+    guidePlacement = '';
     // 条件段落（伙伴信赖、家庭默契）在这里按当前存档展开
     list.value = resolveBeats(props.ev.beats || [], state);
+    const saved = state.storyChoices[props.ev.id] || {};
+    for (let i = 0; i < list.value.length; i++) {
+      const beat = list.value[i];
+      if (beat.t !== 'choice' || !Number.isInteger(saved[beat.node])) continue;
+      const option = beat.options[saved[beat.node]];
+      if (!option) continue;
+      applyChoice(beat, option, saved[beat.node], props.ev.id);
+      list.value.splice(i, 1, ...option.branch, ...(beat.after || []));
+      i--;
+    }
     idx.value = firstContent(list.value);
     typed.value = 0;
     auto.value = false;
@@ -149,6 +276,7 @@ function slotStyle(i) {
 
 function startType() {
   clearInterval(timer);
+  clearTimeout(closeTimer);
   typed.value = 0;
   if (atChoice.value || !text.value) {
     typed.value = text.value.length;
@@ -175,19 +303,109 @@ function nextIndex(from) {
   return Math.min(i, list.value.length - 1);
 }
 
+function openStoryPhoneMessage(index) {
+  const beat = list.value[index];
+  if (!beat || beat.t !== 'phoneMessage') return;
+  const contactId = phoneConversationId(list.value, index);
+  if (!contactId) return;
+  const ordinal = list.value.slice(0, index).filter((item) => item.t === 'phoneMessage').length;
+  const message = appendPhoneMessage(state, {
+    id: storyPhoneMessageId(props.ev.id, ordinal),
+    eventId: props.ev.id,
+    contactId,
+    sender: beat.who === '林念' ? 'player' : contactId,
+    text: beat.text,
+    read: true,
+  });
+  activeStoryMessageId.value = message.id;
+  phoneConversationOpen.value = true;
+  auto.value = false;
+  clearInterval(autoTimer);
+  stopHoldFastForward();
+  clearTimeout(closeTimer);
+  save();
+}
+
+watch([() => props.ev.id, () => idx.value], () => {
+  if (!phoneConversationOpen.value) openStoryPhoneMessage(idx.value);
+}, { flush: 'post' });
+
+function returnFromStoryPhone() {
+  if (!phoneConversationOpen.value) return;
+  phoneConversationOpen.value = false;
+  activeStoryMessageId.value = '';
+  if (finished.value) close();
+  else idx.value = nextIndex(idx.value);
+}
+
+function recordSkippedMessages(start, end) {
+  let ordinal = list.value.slice(0, start).filter((item) => item.t === 'phoneMessage').length;
+  for (let i = start; i <= end && i < list.value.length; i++) {
+    const beat = list.value[i];
+    if (beat.t !== 'phoneMessage') continue;
+    const contactId = phoneConversationId(list.value, i);
+    if (contactId) appendPhoneMessage(state, {
+      id: storyPhoneMessageId(props.ev.id, ordinal),
+      eventId: props.ev.id,
+      contactId,
+      sender: beat.who === '林念' ? 'player' : contactId,
+      text: beat.text,
+      read: false,
+    });
+    ordinal += 1;
+  }
+  save();
+}
+
 function advance() {
-  if (atChoice.value) return;
+  if (atChoice.value || phoneConversationOpen.value) return;
   if (typing.value) {
     typed.value = text.value.length;
     clearInterval(timer);
     return;
   }
-  if (finished.value) return;
+  if (finished.value) {
+    close();
+    return;
+  }
   idx.value = nextIndex(idx.value);
 }
 
+function advanceFromBox() {
+  if (Date.now() < suppressClickUntil) {
+    suppressClickUntil = 0;
+    return;
+  }
+  advance();
+}
+
+function startHoldFastForward(event) {
+  if (atChoice.value || phoneConversationOpen.value || (event.button !== undefined && event.button !== 0)) return;
+  clearTimeout(holdStartTimer);
+  try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
+  holdStartTimer = setTimeout(() => {
+    fastForward.value = true;
+    fastForwardTimer = setInterval(() => {
+      if (atChoice.value) stopHoldFastForward();
+      else if (typing.value) {
+        typed.value = text.value.length;
+        clearInterval(timer);
+      } else if (finished.value) close();
+      else idx.value = nextIndex(idx.value);
+    }, 110);
+  }, 300);
+}
+
+function stopHoldFastForward() {
+  clearTimeout(holdStartTimer);
+  clearInterval(fastForwardTimer);
+  fastForwardTimer = 0;
+  if (fastForward.value) suppressClickUntil = Date.now() + 350;
+  fastForward.value = false;
+}
+
 function choose(opt, i) {
-  applyChoice(cur.value, opt, i);
+  applyChoice(cur.value, opt, i, props.ev.id);
   const tail = (opt.branch || []).concat(cur.value.after || []);
   list.value.splice(idx.value, 1, ...tail);
   // 分支接在原位，落到第一段正文
@@ -196,24 +414,35 @@ function choose(opt, i) {
 }
 
 function skipAhead() {
+  if (phoneConversationOpen.value) return;
   for (let i = idx.value + 1; i < list.value.length; i++) {
     if (list.value[i].t === 'choice') {
+      recordSkippedMessages(idx.value + 1, i - 1);
       idx.value = i;
       return;
     }
   }
+  recordSkippedMessages(idx.value + 1, list.value.length - 1);
   idx.value = list.value.length - 1;
   typed.value = text.value.length;
 }
 
 function close() {
+  clearTimeout(closeTimer);
+  stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
   finishEvent(props.ev);
   emit('done');
 }
 
+watch([finished, typing, atChoice, phoneConversationOpen], ([isFinished, isTyping, isChoice, isPhoneOpen]) => {
+  clearTimeout(closeTimer);
+  if (isFinished && !isTyping && !isChoice && !isPhoneOpen) closeTimer = setTimeout(close, 1300);
+}, { immediate: true });
+
 function toggleAuto() {
+  if (phoneConversationOpen.value) return;
   auto.value = !auto.value;
   clearInterval(autoTimer);
   if (!auto.value) return;
@@ -234,22 +463,26 @@ function toggleAuto() {
 }
 
 onUnmounted(() => {
+  emit('guide-target', '');
+  window.removeEventListener('resize', updateGuideLayout);
+  stopHoldFastForward();
   clearInterval(timer);
   clearInterval(autoTimer);
+  clearTimeout(closeTimer);
 });
 </script>
 
 <template>
-  <div class="vn">
+  <div class="vn" :class="{ 'vn-guide': isMapGuide }">
     <div class="vn-stage" :class="{ flash: flashback }">
       <!-- 背景 -->
-      <div class="vn-bg" :style="{ background: bg.css }">
+      <div v-if="!isMapGuide" class="vn-bg" :style="{ background: bg.css }">
         <img v-if="bgSrc" :src="bgSrc" alt="" class="vn-bg-img" />
         <div class="vn-veil"></div>
       </div>
 
       <!-- CG -->
-      <transition name="cgfade">
+      <transition v-if="!isMapGuide" name="cgfade">
         <div v-if="cg && cg.src" class="vn-cg">
           <img :src="cg.src" alt="" />
           <div class="vn-cg-cap">{{ cg.name }}</div>
@@ -257,7 +490,7 @@ onUnmounted(() => {
       </transition>
 
       <!-- 立绘 -->
-      <div class="vn-cast">
+      <div v-if="!isMapGuide && !cgKey" class="vn-cast">
         <div
           v-for="(c, i) in cast"
           :key="c"
@@ -265,13 +498,13 @@ onUnmounted(() => {
           :class="{ dim: speaker && speaker !== c, off: !speaker }"
           :style="slotStyle(i)"
         >
-          <img :src="spriteOf(c, wear)" :alt="c" />
+          <img :src="spriteOf(c, wearFor(c))" :alt="c" />
         </div>
       </div>
 
       <!-- 顶栏 -->
       <div class="vn-top">
-        <div class="vn-titles">
+        <div v-if="!isMapGuide" class="vn-titles">
           <div class="vn-chapter">{{ ev.title }}</div>
           <div class="vn-scene" v-if="actLabel">{{ actLabel }}</div>
           <div class="vn-scene" v-else-if="scene">{{ scene.text }}</div>
@@ -293,28 +526,34 @@ onUnmounted(() => {
           @click.stop="choose(o, i)"
         >
           <span class="t">{{ o.label }}</span>
-          <span class="r" v-if="o.gains && o.gains.length">
-            {{ o.gains.map((g) => g.label).join(' · ') }}
-          </span>
-          <span class="r" v-else-if="o.hint">{{ o.hint }}</span>
         </button>
         <p v-if="cur.note" class="vn-note">{{ cur.note }}</p>
       </div>
 
       <!-- 对话框 -->
-      <div v-else class="vn-box" :class="{ nar: isNar }" @click="advance">
-        <div class="vn-name" v-if="isSay">
+      <div v-else class="vn-box" :class="{ nar: isNar, 'vn-guide-box': isMapGuide }" :style="isMapGuide ? guideBoxStyle : undefined" @click="advanceFromBox" @pointerdown="startHoldFastForward" @pointerup="stopHoldFastForward" @pointercancel="stopHoldFastForward" @contextmenu.prevent>
+        <div v-if="isMapGuide && isSay" class="guide-speaker">
+          <img v-if="faceOfName(guideSpeaker)" :src="faceOfName(guideSpeaker)" alt="" />
+          <span>{{ guideSpeaker }}</span>
+          <small>带你认地图</small>
+        </div>
+        <div class="vn-name" v-if="isSay && !isMapGuide">
           <img v-if="faceOfName(cur.who)" :src="faceOfName(cur.who)" alt="" />
           <span>{{ cur.who }}</span>
           <em v-if="cur.emo && cur.emo !== '视角'">{{ cur.emo }}</em>
         </div>
         <div class="vn-text">{{ shown }}<span v-if="typing" class="caret"></span></div>
         <div class="vn-foot">
-          <span v-if="finished && !typing" class="vn-end" @click.stop="close">结束 ←</span>
-          <span v-else class="vn-dot">▾</span>
+          <span class="vn-hold-hint">{{ fastForward ? '快进中…' : '长按快进' }}</span>
+          <span v-if="typing || !finished" class="vn-dot">▾</span>
         </div>
       </div>
     </div>
+    <PhonePage
+      v-if="phoneConversationOpen && activeStoryMessage"
+      :story-message="activeStoryMessage"
+      @story-message-done="returnFromStoryPhone"
+    />
   </div>
 </template>
 
@@ -325,10 +564,69 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 300;
+  z-index: 550;
   display: flex;
   justify-content: center;
   background: #1a1410;
+}
+.vn.vn-guide {
+  background: rgba(26, 20, 16, 0.2);
+}
+.vn-guide .vn-stage {
+  background: transparent;
+}
+.vn-guide .vn-top {
+  top: env(safe-area-inset-top, 0px);
+  justify-content: flex-end;
+  padding: 12px;
+  background: none;
+}
+.vn-guide .vn-guide-box {
+  top: 52px;
+  right: 12px;
+  bottom: auto;
+  left: 12px;
+  width: min(62%, 290px);
+  height: min(28%, 244px);
+  min-height: 156px;
+  max-height: 72%;
+  overflow-y: auto;
+  padding: 13px 14px 12px;
+  transform: none;
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.97);
+  box-shadow: 0 8px 28px rgba(45, 31, 22, 0.28);
+  backdrop-filter: blur(5px);
+}
+.guide-speaker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--caramel);
+  font-size: 13px;
+  font-weight: 700;
+}
+.guide-speaker img {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(107, 74, 52, 0.14);
+  border-radius: 50%;
+  object-fit: cover;
+}
+.guide-speaker small {
+  margin-left: auto;
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 400;
+}
+.vn-guide-box .vn-text {
+  font-size: 13px;
+  line-height: 1.75;
+}
+.vn-guide-box .vn-foot {
+  min-height: 18px;
 }
 .vn-stage {
   position: relative;
@@ -535,7 +833,12 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   z-index: 30;
+  height: 28%;
   min-height: 166px;
+  max-height: 38%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 18px 20px 20px;
   background: linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(251, 243, 232, 0.985));
   border-top-left-radius: 16px;
@@ -599,9 +902,10 @@ onUnmounted(() => {
 .vn-foot {
   height: 16px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: flex-end;
 }
+.vn-hold-hint { font-size: 9px; color: rgba(107, 74, 52, 0.55); }
 .vn-dot {
   font-size: 12px;
   color: var(--ink-2);
@@ -618,14 +922,6 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-.vn-end {
-  font-size: 12px;
-  color: var(--caramel);
-  background: var(--apricot);
-  padding: 3px 12px;
-  border-radius: 999px;
-}
-
 /* 选项 */
 .vn-choice {
   position: absolute;
