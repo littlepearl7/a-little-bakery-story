@@ -48,6 +48,7 @@ function openPanel(name, section = 'overview') {
 }
 
 function navigateTown(target) {
+  if (zhiQiuIntroVisitRequired() && !['cafe', 'shop', 'street', 'kitchen'].includes(target)) return;
   if (!sceneAvailability(target).open) return;
   visitTownScene(target);
   phoneOpen.value = false;
