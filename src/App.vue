@@ -70,9 +70,6 @@ const activeEvent = ref(null);
 const dayReport = ref(null);
 const monthReport = ref(null);
 const endingDismissed = ref(false);
-// 开发跳月只允许明确带 ?dev=1；手机竖屏不再误显示调试按钮。
-const devEnabled = new URLSearchParams(location.search).get('dev') === '1';
-
 const ending = computed(() =>
   state.phase === 'ended' && state.ending && !queue.events.length && !endingDismissed.value ? state.ending : null
 );
@@ -290,6 +287,16 @@ onMounted(() => {
   <div class="app">
   <TitleScreen v-if="!started" @enter="enterGame" />
 
+    <button
+      v-if="started && state.phase === 'playing'"
+      class="dev-backdoor"
+      type="button"
+      aria-label="开发者后门，跳到下个月"
+      title="跳到下个月"
+      :disabled="!!activeEvent || !!dayReport"
+      @click="devSkipMonth"
+    >开发者后门</button>
+
     <div v-if="started" class="topbar game-in">
       <div class="m serif">
         {{ monthLabel(state.month) }}
@@ -306,15 +313,6 @@ onMounted(() => {
         <span class="small muted">{{ stageInfo.name }}</span>
         <span class="chip">行动力 {{ state.ap }} · 体力 {{ state.stamina }}</span>
       </div>
-
-      <button
-        v-if="devEnabled && state.phase === 'playing'"
-        class="btn"
-        type="button"
-        style="width:100%;margin:0 0 8px"
-        :disabled="!!activeEvent || !!dayReport"
-        @click="devSkipMonth"
-      >开发者后门 · 跳到下个月</button>
 
       <SceneMapPage :scene="scene" :guide-target="activeGuideTarget" @change-scene="scene = $event" @open-panel="openPanel" />
 
@@ -582,6 +580,37 @@ onMounted(() => {
   /* 档案正文是多段（场景 + 对白 + 档案结语），保留换行 */
   white-space: pre-line;
   overflow-wrap: anywhere;
+}
+
+.dev-backdoor {
+  position: absolute;
+  left: env(safe-area-inset-left, 0px);
+  top: 50%;
+  z-index: 32;
+  width: 38px;
+  min-height: 94px;
+  padding: 9px 5px;
+  border: 1px solid rgba(255, 247, 235, 0.78);
+  border-left: 0;
+  border-radius: 0 12px 12px 0;
+  background: rgba(74, 49, 34, 0.78);
+  color: #fff9ee;
+  box-shadow: 0 3px 12px rgba(37, 24, 16, 0.24);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dev-backdoor:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+.dev-backdoor:not(:disabled):active {
+  background: rgba(74, 49, 34, 0.96);
 }
 
 .scene-scroll { min-height:0; padding: 8px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); overflow:hidden; display:flex; flex-direction:column; }
