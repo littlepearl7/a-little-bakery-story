@@ -143,8 +143,18 @@ function returnToTitle() {
 function openNext() {
   if (state.tutorialPractice) return;
   while (queue.events.length && state.played.includes(queue.events[0].id)) queue.events.shift();
+  if (state.tutorialProgress > 0 && !state.played.includes('EVT_TUTORIAL_END')) {
+    const tutorialIndex = queue.events.findIndex((event) => event.kind === 'tutorial');
+    if (tutorialIndex < 0) {
+      state.tutorialProgress = 0;
+      save();
+    } else if (tutorialIndex > 0) {
+      queue.events.unshift(queue.events.splice(tutorialIndex, 1)[0]);
+    }
+  }
   if (!queue.events.length) return;
   const next = queue.events[0];
+  if (state.tutorialProgress > 0 && next.kind !== 'tutorial') return;
   if (next.kind === 'tutorial') {
     if (next.id.includes('KITCHEN')) scene.value = 'kitchen';
     else if (next.id.includes('STREET') || next.id.includes('PHONE')) scene.value = 'street';

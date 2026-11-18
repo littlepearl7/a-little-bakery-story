@@ -2176,6 +2176,7 @@ function pushEvent(ev) {
 
 /** 主线事件：按月推进，条件不满足就继续等 */
 export function queueStory() {
+  if (state.tutorialProgress > 0 && !state.played.includes('EVT_TUTORIAL_END')) return;
   const datePassed = (event) => event.month < state.month || (event.month === state.month && event.day < state.day);
   const dateAvailable = (event) => datePassed(event) || (!event.afterClose && event.month === state.month && event.day === state.day);
   const due = STORY.events.filter((ev) => {
@@ -2360,6 +2361,7 @@ export function finishEvent(ev) {
   ids.forEach((id) => {
     if (!state.played.includes(id)) state.played.push(id);
   });
+  if (ev.kind === 'tutorial' && ev.id === 'EVT_TUTORIAL_END') state.tutorialProgress = 0;
   if (ev.kind === 'friend') state.sqchatMonth = ev.month;
   if (!Array.isArray(state.career.cgs)) state.career.cgs = [];
   CG_COLLECTION.forEach((cg) => {

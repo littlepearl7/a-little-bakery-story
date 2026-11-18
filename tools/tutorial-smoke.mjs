@@ -61,6 +61,19 @@ try {
   assert.equal(store.queue.events.at(-1).id, 'MAIN_M1_TEST', '教程结束后保留主线');
   assert.equal(store.state.tutorialPromptPending, false);
 
+  store.reset();
+  store.state.month = 8;
+  store.state.day = 1;
+  store.state.tutorialProgress = 1;
+  store.queue.events.push(story.STORY.events.find((event) => event.id === 'EVT_M08_MAIN'));
+  store.queueStory();
+  assert.deepEqual(store.queue.events.map((event) => event.id), ['EVT_M08_MAIN'], '教程进行中不应重新排入小雨入队剧情');
+  store.queue.events.unshift(story.STORY.find('EVT_TUTORIAL_STREET'));
+  const guardedApp = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
+  assert(guardedApp.includes("const tutorialIndex = queue.events.findIndex((event) => event.kind === 'tutorial')"), '教程剩余事件优先于已排队的普通剧情');
+  store.finishEvent(story.STORY.find('EVT_TUTORIAL_END'));
+  assert.equal(store.state.tutorialProgress, 0, '教程结束后解除剧情队列保护');
+
   store.queue.events.splice(0);
   store.queue.events.push({ id: 'MAIN_M1_TEST', month: 1, kind: 'main', beats: [] });
   store.startTutorial(false);
