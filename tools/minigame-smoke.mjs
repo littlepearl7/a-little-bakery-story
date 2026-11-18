@@ -26,6 +26,7 @@ try{
   assert.equal(t.kind,'appointment');
   assert(s.findCake(t.id,'strawberry',1).ok);
   s.advanceServiceTime(2);
+  assert.equal(t.status,'found','找货倒计时结束后应进入待打包，不能永久停留');
   assert(s.packOrder(t.id,t.due,t.blessing).ok);
   assert.equal(t.status,'packing');
   s.advanceServiceTime(3.6);
@@ -35,6 +36,16 @@ try{
   assert.equal(t.revenue,198);
   assert.equal(s.deliverTicket(t.id).ok,false);
   assert.equal(s.state.shelf.strawberry,1);
+  // 找货按钮提供明确的人工兜底，避免计时暂停时订单无法继续。
+  reset();s.state.dayPhase='service-ready';s.state.shelf.strawberry=1;
+  s.state.batches=[{id:'find-fallback',product:'strawberry',qty:1,quality:'normal'}];
+  s.state.orders=[{id:'o-find-fallback',orderNo:'LJ-FALLBACK',type:'预约',kind:'appointment',customer:'测试客人',product:'strawberry',qty:1,pay:150,taken:true}];
+  s.openShop();
+  const stuck=s.state.service.tickets[0];
+  assert(s.findCake(stuck.id,'strawberry',1).ok);
+  assert(s.completeCakeFinding(stuck.id));
+  assert.equal(stuck.status,'found');
+  assert.equal(s.completeCakeFinding(stuck.id),false,'重复点击不能重复完成找货');
   // 市集：配货不会凭空补库存，卖出同步到主店。
   reset();s.state.dayPhase='service-ready';s.state.shelf.strawberry=4;
   s.state.batches=[{id:'test',product:'strawberry',qty:4,quality:'normal'}];

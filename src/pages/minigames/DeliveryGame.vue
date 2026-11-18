@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { art, artStatus } from '../../data';
 import {
-  state, availableProducts, openShop, findCake, packOrder, advanceServiceTime,
+  state, availableProducts, openShop, findCake, completeCakeFinding, packOrder, advanceServiceTime,
   deliverTicket, declineTicket, selectServiceTicket, displayProductName, save,
 } from '../../store';
 import MiniShell from './MiniShell.vue';
@@ -89,7 +89,7 @@ const statusLabels = {
 const mainActionLabel = computed(() => {
   if (!current.value) return '';
   if (current.value.status === 'waiting') return '核对蛋糕并取货';
-  if (current.value.status === 'searching') return '员工正在找货';
+  if (current.value.status === 'searching') return '完成找货';
   if (current.value.status === 'found') return '开始打包';
   if (current.value.status === 'packing') return '继续打包动画';
   if (current.value.status === 'ready') return '递交蛋糕 · 收款';
@@ -201,7 +201,10 @@ function runMainAction() {
     message.value = result.message;
     return;
   }
-  if (ticket.status === 'searching') return message.value = '找货还在进行中，稍等片刻。';
+  if (ticket.status === 'searching') {
+    if (completeCakeFinding(ticket.id)) message.value = '已找到对应蛋糕，可以开始打包。';
+    return;
+  }
   if (ticket.status === 'found') {
     if (props.tutorial) {
       ticket.status = 'ready';
@@ -435,7 +438,7 @@ onUnmounted(() => {
         <div class="game-grid">
           <button class="game-btn" type="button" :disabled="packing" @click="openOrderPhone">📱 手机订单</button>
           <button v-if="!tutorial" class="game-btn" type="button" :disabled="packing" @click="unavailable">登记缺货</button>
-          <button class="game-btn primary" type="button" :disabled="packing || current.status === 'searching'" @click="runMainAction">
+          <button class="game-btn primary" type="button" :disabled="packing" @click="runMainAction">
             {{ mainActionLabel }}
           </button>
         </div>

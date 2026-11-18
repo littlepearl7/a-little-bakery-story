@@ -1766,6 +1766,16 @@ export function findCake(ticketId, productId, qty) {
   return { ok: true, message: '在展示柜里找蛋糕。' };
 }
 
+export function completeCakeFinding(ticketId) {
+  if (state.dayPhase !== 'service' || !state.service) return false;
+  const ticket = activeServiceTicket();
+  if (!ticket || ticket.id !== ticketId || ticket.status !== 'searching') return false;
+  ticket.findRemaining = 0;
+  ticket.status = 'found';
+  save();
+  return true;
+}
+
 export function packOrder(ticketId, decoration = null, blessing = null) {
   if (state.dayPhase !== 'service' || !state.service) return { ok: false, message: '現在不是营业接待阶段。' };
   const ticket = activeServiceTicket();
@@ -1789,12 +1799,13 @@ function serviceSpeed(role) {
 
 export function advanceServiceTime(seconds = 1) {
   if (state.dayPhase !== 'service' || !state.service) return;
-  const elapsed = Math.max(0, seconds);
+  const elapsed = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
   serviceWindow().forEach((ticket) => {
     ticket.remaining = Math.max(0, ticket.remaining - elapsed);
     if (ticket.status === 'searching') {
-      ticket.findRemaining = Math.max(0, ticket.findRemaining - elapsed);
-      if (ticket.findRemaining === 0) ticket.status = 'found';
+      const findRemaining = Number(ticket.findRemaining);
+      ticket.findRemaining = Math.max(0, (Number.isFinite(findRemaining) ? findRemaining : 0) - elapsed);
+      if (ticket.findRemaining <= 0) ticket.status = 'found';
     }
     if (ticket.status === 'packing') {
       ticket.packRemaining = Math.max(0, ticket.packRemaining - elapsed);
