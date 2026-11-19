@@ -503,6 +503,11 @@ function applySaveData(data) {
     state.phoneMessages = Array.isArray(data.phoneMessages) ? data.phoneMessages : [];
     if (data.v < 10) backfillPlayedPhoneMessages(state, STORY.events);
     state.savedAt = Number(data.savedAt) || 0;
+    const tutorialFinished = state.played.includes('EVT_TUTORIAL_END');
+    if (tutorialFinished) {
+      state.tutorialProgress = 0;
+      state.tutorialPromptPending = false;
+    }
     const storyEvents = new Map(STORY.events.map((event) => [event.id, event]));
     const savedStoryQueue = data.storyQueue || [];
     const queuedIds = new Set();
@@ -510,6 +515,7 @@ function applySaveData(data) {
     savedStoryQueue.forEach((entry) => {
       const event = typeof entry === 'string' ? storyEvents.get(entry) : entry;
       if (!event || typeof event !== 'object' || typeof event.id !== 'string' || !Array.isArray(event.beats)) return;
+      if (tutorialFinished && event.kind === 'tutorial') return;
       if (state.played.includes(event.id) || queuedIds.has(event.id)) return;
       queuedIds.add(event.id);
       storyQueue.push(event);
@@ -1891,7 +1897,7 @@ function autoDeliverTickets() {
 
 function finishServiceIfDone() {
   const service = state.service;
-  if (!service || service.current < service.tickets.length) return;
+  if (!service || state.dayPhase !== 'service' || service.current < service.tickets.length) return;
   state.dayPhase = 'closing';
   const delivered = service.tickets.filter((ticket) => ticket.status === 'delivered').length;
   if (delivered) {
@@ -1901,9 +1907,10 @@ function finishServiceIfDone() {
   if (!state.challengeDone && state.challenge) {
     const sold = state.daySold;
     const left = Object.values(state.shelf).reduce((sum, qty) => sum + qty, 0);
+    const customTickets = service.tickets.filter((ticket) => ticket.type === '定制');
     const success = state.challenge.type === 'stock' ? left / Math.max(1, sold + left) <= 0.1
       : state.challenge.type === 'new' ? (service.challengeNewSold || 0) >= 3
-        : (service.customDone || 0) > 0;
+        : customTickets.length > 0 && customTickets.every((ticket) => ticket.status === 'delivered');
     if (success) {
       const bonus = Math.round(state.dayRev * 0.05);
       state.cash += bonus;
